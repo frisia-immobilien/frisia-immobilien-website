@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --color-navy: #1B3040;
+  --color-sand: #EDE7DD;
+  --color-graphite: #42484F;
+  --color-brackish: #354C52;
+  --color-brass: #8B6F3D;
+  --color-white: #FFFFFF;
+  --color-section: #F7F8FA;
+  --font-inter: "Avenir Next", "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-playfair: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+}
+
+/* Brass sparsam = Premium durch Zurueckhaltung. */
+@theme inline {
+  --color-background: var(--color-white);
+  --color-foreground: var(--color-graphite);
+  --color-brand-navy: var(--color-navy);
+  --color-brand-sand: var(--color-sand);
+  --color-brand-graphite: var(--color-graphite);
+  --color-brand-brackish: var(--color-brackish);
+  --color-brand-brass: var(--color-brass);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-white);
+  color: var(--color-graphite);
+  line-height: 1.7;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: var(--font-playfair), Georgia, serif;
+}
