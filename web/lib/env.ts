@@ -14,22 +14,54 @@ export function requireEnv(name: string) {
 }
 
 export const env = {
-  DATABASE_URL: requireEnv("DATABASE_URL"),
-  TOKEN_SECRET: requireEnv("TOKEN_SECRET"),
-  TOKEN_TTL_DAYS: Number(readEnv("TOKEN_TTL_DAYS") || 30),
-  PUBLIC_BASE_URL: readEnv("PUBLIC_BASE_URL"),
-  PROPSTACK_API_KEY: readEnv("PROPSTACK_API_KEY"),
-  PROPSTACK_BASE_URL: readEnv("PROPSTACK_BASE_URL") || "https://api.propstack.de/v2",
-  PROPSTACK_V1_BASE_URL:
-    readEnv("PROPSTACK_V1_BASE_URL") ||
-    readEnv("PROPSTACK_BASE_URL").replace(/\/v2\/?$/i, "/v1") ||
-    "https://api.propstack.de/v1",
-  PROPSTACK_BROKER_ID: readEnv("PROPSTACK_BROKER_ID"),
-  PROPSTACK_LEAD_BROKER_ID: readEnv("PROPSTACK_LEAD_BROKER_ID"),
-  PROPSTACK_LEAD_BROKER_EMAIL: readEnv("PROPSTACK_LEAD_BROKER_EMAIL"),
-  PROPSTACK_LEAD_BROKER_NAME: readEnv("PROPSTACK_LEAD_BROKER_NAME"),
-  PROPSTACK_REPORT_SNIPPET_ID: readEnv("PROPSTACK_REPORT_SNIPPET_ID"),
-  GOOGLE_MAPS_API_KEY: readEnv("GOOGLE_MAPS_API_KEY"),
-  OPENCAGE_API_KEY: readEnv("OPENCAGE_API_KEY"),
-  BORIS_API_URL: readEnv("BORIS_API_URL"),
+  get DATABASE_URL() {
+    return requireEnv("DATABASE_URL");
+  },
+  get TOKEN_SECRET() {
+    return requireEnv("TOKEN_SECRET");
+  },
+  get TOKEN_TTL_DAYS() {
+    return Number(readEnv("TOKEN_TTL_DAYS") || 30);
+  },
+  get PUBLIC_BASE_URL() {
+    return readEnv("PUBLIC_BASE_URL");
+  },
+  get PROPSTACK_API_KEY() {
+    return readEnv("PROPSTACK_API_KEY");
+  },
+  get PROPSTACK_BASE_URL() {
+    return readEnv("PROPSTACK_BASE_URL") || "https://api.propstack.de/v2";
+  },
+  get PROPSTACK_V1_BASE_URL() {
+    const baseUrl = readEnv("PROPSTACK_BASE_URL");
+    return (
+      readEnv("PROPSTACK_V1_BASE_URL") ||
+      baseUrl.replace(/\/v2\/?$/i, "/v1") ||
+      "https://api.propstack.de/v1"
+    );
+  },
+  get PROPSTACK_BROKER_ID() {
+    return readEnv("PROPSTACK_BROKER_ID");
+  },
+  get PROPSTACK_LEAD_BROKER_ID() {
+    return readEnv("PROPSTACK_LEAD_BROKER_ID");
+  },
+  get PROPSTACK_LEAD_BROKER_EMAIL() {
+    return readEnv("PROPSTACK_LEAD_BROKER_EMAIL");
+  },
+  get PROPSTACK_LEAD_BROKER_NAME() {
+    return readEnv("PROPSTACK_LEAD_BROKER_NAME");
+  },
+  get PROPSTACK_REPORT_SNIPPET_ID() {
+    return readEnv("PROPSTACK_REPORT_SNIPPET_ID");
+  },
+  get GOOGLE_MAPS_API_KEY() {
+    return readEnv("GOOGLE_MAPS_API_KEY");
+  },
+  get OPENCAGE_API_KEY() {
+    return readEnv("OPENCAGE_API_KEY");
+  },
+  get BORIS_API_URL() {
+    return readEnv("BORIS_API_URL");
+  },
 };
