@@ -18,11 +18,11 @@ type MarketItem = {
 
 const CITY_LINKS = [
   { label: "Aurich", href: "/immobilienmakler-aurich" },
-  { label: "Emden", href: "/regionen-ostfriesland/immobilienmakler-emden" },
-  { label: "Norden", href: "/regionen-ostfriesland/immobilienmakler-norden" },
-  { label: "Leer", href: "/regionen-ostfriesland/immobilienmakler-leer" },
-  { label: "Wittmund", href: "/regionen-ostfriesland/immobilienmakler-wittmund" },
-  { label: "Friedeburg", href: "/regionen-ostfriesland/immobilienmakler-friedeburg" },
+  { label: "Emden", href: "/immobilienmakler-emden" },
+  { label: "Norden", href: "/immobilienmakler-norden" },
+  { label: "Leer", href: "/immobilienmakler-leer" },
+  { label: "Wittmund", href: "/immobilienmakler-wittmund" },
+  { label: "Friedeburg", href: "/immobilienmakler-friedeburg" },
 ] as const;
 
 const ITEMS: readonly MarketItem[] = [

@@ -179,9 +179,9 @@ export default function LeadGenEntryClient(props: LeadGenEntryProps) {
                   >
                     <div className="text-sm font-semibold tracking-wide text-white/80">PREIS- UND MARKTEINORDNUNG</div>
 
-                    <h3 className="mt-2 text-3xl tracking-tight text-white">
+                    <h2 className="mt-2 text-3xl tracking-tight text-white">
                       Online-Bewertung: Was ist meine Immobilie wert?
-                    </h3>
+                    </h2>
 
                     <p className="mt-4 text-base leading-relaxed text-white/85">
                       Frisia Immobilien ordnet deine Immobilie realistisch ein – auf Basis des regionalen Marktes in Aurich und

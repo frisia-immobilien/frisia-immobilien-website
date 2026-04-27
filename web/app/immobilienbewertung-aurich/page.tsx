@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
 import LeadGenWizard from "@/components/immobilienbewertung/LeadGenWizard.client";
 import { buildPageMetadata } from "@/lib/metadata";
 import {
   AREA_SERVED,
-  PHONE_DISPLAY,
-  PHONE_HREF,
   SITE_URL,
   absoluteUrl,
   createBreadcrumbListJsonLd,
@@ -275,7 +272,7 @@ export default function ImmobilienbewertungAurichPage() {
         />
 
         <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-[1440px] flex-col justify-start px-5 pb-14 pt-18 sm:px-8 md:pb-18 md:pt-20 lg:px-12">
-          <div className="max-w-[40rem]">
+          <div className="max-w-[40rem] min-w-0">
             <div>
               <p className="text-[0.78rem] font-semibold uppercase tracking-[0.19em] text-[color:var(--color-navy)]">
                 Immobilienbewertung Aurich & Ostfriesland
@@ -283,7 +280,7 @@ export default function ImmobilienbewertungAurichPage() {
               <div className="mt-4 h-px w-16 bg-[color:var(--color-brass)]" aria-hidden="true" />
             </div>
 
-            <h1 className="mt-7 font-[family-name:var(--font-playfair)] text-[3.05rem] leading-[1.03] text-[color:var(--color-navy)] md:text-[4.55rem] lg:text-[5.05rem]">
+            <h1 className="mt-7 max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)]">
               Dein Immobilienwert – fundiert und nachvollziehbar ermittelt.
             </h1>
 
@@ -315,7 +312,7 @@ export default function ImmobilienbewertungAurichPage() {
             </div>
           </div>
 
-          <aside className="mt-12 max-w-[34rem] rounded-2xl border border-[color:var(--color-brass)]/18 bg-white/94 p-6 shadow-[0_22px_70px_rgba(15,23,42,0.10)] backdrop-blur-sm lg:absolute lg:bottom-10 lg:right-12 lg:mt-0">
+          <aside className="mt-12 max-w-[34rem] rounded-2xl border border-[color:var(--color-brass)]/18 bg-white/94 p-6 shadow-[0_22px_70px_rgba(15,23,42,0.10)] backdrop-blur-sm">
             <div className="flex items-center gap-5">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-navy)]">
                 <Image src="/immobilienbewertung/icons/hero/trust.png" alt="" width={42} height={42} className="h-10 w-10 object-contain" />
@@ -354,7 +351,7 @@ export default function ImmobilienbewertungAurichPage() {
               {trustItems.map((item) => (
                 <article
                   key={item.text}
-                  className="flex items-start gap-4 rounded-2xl border border-[color:var(--color-brass)]/22 bg-[color:var(--color-section)] px-5 py-5 text-[1.03rem] leading-[1.62] text-[color:var(--color-graphite)] shadow-[0_14px_34px_-32px_rgba(27,48,64,0.35)]"
+                  className="flex items-start gap-4 rounded-2xl border border-[color:var(--color-brass)]/22 bg-[color:var(--color-section)] px-5 py-5 text-[1.03rem] font-semibold leading-[1.62] text-[color:var(--color-graphite)] shadow-[0_14px_34px_-32px_rgba(27,48,64,0.35)]"
                 >
                   <Image
                     src={item.icon}

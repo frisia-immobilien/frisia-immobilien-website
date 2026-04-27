@@ -42,6 +42,7 @@ export type LeadGenWizardPropertyType = Exclude<PropertyTypeCore, 'commercial' |
 export type LeadGenWizardProps = {
   layout?: 'embedded' | 'page'
   initialPropertyType?: LeadGenWizardPropertyType
+  idPrefix?: string
   onReady?: () => void
   onExitToEntry?: () => void
   onCloseToEntry?: () => void
@@ -88,7 +89,7 @@ type Step09LocationData = {
   lon?: number
   canProceed?: boolean
 }
-type Step13EmailConsentData = {email?: string; consent?: boolean; __valid?: boolean}
+type Step13EmailConsentData = {email?: string; consent?: boolean; captchaToken?: string; __valid?: boolean}
 type Step14PersonData = {
   salutation?: 'mrs' | 'mr' | 'none'
   firstName?: string
@@ -338,6 +339,7 @@ type StepKey =
 
 export default function LeadGenWizardClient(props: LeadGenWizardProps) {
   const {initialPropertyType, onReady, onExitToEntry, onCloseToEntry} = props
+  const idPrefix = props.idPrefix ?? 'leadgen'
   const wizardTopRef = useRef<HTMLDivElement | null>(null)
   const didMountRef = useRef(false)
   const lastTrackedStepRef = useRef<string>('')
@@ -379,8 +381,9 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
       JSON.stringify({
         leadId: crmLeadId,
         payload: syncPayload,
+        captchaToken: leadData.step13EmailConsent?.captchaToken,
       }),
-    [crmLeadId, syncPayload],
+    [crmLeadId, syncPayload, leadData.step13EmailConsent?.captchaToken],
   )
 
   const steps: StepKey[] = useMemo(() => {
@@ -754,6 +757,8 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
     }
   }, [canBackgroundSync, crmLeadId, stepKey, syncPayload, syncPayloadSignature])
 
+  const finalizeCaptchaToken = leadData.step13EmailConsent?.captchaToken
+
   const runFinalize = useCallback(
     async (force = false) => {
       if (stepKey !== 'result') return
@@ -804,6 +809,7 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
           body: JSON.stringify({
             leadId: crmLeadId,
             payload: syncPayload,
+            captchaToken: finalizeCaptchaToken,
           }),
           signal: abortController.signal,
         })
@@ -859,6 +865,7 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
     [
       canBackgroundSync,
       crmLeadId,
+      finalizeCaptchaToken,
       finalizeSignature,
       finalizeValidationError,
       setStep15Result,
@@ -991,6 +998,7 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
             onChange={setStep13EmailConsent}
             onNext={goNext}
             context={context}
+            idPrefix={idPrefix}
           />
         </div>
       )
@@ -1029,6 +1037,7 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
     )
   }, [
     stepKey,
+    idPrefix,
     initialPropertyType,
     leadData,
     selectedType,
@@ -1085,9 +1094,9 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
                         PREIS- UND MARKTEINORDNUNG
                       </div>
 
-                      <h3 className="mt-2 font-playfair text-3xl font-semibold tracking-tight text-white">
+                      <h2 className="mt-2 font-playfair text-3xl font-semibold tracking-tight text-white">
                         Online-Bewertung: Was ist meine Immobilie wert?
-                      </h3>
+                      </h2>
 
                       <p className="mt-4 text-base leading-relaxed text-white/85">
                         Frisia Immobilien ordnet deine Immobilie realistisch ein – auf Basis des

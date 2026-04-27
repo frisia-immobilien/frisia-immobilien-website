@@ -6,7 +6,6 @@ import { sql } from "@/lib/db";
 import { hashToken } from "@/lib/tokens";
 import type { LeadProgressRecord } from "@/lib/lead-progress";
 import type { LeadSyncPayload } from "@/lib/lead-sync";
-import type { MarketRecord } from "@/lib/immobilienbewertung/market-data";
 import type { LeadValuationResult } from "@/lib/immobilienbewertung/valuation";
 
 export type LeadValuationRow = {

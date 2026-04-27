@@ -5,7 +5,7 @@ import ExpandableTextBlock from "@/components/site/ExpandableTextBlock.client";
 import MapLocationOverlay from "@/components/site/MapLocationOverlay.client";
 import PropertyGallery from "@/components/site/PropertyGallery.client";
 import { getGermanConditionLabel, getGermanPropertyTypeLabel } from "@/lib/property-labels";
-import type { PropertyDetail, PropertyDetailImage } from "@/lib/propstack";
+import type { PropertyDetail } from "@/lib/propstack";
 import { ADDRESS, DIRECT_CONTACT } from "@/lib/site";
 
 type PropertyDetailTemplateProps = {

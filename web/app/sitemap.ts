@@ -5,6 +5,7 @@ import { SITE_URL, absoluteUrl } from "@/lib/site";
 const STATIC_ROUTES = [
   "/",
   "/immobilienbewertung",
+  "/immobilienpreise",
   "/immobilienbewertung-aurich",
   "/haus-verkaufen-aurich",
   "/immobilie-verkaufen-aurich",
@@ -27,7 +28,7 @@ const STATIC_ROUTES = [
   "/kontakt",
   "/regionen-ostfriesland",
   "/karriere",
-  "/presseberichte",
+  "/presse",
   "/unternehmensmeldungen",
   "/recht",
   "/recht/impressum",

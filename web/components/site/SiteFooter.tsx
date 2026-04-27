@@ -1,4 +1,4 @@
-import Link from "next/link";
+import type { AnchorHTMLAttributes, ReactNode } from "react";
 import {
   BRAND_NAME,
   EMAIL,
@@ -6,6 +6,18 @@ import {
   PHONE_DISPLAY,
   PHONE_HREF,
 } from "@/lib/site";
+
+function Link({
+  href,
+  children,
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; children: ReactNode }) {
+  return (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  );
+}
 
 type NavigationLink = {
   href: string;
@@ -27,7 +39,7 @@ const navigationColumns: readonly NavigationColumn[] = [
       { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung" },
       { href: "/immobilien-aurich", label: "Immobilie kaufen" },
       { href: "/suchauftrag", label: "Suchauftrag anlegen" },
-      { href: "/immobilienpreise-aurich", label: "Marktberichte" },
+      { href: "/immobilienpreise", label: "Marktberichte" },
       { href: "/immobilie-verkaufen-aurich", label: "Ratgeber Immobilienverkauf" },
     ],
   },
@@ -43,9 +55,9 @@ const navigationColumns: readonly NavigationColumn[] = [
   {
     title: "Karriere & Presse",
     links: [
-      { href: "/karriere", label: "Immobilienmakler werden" },
-      { href: "/karriere", label: "Ausbildung bei Frisia Immobilien" },
-      { href: "/presseberichte", label: "Presseberichte", className: "pt-4" },
+      { href: "/karriere#immobilienmakler-werden", label: "Immobilienmakler werden" },
+      { href: "/karriere#ausbildung", label: "Ausbildung bei Frisia Immobilien" },
+      { href: "/presse", label: "Presseberichte", className: "pt-4" },
       { href: "/unternehmensmeldungen", label: "Unternehmensmeldungen" },
     ],
   },
@@ -57,37 +69,37 @@ const seoGroups = [
     links: [
       { href: "/immobilienmakler-aurich", label: "Immobilienmakler Aurich" },
       { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung Aurich" },
-      { href: "/regionen-ostfriesland/immobilienmakler-ostfriesland", label: "Immobilienmakler Ostfriesland" },
+      { href: "/immobilienmakler-ostfriesland", label: "Immobilienmakler Ostfriesland" },
     ],
   },
   {
     title: "Städte",
     links: [
-      { href: "/regionen-ostfriesland/immobilienmakler-emden", label: "Immobilienmakler Emden" },
-      { href: "/regionen-ostfriesland/immobilienmakler-norden", label: "Immobilienmakler Norden" },
-      { href: "/regionen-ostfriesland/immobilienmakler-wiesmoor", label: "Immobilienmakler Wiesmoor" },
-      { href: "/regionen-ostfriesland/immobilienmakler-wittmund", label: "Immobilienmakler Wittmund" },
-      { href: "/regionen-ostfriesland/immobilienmakler-leer", label: "Immobilienmakler Leer" },
+      { href: "/immobilienmakler-emden", label: "Immobilienmakler Emden" },
+      { href: "/immobilienmakler-norden", label: "Immobilienmakler Norden" },
+      { href: "/immobilienmakler-wiesmoor", label: "Immobilienmakler Wiesmoor" },
+      { href: "/immobilienmakler-wittmund", label: "Immobilienmakler Wittmund" },
+      { href: "/immobilienmakler-leer", label: "Immobilienmakler Leer" },
     ],
   },
   {
     title: "Gemeinden",
     links: [
-      { href: "/regionen-ostfriesland/immobilienmakler-grossheide", label: "Immobilienmakler Großheide" },
-      { href: "/regionen-ostfriesland/immobilienmakler-suedbrookmerland", label: "Immobilienmakler Südbrookmerland" },
-      { href: "/regionen-ostfriesland/immobilienmakler-krummhoern", label: "Immobilienmakler Krummhörn" },
-      { href: "/regionen-ostfriesland/immobilienmakler-friedeburg", label: "Immobilienmakler Friedeburg" },
-      { href: "/regionen-ostfriesland/immobilienmakler-hage", label: "Immobilienmakler Hage" },
+      { href: "/immobilienmakler-grossheide", label: "Immobilienmakler Großheide" },
+      { href: "/immobilienmakler-suedbrookmerland", label: "Immobilienmakler Südbrookmerland" },
+      { href: "/immobilienmakler-krummhoern", label: "Immobilienmakler Krummhörn" },
+      { href: "/immobilienmakler-friedeburg", label: "Immobilienmakler Friedeburg" },
+      { href: "/immobilienmakler-hage", label: "Immobilienmakler Hage" },
     ],
   },
   {
     title: "Nordseeinseln",
     links: [
-      { href: "/regionen-ostfriesland/immobilienmakler-norderney", label: "Immobilienmakler Norderney" },
-      { href: "/regionen-ostfriesland/immobilienmakler-juist", label: "Immobilienmakler Juist" },
-      { href: "/regionen-ostfriesland/immobilienmakler-langeoog", label: "Immobilienmakler Langeoog" },
-      { href: "/regionen-ostfriesland/immobilienmakler-spiekeroog", label: "Immobilienmakler Spiekeroog" },
-      { href: "/regionen-ostfriesland/immobilienmakler-baltrum", label: "Immobilienmakler Baltrum" },
+      { href: "/immobilienmakler-norderney", label: "Immobilienmakler Norderney" },
+      { href: "/immobilienmakler-juist", label: "Immobilienmakler Juist" },
+      { href: "/immobilienmakler-langeoog", label: "Immobilienmakler Langeoog" },
+      { href: "/immobilienmakler-spiekeroog", label: "Immobilienmakler Spiekeroog" },
+      { href: "/immobilienmakler-baltrum", label: "Immobilienmakler Baltrum" },
     ],
   },
 ] as const;

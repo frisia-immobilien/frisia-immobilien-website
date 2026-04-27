@@ -28,12 +28,6 @@ const HERO_LOCK_IMAGE = "/images/hero/schloss.png";
 const SEBASTIAN_IMAGE =
   "/images/hero/dekra-zertifizierter-sachverstaendiger-fuer-immobilenbewertung-d1-sebastian_munzig.webp";
 
-const trustItems = [
-  "Regionaler Markt in Aurich und ganz Ostfriesland",
-  "Bewertung und Verkauf aus einer Hand",
-  "Persönliche Begleitung bis zum Notartermin",
-] as const;
-
 const heroTrustItems = [
   "Persönlich & lokal",
   "Sicher & transparent",
@@ -154,6 +148,16 @@ const internalLinks = [
   { href: "/haus-verkaufen-aurich", label: "Haus verkaufen Aurich" },
   { href: "/kontakt", label: "Kontakt aufnehmen" },
 ] as const;
+
+function BoxCheckIcon() {
+  return (
+    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-[color:var(--color-navy)] text-[color:var(--color-navy)]" aria-hidden="true">
+      <svg viewBox="0 0 16 16" className="h-5 w-5" fill="none">
+        <path d="m4 8.2 2.4 2.4L12 5" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
 
 const faqItems = [
   {
@@ -331,36 +335,37 @@ export default function ImmobilieVerkaufenAurichPage() {
       <JsonLd data={realEstateAgentJsonLd} />
       <JsonLd data={localBusinessJsonLd} />
 
-      <section className="relative overflow-hidden bg-[#f4f6f8]">
+      <section className="relative isolate overflow-x-hidden bg-white">
+        <div className="relative w-full overflow-hidden bg-[color:var(--color-section)] lg:min-h-[calc(100svh-4rem)]">
         <Image
           src={HERO_IMAGE}
           alt="Gepflegte Immobilie am Wasser in Aurich als Symbol für einen strukturierten Immobilienverkauf"
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[64%_center] md:object-center"
+          className="origin-right scale-[1.04] object-cover object-[64%_center] md:object-center"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_31%,rgba(255,255,255,0.70)_48%,rgba(255,255,255,0.22)_68%,rgba(255,255,255,0.04)_100%)]"
+          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_26%,rgba(255,255,255,0.62)_42%,rgba(255,255,255,0.14)_58%,rgba(255,255,255,0)_78%)]"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.10)_0%,rgba(255,255,255,0)_52%,rgba(255,255,255,0.74)_100%)]"
+          className="absolute inset-x-0 bottom-0 h-36 bg-[linear-gradient(0deg,rgba(255,255,255,0.84)_0%,rgba(255,255,255,0)_100%)]"
         />
 
-        <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-[1440px] flex-col justify-between px-5 pb-8 pt-18 sm:px-8 md:pt-20 lg:px-12">
-          <div className="max-w-[47rem] pt-0">
-            <p className="text-[0.78rem] font-semibold uppercase tracking-[0.18em] text-[color:var(--color-navy)]">
+        <div className="relative z-10 mx-auto w-full max-w-[1440px] px-5 pb-10 pt-14 sm:px-8 md:pb-12 md:pt-16 lg:min-h-[calc(100svh-4rem)] lg:px-12 lg:pb-44 lg:pt-20">
+          <div className="min-w-0 max-w-[47rem]">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)] sm:text-[0.78rem] sm:tracking-[0.18em]">
               Immobilie verkaufen in Aurich & Ostfriesland
             </p>
-            <div className="mt-4 h-px w-16 bg-[color:var(--color-brass)]" aria-hidden="true" />
-            <h1 className="mt-7 max-w-4xl font-[family-name:var(--font-playfair)] text-[2.75rem] leading-[1.05] text-[color:var(--color-navy)] sm:text-[3.15rem] md:text-[4.7rem] lg:text-[5.25rem]">
+            <div className="mt-6 h-1 w-24 bg-[color:var(--color-brass)] sm:w-28" aria-hidden="true" />
+            <h1 className="mt-7 max-w-full font-[family-name:var(--font-playfair)] text-[clamp(2.4rem,10vw,3.35rem)] leading-[1.05] text-[color:var(--color-navy)] sm:text-[4.1rem] lg:text-[5rem]">
               Deine Immobilie
               <span className="block">in Aurich erfolgreich</span>
               <span className="block">verkaufen.</span>
             </h1>
-            <p className="mt-6 max-w-[38rem] text-[1.08rem] leading-[1.72] text-[color:var(--color-navy)] md:text-[1.22rem]">
+            <p className="mt-6 max-w-[38rem] text-[1.02rem] leading-[1.6] text-[color:var(--color-navy)] sm:text-[1.15rem] md:text-[1.28rem]">
               Wir begleiten dich persönlich, bewerten realistisch und finden den richtigen Käufer –{" "}
               <span className="font-semibold">zum besten Preis.</span>
             </p>
@@ -383,7 +388,7 @@ export default function ImmobilieVerkaufenAurichPage() {
               <Link
                 href="/kontakt"
                 aria-label="Jetzt unverbindlich von Frisia Immobilien beraten lassen"
-                className="inline-flex min-h-14 items-center justify-center gap-5 rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-[0.98rem] font-semibold text-white shadow-[0_18px_40px_-28px_rgba(27,48,64,0.78)] transition-colors hover:bg-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+                className="inline-flex min-h-14 w-full items-center justify-center gap-5 rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-[0.98rem] font-semibold text-white shadow-[0_18px_40px_-28px_rgba(27,48,64,0.78)] transition-colors hover:bg-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)] sm:w-auto"
               >
                 <span>Jetzt unverbindlich beraten lassen</span>
                 <span aria-hidden="true" className="text-[1.35rem] leading-none">
@@ -393,7 +398,7 @@ export default function ImmobilieVerkaufenAurichPage() {
               <a
                 href="#bewertung"
                 aria-label="Kostenlose Immobilienbewertung für Aurich starten"
-                className="inline-flex min-h-14 items-center justify-center gap-4 rounded-xl border border-[color:var(--color-brass)]/24 bg-white/94 px-7 py-4 text-[0.98rem] font-semibold text-[color:var(--color-navy)] shadow-[0_16px_36px_-32px_rgba(27,48,64,0.65)] transition-colors hover:border-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+                className="inline-flex min-h-14 w-full items-center justify-center gap-4 rounded-xl border border-[color:var(--color-brass)]/24 bg-white/94 px-7 py-4 text-[0.98rem] font-semibold text-[color:var(--color-navy)] shadow-[0_16px_36px_-32px_rgba(27,48,64,0.65)] transition-colors hover:border-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)] sm:w-auto"
               >
                 <span>Kostenlose Bewertung</span>
                 <Image
@@ -422,7 +427,7 @@ export default function ImmobilieVerkaufenAurichPage() {
             </div>
           </div>
 
-          <aside className="mt-10 rounded-2xl border border-[color:var(--color-brass)]/18 bg-white/94 p-5 shadow-[0_22px_60px_-42px_rgba(27,48,64,0.7)] backdrop-blur-sm md:mt-14 md:p-6">
+          <aside className="relative z-10 mt-10 rounded-[1.25rem] border border-[color:var(--color-brass)]/20 bg-white/96 p-5 shadow-[0_22px_70px_-60px_rgba(27,48,64,0.55)] backdrop-blur md:p-6 lg:absolute lg:inset-x-12 lg:bottom-0 lg:mx-auto lg:mb-8 lg:max-w-[1328px]">
             <div className="grid gap-5 md:grid-cols-[1.35fr_repeat(4,1fr)] md:items-center">
               <div className="flex items-center gap-4">
                 <Image
@@ -458,6 +463,7 @@ export default function ImmobilieVerkaufenAurichPage() {
               ))}
             </div>
           </aside>
+        </div>
         </div>
       </section>
 
@@ -528,8 +534,9 @@ export default function ImmobilieVerkaufenAurichPage() {
           />
           <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {solutionItems.map((item) => (
-              <div key={item} className="rounded-2xl border border-[color:var(--color-brass)]/22 bg-white p-5 text-[1rem] font-semibold leading-[1.5] text-[color:var(--color-navy)]">
-                {item}
+              <div key={item} className="flex min-h-28 items-start gap-4 rounded-2xl border border-[color:var(--color-brass)]/22 bg-white p-5 text-[1rem] font-semibold leading-[1.5] text-[color:var(--color-navy)]">
+                <BoxCheckIcon />
+                <span>{item}</span>
               </div>
             ))}
           </div>
@@ -669,19 +676,19 @@ export default function ImmobilieVerkaufenAurichPage() {
 
       <section className="bg-[color:var(--color-section)] py-14 md:py-20">
         <div className="mx-auto grid w-full max-w-[1240px] gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:items-center">
-          <div className="lg:col-span-5">
-            <div className="overflow-hidden rounded-2xl border border-[color:var(--color-brass)]/22 bg-white">
+          <div className="lg:col-span-4">
+            <div className="mx-auto max-w-[18rem] overflow-hidden rounded-2xl border border-[color:var(--color-brass)]/22 bg-white lg:mx-0">
               <Image
                 src={SEBASTIAN_IMAGE}
                 alt="Sebastian Munzig von Frisia Immobilien"
                 width={900}
                 height={720}
-                sizes="(max-width: 1024px) 100vw, 38vw"
+                sizes="(max-width: 1024px) 18rem, 18rem"
                 className="h-auto w-full object-cover"
               />
             </div>
           </div>
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-8">
             <SectionHeading
               title="Persönlich, regional, verantwortlich."
               text="Frisia Immobilien steht für persönliche Begleitung, klare Kommunikation und einen strukturierten Verkaufsprozess. Du erhältst keine anonyme Standardabwicklung, sondern einen Ansprechpartner, der Bewertung, Vorbereitung, Vermarktung und Abschluss zusammenführt."

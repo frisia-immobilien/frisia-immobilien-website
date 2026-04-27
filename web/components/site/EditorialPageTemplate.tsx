@@ -76,7 +76,7 @@ export default function EditorialPageTemplate({
           <div className="col-start-1 px-4 sm:px-6 md:col-span-6">
             <div className="mx-auto max-w-[620px]">
               <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">{eyebrow}</p>
-              <h1 className="mt-3 font-[family-name:var(--font-playfair)] text-4xl leading-[1.14] tracking-[-0.015em] text-[color:var(--color-navy)] md:text-5xl">
+              <h1 className="mt-3 max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.35rem,4.6vw,4.4rem)] leading-[1.04] tracking-normal text-[color:var(--color-navy)]">
                 {h1}
               </h1>
               <p className="mt-6 max-w-4xl text-lg leading-[1.7] text-[color:var(--color-graphite)]">{intro}</p>
@@ -106,7 +106,7 @@ export default function EditorialPageTemplate({
       </section>
 
       <section className="bg-[color:var(--color-section)] py-14 md:py-16">
-        <div className="mx-auto grid w-full max-w-[1240px] gap-6 px-4 sm:px-6 md:grid-cols-2">
+        <div className={`mx-auto grid w-full max-w-[1240px] gap-6 px-4 sm:px-6 ${sections.length > 1 ? "md:grid-cols-2" : ""}`}>
           {sections.map((section) => (
             <article key={section.title} className="rounded-2xl border border-[color:var(--color-brass)]/25 bg-white p-6">
               <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)]">

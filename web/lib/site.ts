@@ -305,6 +305,86 @@ export function createWebPageJsonLd({
   };
 }
 
+type ArticleJsonLdOptions = {
+  path: string;
+  headline: string;
+  description: string;
+  imagePath?: string;
+  datePublished?: string;
+  dateModified?: string;
+};
+
+export function createArticleJsonLd({
+  path,
+  headline,
+  description,
+  imagePath = DEFAULT_SOCIAL_IMAGE_PATH,
+  datePublished = "2026-04-27",
+  dateModified = "2026-04-27",
+}: ArticleJsonLdOptions) {
+  const canonical = absoluteUrl(path);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "@id": `${canonical}#article`,
+    mainEntityOfPage: {
+      "@id": `${canonical}#webpage`,
+    },
+    headline,
+    description,
+    image: createImageObjectJsonLd(imagePath, headline),
+    datePublished,
+    dateModified,
+    inLanguage: "de-DE",
+    author: {
+      "@id": absoluteUrl("/#organization"),
+    },
+    publisher: {
+      "@id": absoluteUrl("/#organization"),
+    },
+  };
+}
+
+type JobPostingJsonLdOptions = {
+  path: string;
+  title: string;
+  description: string;
+  employmentType: string | string[];
+  datePosted?: string;
+};
+
+export function createJobPostingJsonLd({
+  path,
+  title,
+  description,
+  employmentType,
+  datePosted = "2026-04-27",
+}: JobPostingJsonLdOptions) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "JobPosting",
+    "@id": `${absoluteUrl(path)}#job-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+    title,
+    description,
+    datePosted,
+    employmentType,
+    hiringOrganization: {
+      "@id": absoluteUrl("/#organization"),
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: createPostalAddressJsonLd(),
+    },
+    applicantLocationRequirements: {
+      "@type": "Country",
+      name: "Deutschland",
+    },
+    directApply: true,
+    industry: "Immobilien",
+  };
+}
+
 type FaqItem = {
   question: string;
   answer: string;

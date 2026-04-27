@@ -6,7 +6,10 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "import:market-data": "node --experimental-strip-types ../scripts/import-market-data.ts",
+    "validate:market-data": "node --experimental-strip-types ../scripts/validate-market-data.ts",
+    "generate:seo-locations": "node --experimental-strip-types ../scripts/generate-seo-locations.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

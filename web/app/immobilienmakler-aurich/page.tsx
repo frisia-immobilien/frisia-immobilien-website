@@ -323,18 +323,6 @@ export default function ImmobilienmaklerAurichPage() {
 
         <div className="mx-auto grid min-h-[calc(100svh-5rem)] w-full max-w-[1440px] min-w-0 items-center px-5 pb-12 pt-16 sm:px-8 md:min-h-[calc(100svh-4rem)] md:grid-cols-[minmax(0,0.92fr)_minmax(18rem,0.8fr)] md:pb-16 md:pt-18 lg:px-12">
           <div className="w-full max-w-[43rem] min-w-0">
-            <nav className="mb-8 text-[0.82rem] leading-none text-[color:var(--color-graphite)]/75" aria-label="Breadcrumb">
-              <ol className="flex flex-wrap items-center gap-2">
-                <li>
-                  <Link href="/" className="underline-offset-4 hover:underline">
-                    Startseite
-                  </Link>
-                </li>
-                <li aria-hidden="true">/</li>
-                <li className="font-semibold text-[color:var(--color-navy)]">Immobilienmakler Aurich</li>
-              </ol>
-            </nav>
-
             <p className="text-[0.76rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
               Immobilienmakler Aurich
             </p>

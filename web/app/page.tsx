@@ -1,6 +1,5 @@
 import HomeHero from "@/components/home/HomeHero";
 import HomeLeadBlock from "@/components/home/HomeLeadBlock";
-import HomeClientBoot from "@/components/home/HomeClientBoot.client";
 import {
   ClosingCta,
   FaqBlock,
@@ -117,7 +116,6 @@ export default function HomePage() {
       <StandortAurichBlock />
       <FaqBlock />
       <ClosingCta />
-      <HomeClientBoot />
     </main>
   );
 }

@@ -70,7 +70,7 @@ const teamMembers = [
     role: "Experte für Wohn- und Gewerbeimmobilien",
     focus: "Fokus auf Gewerbeimmobilien",
     experience: "20 Jahre Erfahrung in Aurich und Umgebung.",
-    phoneLabel: "04941 986 770-0",
+    phoneLabel: PHONE_DISPLAY,
     phoneHref: PHONE_HREF,
     mobileLabel: "0172 4163711",
     mobileHref: "tel:+491724163711",
@@ -90,7 +90,7 @@ const teamMembers = [
     role: "Experte für Wohn- und Ferienimmobilien",
     focus: "Fokus auf Ferienimmobilien",
     experience: "28 Jahre Erfahrung, besonders mit Kunden aus den Niederlanden bis hin zu den Kap Verden.",
-    phoneLabel: "04941 986 770-0",
+    phoneLabel: PHONE_DISPLAY,
     phoneHref: PHONE_HREF,
     mobileLabel: "0171 3690573",
     mobileHref: "tel:+491713690573",
@@ -217,11 +217,11 @@ export default function MaklerhausPage() {
         </div>
 
         <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] w-full max-w-[1440px] flex-col justify-center px-5 pb-14 pt-20 sm:px-8 md:min-h-[calc(100svh-4rem)] md:pb-40 lg:px-12">
-          <div className="max-w-[42rem]">
+          <div className="max-w-[42rem] min-w-0">
             <p className="mb-5 text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
               MAKLERHAUS · AURICH & OSTFRIESLAND
             </p>
-            <h1 className="font-[family-name:var(--font-playfair)] text-[3.2rem] leading-[1.02] tracking-[-0.018em] text-[color:var(--color-navy)] sm:text-[4.1rem] lg:text-[5rem]">
+            <h1 className="max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] tracking-normal text-[color:var(--color-navy)]">
               Frisia Immobilien:
               <br />
               Das Maklerhaus

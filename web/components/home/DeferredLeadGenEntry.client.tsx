@@ -10,8 +10,8 @@ const LeadGenEntryClient = dynamic(() => import("@/components/immobilienbewertun
 
 export default function DeferredLeadGenEntry() {
   const { mountRef, shouldHydrate: shouldLoad } = useDeferredHydration({
-    rootMargin: "120px 0px",
-    fallbackDelayMs: 7000,
+    rootMargin: "0px 0px",
+    fallbackDelayMs: 20000,
     hashTargets: ["#immobilienbewertung", "#bewertung"],
   });
 

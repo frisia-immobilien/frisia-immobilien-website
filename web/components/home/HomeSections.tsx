@@ -1,5 +1,5 @@
-import Link from "next/link";
 import Image from "next/image";
+import type { AnchorHTMLAttributes, ReactNode } from "react";
 import DeferredRegionalMarktInteractive from "@/components/home/DeferredRegionalMarktInteractive.client";
 import DeferredWhyFrisiaInteractive from "@/components/home/DeferredWhyFrisiaInteractive.client";
 import DeferredTestimonialsCarousel from "@/components/home/DeferredTestimonialsCarousel.client";
@@ -10,6 +10,19 @@ const PHONE_HREF = "tel:+4949419867700";
 const MAIL = "info@frisia-immobilien.de";
 const GOOGLE_MAPS_AURICH =
   "https://www.google.com/maps/search/?api=1&query=Oldersumer+Stra%C3%9Fe+150%2C+26605+Aurich";
+
+function Link({
+  href,
+  children,
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; children: ReactNode }) {
+  return (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  );
+}
+
 const PROCESS_ITEMS = [
   "Markteinordnung und Ausgangslage klären",
   "Zielpreisrahmen auf Basis belastbarer Vergleichsdaten festlegen",
@@ -1447,7 +1460,7 @@ export function HomeFooter() {
               <Link href="/immobilie-verkaufen-aurich" className="block hover:text-[color:var(--color-brackish)]">Immobilie verkaufen in Aurich</Link>
               <Link href="/immobilienbewertung" className="block hover:text-[color:var(--color-brackish)]">Immobilienbewertung</Link>
               <Link href="/immobilien-aurich" className="block hover:text-[color:var(--color-brackish)]">Immobilie kaufen</Link>
-              <Link href="/immobilienpreise-aurich" className="block hover:text-[color:var(--color-brackish)]">Marktberichte</Link>
+              <Link href="/immobilienpreise" className="block hover:text-[color:var(--color-brackish)]">Marktberichte</Link>
               <Link href="/immobilie-verkaufen-aurich" className="block hover:text-[color:var(--color-brackish)]">Ratgeber Immobilienverkauf</Link>
             </div>
           </div>
@@ -1467,12 +1480,12 @@ export function HomeFooter() {
             <p className="text-[0.76rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">Karriere</p>
             <div className="mt-2 space-y-1">
               <Link href="/karriere" className="block hover:text-[color:var(--color-brackish)]">Karriere bei Frisia Immobilien</Link>
-              <Link href="/karriere" className="block hover:text-[color:var(--color-brackish)]">Immobilienmakler werden</Link>
-              <Link href="/karriere" className="block hover:text-[color:var(--color-brackish)]">Ausbildung bei Frisia Immobilien</Link>
+              <Link href="/karriere#immobilienmakler-werden" className="block hover:text-[color:var(--color-brackish)]">Immobilienmakler werden</Link>
+              <Link href="/karriere#ausbildung" className="block hover:text-[color:var(--color-brackish)]">Ausbildung bei Frisia Immobilien</Link>
             </div>
             <p className="mt-5 text-[0.76rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">Presse</p>
             <div className="mt-2 space-y-1">
-              <Link href="/presseberichte" className="block hover:text-[color:var(--color-brackish)]">Presseberichte</Link>
+              <Link href="/presse" className="block hover:text-[color:var(--color-brackish)]">Presseberichte</Link>
               <Link href="/unternehmensmeldungen" className="block hover:text-[color:var(--color-brackish)]">Unternehmensmeldungen</Link>
             </div>
           </div>
@@ -1493,6 +1506,7 @@ export function HomeFooter() {
             <p className="text-[0.76rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">Region</p>
             <div className="mt-2 space-y-1">
               <Link href="/immobilienmakler-aurich" className="block hover:text-[color:var(--color-brackish)]">Immobilienmakler Aurich</Link>
+              <Link href="/immobilienbewertung-aurich" className="block hover:text-[color:var(--color-brackish)]">Immobilienbewertung Aurich</Link>
               <Link href="/immobilienmakler-ostfriesland" className="block hover:text-[color:var(--color-brackish)]">Immobilienmakler Ostfriesland</Link>
             </div>
           </div>
@@ -1635,11 +1649,11 @@ function WhyFrisiaStaticFallback() {
 function RegionalMarktStaticFallback() {
   const cityLinks = [
     { label: "Aurich", href: "/immobilienmakler-aurich" },
-    { label: "Emden", href: "/regionen-ostfriesland/immobilienmakler-emden" },
-    { label: "Norden", href: "/regionen-ostfriesland/immobilienmakler-norden" },
-    { label: "Leer", href: "/regionen-ostfriesland/immobilienmakler-leer" },
-    { label: "Wittmund", href: "/regionen-ostfriesland/immobilienmakler-wittmund" },
-    { label: "Friedeburg", href: "/regionen-ostfriesland/immobilienmakler-friedeburg" },
+    { label: "Emden", href: "/immobilienmakler-emden" },
+    { label: "Norden", href: "/immobilienmakler-norden" },
+    { label: "Leer", href: "/immobilienmakler-leer" },
+    { label: "Wittmund", href: "/immobilienmakler-wittmund" },
+    { label: "Friedeburg", href: "/immobilienmakler-friedeburg" },
   ] as const;
 
   return (

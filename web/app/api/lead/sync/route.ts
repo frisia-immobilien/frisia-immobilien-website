@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import {
-  type LeadProgressRecord,
-  updateLeadProgressSyncState,
-  upsertLeadProgress,
-} from "@/lib/lead-progress";
+
 import { hasLeadSyncCaptureRequirements, type LeadSyncPayload } from "@/lib/lead-sync";
-import { syncLeadProgressToPropstack } from "@/lib/propstack-crm";
+import { insertLeadEvent, updateLeadPropstackIds, upsertLeadRequest } from "@/lib/leadgen/repository";
+import { mapLeadSyncPayloadToLeadPayload } from "@/lib/leadgen/leadSyncAdapter";
+import { leadCreateSchema } from "@/lib/leadgen/validation";
+import { geocodeAddress } from "@/lib/market/geocodeAddress";
+import { createOrUpdateContact, createOrUpdateProperty } from "@/lib/propstack/client";
+import { hashPrivacyValue } from "@/lib/security/hashToken";
+import { assertRateLimit, getClientIp } from "@/lib/security/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -23,25 +25,22 @@ function isLeadSyncPayload(value: unknown): value is LeadSyncPayload {
   return isObject(value);
 }
 
-async function persistAndSyncLead(progress: LeadProgressRecord) {
-  const synced = await syncLeadProgressToPropstack(progress);
-
-  await updateLeadProgressSyncState(progress.id, {
-    propstackContactId: synced.contactId,
-    propstackPropertyId: synced.propertyId,
-    propstackDealId: synced.dealId,
-    propstackTaskId: synced.taskId,
-    ownerLinked: synced.ownerLinked,
-    lastError: null,
-  });
-
-  return synced;
+function hasAddress(value: {
+  street?: string | null;
+  house_number?: string | null;
+  postal_code?: string | null;
+  city?: string | null;
+}) {
+  return Boolean(value.street && value.house_number && value.postal_code && value.city);
 }
 
 export async function POST(request: Request) {
-  let progress: LeadProgressRecord | null = null;
+  let leadId: string | null = null;
 
   try {
+    const clientIp = getClientIp(request);
+    assertRateLimit(`lead:sync:${clientIp}`, 20);
+
     const body = (await request.json()) as LeadSyncBody;
 
     if (!isLeadSyncPayload(body.payload)) {
@@ -61,41 +60,129 @@ export async function POST(request: Request) {
       );
     }
 
-    progress = await upsertLeadProgress({
+    let payload = mapLeadSyncPayloadToLeadPayload(body.payload);
+    payload = { ...payload, id: body.leadId ?? payload.id };
+
+    const parsed = leadCreateSchema.safeParse(payload);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0]?.message ?? "Ungültige Eingaben." },
+        { status: 400 },
+      );
+    }
+
+    payload = parsed.data;
+
+    if (hasAddress(payload) && (payload.lat == null || payload.lng == null)) {
+      const geocoded = await geocodeAddress(payload);
+      if (geocoded) {
+        payload = {
+          ...payload,
+          lat: geocoded.lat,
+          lng: geocoded.lng,
+          district: payload.district ?? geocoded.district ?? null,
+          city: payload.city ?? geocoded.city ?? null,
+          landkreis: payload.landkreis ?? geocoded.landkreis ?? null,
+        };
+      }
+    }
+
+    let lead = await upsertLeadRequest({
       leadId: body.leadId,
-      phase: body.phase,
-      payload: body.payload,
+      payload,
+      status: hasAddress(payload) ? "address_captured" : payload.email ? "email_captured" : "started",
+      ipHash: hashPrivacyValue(clientIp),
+      userAgentHash: hashPrivacyValue(request.headers.get("user-agent")),
     });
+    leadId = lead.id;
 
-    const synced = await persistAndSyncLead(progress);
-
-    return NextResponse.json({
-      success: true,
-      leadId: progress.id,
-      status: "LEAD",
-      propstack: {
-        contactId: synced.contactId,
-        propertyId: synced.propertyId,
-        dealId: synced.dealId,
-        taskId: synced.taskId,
-      },
-    });
-  } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-
-    if (progress) {
-      await updateLeadProgressSyncState(progress.id, {
-        lastError: message,
+    if (payload.object_type) {
+      await insertLeadEvent({
+        leadRequestId: lead.id,
+        eventName: "object_type_selected",
+        payload: { object_type: payload.object_type, phase: body.phase ?? null },
       });
     }
 
+    if (payload.email) {
+      await insertLeadEvent({
+        leadRequestId: lead.id,
+        eventName: "email_entered",
+        payload: { phase: body.phase ?? null },
+      });
+    }
+
+    if (hasAddress(payload)) {
+      await insertLeadEvent({
+        leadRequestId: lead.id,
+        eventName: "address_entered",
+        payload: { geocoded: payload.lat != null && payload.lng != null, phase: body.phase ?? null },
+      });
+    }
+
+    try {
+      if (lead.email) {
+        const contactId = await createOrUpdateContact({
+          contactId: lead.propstack_contact_id,
+          email: lead.email,
+          firstname: lead.firstname,
+          lastname: lead.lastname,
+          phone: lead.phone,
+          consent: lead.consent_given,
+        });
+
+        if (contactId) {
+          lead = (await updateLeadPropstackIds({ leadId: lead.id, contactId })) ?? lead;
+          await insertLeadEvent({
+            leadRequestId: lead.id,
+            eventName: lead.propstack_contact_id ? "propstack_contact_updated" : "propstack_contact_created",
+            payload: { contactId },
+          });
+        }
+      }
+
+      if (hasAddress(lead)) {
+        const propertyId = await createOrUpdateProperty({
+          propertyId: lead.propstack_property_id,
+          lead,
+        });
+
+        if (propertyId) {
+          lead = (await updateLeadPropstackIds({ leadId: lead.id, propertyId })) ?? lead;
+          await insertLeadEvent({
+            leadRequestId: lead.id,
+            eventName: "propstack_property_created",
+            payload: { propertyId },
+          });
+        }
+      }
+    } catch (error) {
+      await insertLeadEvent({
+        leadRequestId: lead.id,
+        eventName: "valuation_failed",
+        payload: { stage: "propstack_sync", message: error instanceof Error ? error.message : String(error) },
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      leadId: lead.id,
+      leadRequestId: lead.id,
+      status: lead.status,
+      propstack: {
+        contactId: lead.propstack_contact_id,
+        propertyId: lead.propstack_property_id,
+      },
+    });
+  } catch (error: unknown) {
+    const retryAfter = (error as Error & { retryAfterSeconds?: number }).retryAfterSeconds;
     return NextResponse.json(
       {
         success: false,
-        leadId: progress?.id ?? null,
-        error: message,
+        leadId,
+        error: error instanceof Error ? error.message : "Lead-Sync fehlgeschlagen.",
       },
-      { status: 500 },
+      { status: retryAfter ? 429 : 500, headers: retryAfter ? { "Retry-After": String(retryAfter) } : undefined },
     );
   }
 }

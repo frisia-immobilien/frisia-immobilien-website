@@ -23,22 +23,12 @@ export default function UnternehmensmeldungenPage() {
       imageAlt="Unternehmensmeldungen von Frisia Immobilien"
       sections={[
         {
-          title: "Wofür diese Seite gedacht ist",
-          body: [
-            "Unternehmensmeldungen schaffen Klarheit über Entwicklungen, neue Schwerpunkte und relevante Informationen rund um Frisia Immobilien.",
-            "Sie ergänzen die eigentliche Leistungsdarstellung, ohne die Kernseiten für Eigentümer und Suchintentionen zu verwässern.",
-          ],
-        },
-        {
-          title: "Relevanz für den regionalen Markt",
-          body: [
-            "Für Aurich und Ostfriesland ist eine klare Unternehmenskommunikation ein zusätzliches Vertrauenssignal. Sie stärkt die Einordnung von Frisia als regionale Entität mit eigener Marktrolle.",
-            "Für konkrete Verkaufs- oder Bewertungsanliegen führen die Service-Seiten jedoch direkter zum nächsten sinnvollen Schritt.",
-          ],
+          title: "Zur Zeit liegen noch keine Untenrehmensmeldungen vor.",
+          body: [],
         },
       ]}
       internalLinks={[
-        { href: "/presseberichte", label: "Presseberichte" },
+        { href: "/presse", label: "Presseberichte" },
         { href: "/maklerhaus", label: "Das Maklerhaus" },
         { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung Aurich" },
       ]}
