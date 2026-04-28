@@ -2,11 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import LeadValuationTemplate from "@/components/immobilienbewertung/valuation/LeadValuationTemplate";
-import LegalNotice from "@/components/report/LegalNotice";
-import MarketDetails from "@/components/report/MarketDetails";
-import ReportCTA from "@/components/report/ReportCTA";
-import ReportHero from "@/components/report/ReportHero";
-import ValueRange from "@/components/report/ValueRange";
+import HeroDivider from "@/components/site/HeroDivider";
 import { getLeadByToken } from "@/lib/immobilienbewertung/lead-records";
 import { getLeadReportByToken, markReportOpened } from "@/lib/leadgen/repository";
 import {
@@ -52,6 +48,7 @@ type ShellState = {
 };
 type ReportState = {
   type: "report";
+  token: string;
   report: ReportResult;
 };
 type LegacyLeadState = {
@@ -75,6 +72,32 @@ function parseExtras(value: string | null | undefined) {
   }
 }
 
+function reportAddressLabel(report: ReportResult) {
+  const lead = report.lead_request;
+  return [
+    [lead.street, lead.house_number].filter(Boolean).join(" "),
+    [lead.postal_code, lead.city].filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function reportObjectTypeLabel(value: string | null | undefined) {
+  if (value === "haus") return "Haus";
+  if (value === "wohnung") return "Wohnung";
+  if (value === "grundstueck") return "Grundstück";
+  if (value === "gewerbe") return "Gewerbe";
+  return value || "Immobilie";
+}
+
+function reportValueMid(report: ReportResult) {
+  if (typeof report.adjusted_value === "number") return report.adjusted_value;
+  if (typeof report.range_min === "number" && typeof report.range_max === "number") {
+    return Math.round((report.range_min + report.range_max) / 2);
+  }
+  return null;
+}
+
 function renderShell(input: {
   title: string;
   text: string;
@@ -91,6 +114,7 @@ function renderShell(input: {
           <h1 className="mt-5 font-[family-name:var(--font-playfair)] text-[2.4rem] leading-[0.98] tracking-[-0.035em] text-[color:var(--color-navy)] sm:text-[3.3rem]">
             {input.title}
           </h1>
+          <HeroDivider />
           <p className="mt-6 max-w-2xl text-[1.02rem] leading-[1.85] text-[color:var(--color-graphite)]">
             {input.text}
           </p>
@@ -139,7 +163,7 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
           };
         } else {
           await markReportOpened(report.id, report.lead_request_id);
-          state = { type: "report", report };
+          state = { type: "report", token, report };
         }
       } else {
         const lead = await getLeadByToken(token);
@@ -201,19 +225,36 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
   }
 
   if (state.type === "report") {
+    const lead = state.report.lead_request;
+    const market = state.report.market_data;
     return (
-      <main id="main-content" className="bg-white">
-        <ReportHero report={state.report} />
-        <ValueRange
-          rangeMin={state.report.range_min}
-          rangeMax={state.report.range_max}
-          pricePerM2Min={state.report.price_per_m2_min}
-          pricePerM2Max={state.report.price_per_m2_max}
-        />
-        <MarketDetails report={state.report} />
-        <LegalNotice />
-        <ReportCTA />
-      </main>
+      <LeadValuationTemplate
+        token={state.token}
+        expiresAt={state.report.expires_at}
+        email={lead.email ?? ""}
+        enableTracking={false}
+        firstName={lead.firstname}
+        lastName={lead.lastname}
+        propertyTypeLabel={reportObjectTypeLabel(lead.object_type)}
+        locationLabel={reportAddressLabel(state.report) || lead.city || "Adresse nicht angegeben"}
+        livingArea={lead.living_area}
+        landArea={lead.plot_area}
+        rooms={lead.rooms}
+        yearBuilt={lead.construction_year}
+        energyClass={lead.energy_class}
+        conditionLabel={lead.condition}
+        qualityLabel={lead.equipment}
+        extrasLabels={[]}
+        valueMid={reportValueMid(state.report)}
+        valueMin={state.report.range_min}
+        valueMax={state.report.range_max}
+        marketLocationLabel={market?.location_label ?? lead.city}
+        marketScopeLabel={state.report.market_level_used}
+        marketMedianPerSqm={market?.median_preis_eur_m2 ?? null}
+        marketSalesCount={market?.verkaeufe_anzahl ?? null}
+        marketDays={market?.tage_am_markt ?? null}
+        marketDeltaPercent={market?.delta_vorjahr_median_prozent ?? null}
+      />
     );
   }
 

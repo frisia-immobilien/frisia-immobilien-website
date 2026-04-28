@@ -34,7 +34,7 @@ export default function LeadValuationCtaClient({
   const [pending, startTransition] = useTransition();
 
   return (
-    <div id="genaue-bewertung" className="rounded-[2rem] border border-[color:var(--color-sand)]/70 bg-white p-7 shadow-[0_30px_80px_-60px_rgba(27,48,64,0.28)] sm:p-10">
+    <div id="genaue-bewertung" className="rounded-md border border-[color:var(--color-sand)]/70 bg-white p-7 shadow-[0_30px_80px_-60px_rgba(27,48,64,0.28)] sm:p-10">
       <div className="text-sm font-semibold uppercase tracking-[0.18em] text-[color:var(--color-brackish)]">
         Nächster Schritt
       </div>
@@ -54,7 +54,7 @@ export default function LeadValuationCtaClient({
             }
             document.getElementById("kontakt-optionen")?.scrollIntoView({ behavior: "smooth", block: "start" });
           }}
-          className="inline-flex items-center justify-center rounded-2xl bg-[color:var(--color-navy)] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[color:var(--color-brackish)]"
+          className="inline-flex items-center justify-center rounded-md bg-[color:var(--color-navy)] px-6 py-4 text-sm font-semibold text-white transition hover:bg-[color:var(--color-brackish)]"
         >
           Jetzt genaue Bewertung anfordern
         </button>
@@ -76,7 +76,7 @@ export default function LeadValuationCtaClient({
             });
           }}
           className={[
-            "inline-flex items-center justify-center rounded-2xl border px-6 py-4 text-sm font-semibold transition",
+            "inline-flex items-center justify-center rounded-md border px-6 py-4 text-sm font-semibold transition",
             pending || callbackDone
               ? "border-[color:var(--color-sand)] bg-[color:var(--color-sand)]/35 text-[color:var(--color-graphite)]"
               : "border-[color:var(--color-navy)]/18 bg-white text-[color:var(--color-navy)] hover:border-[color:var(--color-brackish)] hover:text-[color:var(--color-brackish)]",
@@ -92,17 +92,17 @@ export default function LeadValuationCtaClient({
         <p className="mt-4 text-sm text-[color:var(--color-graphite)]">
           {trackingEnabled
             ? "Vielen Dank. Ihr Rückrufwunsch ist gespeichert und wird persönlich geprüft."
-            : "Previewmodus: Hier würde der Rückrufwunsch gespeichert und intern weitergegeben."}
+            : "Vielen Dank. Ihr Rückrufwunsch ist vorgemerkt und wird persönlich geprüft."}
         </p>
       ) : null}
 
       <div
         id="kontakt-optionen"
-        className="mt-10 grid gap-4 rounded-[1.6rem] bg-[color:var(--color-cream)]/72 p-5 sm:grid-cols-2 sm:p-6"
+        className="mt-10 grid gap-4 rounded-md bg-[color:var(--color-cream)]/72 p-5 sm:grid-cols-2 sm:p-6"
       >
         <a
           href={phoneHref}
-          className="rounded-[1.4rem] border border-[color:var(--color-sand)]/70 bg-white px-5 py-5 text-[color:var(--color-navy)] transition hover:border-[color:var(--color-brackish)]"
+          className="rounded-md border border-[color:var(--color-sand)]/70 bg-white px-5 py-5 text-[color:var(--color-navy)] transition hover:border-[color:var(--color-brackish)]"
         >
           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">Telefon</div>
           <div className="mt-3 font-[family-name:var(--font-playfair)] text-[1.9rem] leading-none">Direkt anrufen</div>
@@ -110,7 +110,7 @@ export default function LeadValuationCtaClient({
         </a>
         <a
           href={emailHref}
-          className="rounded-[1.4rem] border border-[color:var(--color-sand)]/70 bg-white px-5 py-5 text-[color:var(--color-navy)] transition hover:border-[color:var(--color-brackish)]"
+          className="rounded-md border border-[color:var(--color-sand)]/70 bg-white px-5 py-5 text-[color:var(--color-navy)] transition hover:border-[color:var(--color-brackish)]"
         >
           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">E-Mail</div>
           <div className="mt-3 font-[family-name:var(--font-playfair)] text-[1.9rem] leading-none">Persönlich abstimmen</div>
