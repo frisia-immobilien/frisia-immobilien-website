@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     if (eventType === "callback_requested" && !lead.callback_requested_at) {
       await sendLeadCallbackRequestedNotification({
         lead,
-        landingUrl: `${getBaseUrl(request)}/bewertung/${token}`,
+        landingUrl: `${getBaseUrl(request)}/bewertung-ergebnis/${token}`,
       });
     }
 

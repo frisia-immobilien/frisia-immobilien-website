@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LANDING_TEMPLATES } from "@/lib/seo/templates";
 import type { getRegionHubData } from "@/lib/seo/getRegionHubData";
+import { formatLocationLabel, formatLocationPhraseFromName, isIslandLocationName } from "@/lib/seo/locationDisplay";
 import type { SeoLocationRow, SeoPageType } from "@/lib/types/leadgen";
 
 type RegionHubData = Awaited<ReturnType<typeof getRegionHubData>>;
@@ -9,7 +10,6 @@ type HubCity = RegionHubData["grouped"][number]["cities"][number];
 const HUB_LINK_ORDER: SeoPageType[] = [
   "immobilienbewertung",
   "haus_verkaufen",
-  "immobilie_verkaufen",
   "immobilienmakler",
   "immobilienpreise",
   "haus_kaufen",
@@ -100,52 +100,27 @@ function mergeCities(cities: HubCity[]) {
   return Array.from(byCity.values());
 }
 
-function hubIconId(pageType: SeoPageType) {
-  if (pageType === "immobilienbewertung") return "hub-icon-valuation";
-  if (pageType === "haus_verkaufen" || pageType === "immobilie_verkaufen") return "hub-icon-sell";
-  if (pageType === "immobilienmakler") return "hub-icon-agent";
-  if (pageType === "immobilienpreise") return "hub-icon-prices";
-  if (pageType === "haus_kaufen") return "hub-icon-buy";
-  return "hub-icon-home";
-}
-
 function hubLinkLabel(pageType: SeoPageType, location: string) {
-  if (pageType === "immobilienbewertung") return `Immobilienbewertung ${location}`;
-  if (pageType === "haus_verkaufen") return `Haus verkaufen ${location}`;
-  if (pageType === "immobilie_verkaufen") return `Immobilie verkaufen ${location}`;
-  if (pageType === "immobilienmakler") return `Immobilienmakler ${location}`;
-  if (pageType === "immobilienpreise") return `Immobilienpreise ${location}`;
-  if (pageType === "haus_kaufen") return `Haus kaufen ${location}`;
-  return `Immobilien in ${location}`;
+  const label = formatLocationLabel(location);
+  const locationPhrase = formatLocationPhraseFromName(label);
+  const locationSuffix = isIslandLocationName(label) ? locationPhrase : label;
+  if (pageType === "immobilienbewertung") return `Immobilienbewertung ${locationSuffix}`;
+  if (pageType === "haus_verkaufen") return `Haus verkaufen ${locationSuffix}`;
+  if (pageType === "immobilie_verkaufen") return `Immobilie verkaufen ${locationSuffix}`;
+  if (pageType === "immobilienmakler") return `Immobilienmakler ${locationSuffix}`;
+  if (pageType === "immobilienpreise") return `Immobilienpreise ${locationSuffix}`;
+  if (pageType === "haus_kaufen") return `Haus kaufen ${locationSuffix}`;
+  return `Immobilien ${locationPhrase}`;
 }
 
-function hubLinkDescription(pageType: SeoPageType, location: string) {
-  if (pageType === "immobilienbewertung") {
-    return `Erhalte eine realistische Preisspanne für deine Immobilie in ${location}.`;
-  }
-  if (pageType === "haus_verkaufen") {
-    return `Plane den Hausverkauf in ${location} mit klarer Preisstrategie.`;
-  }
-  if (pageType === "immobilie_verkaufen") {
-    return `Finde den passenden Einstieg für den Verkauf deiner Immobilie in ${location}.`;
-  }
-  if (pageType === "immobilienmakler") {
-    return `Lerne Frisia Immobilien als regionalen Ansprechpartner für ${location} kennen.`;
-  }
-  if (pageType === "immobilienpreise") {
-    return `Sieh dir Preisniveau, Marktdaten und Entwicklung für ${location} an.`;
-  }
-  if (pageType === "haus_kaufen") {
-    return `Informiere dich über Häuser, Nachfrage und Suchauftrag in ${location}.`;
-  }
-  return `Verschaffe dir einen ruhigen Überblick über Immobilien in ${location}.`;
-}
-
-function HubIcon({ pageType }: { pageType: SeoPageType }) {
+function LocationTypeIcon({ type }: { type: "city" | "place" }) {
   return (
-    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[color:var(--color-section)] text-[color:var(--color-navy)]">
-      <svg viewBox="0 0 48 48" aria-hidden="true" className="h-8 w-8 fill-none stroke-current stroke-[1.8]">
-        <use href={`#${hubIconId(pageType)}`} />
+    <span
+      aria-hidden
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-section)] text-[color:var(--color-navy)]"
+    >
+      <svg viewBox="0 0 48 48" className="h-6 w-6 fill-none stroke-current stroke-[1.9]">
+        <use href={type === "city" ? "#hub-icon-location-city" : "#hub-icon-location-place"} />
       </svg>
     </span>
   );
@@ -154,37 +129,14 @@ function HubIcon({ pageType }: { pageType: SeoPageType }) {
 function HubIconSprite() {
   return (
     <svg aria-hidden="true" className="hidden">
-      <symbol id="hub-icon-valuation" viewBox="0 0 48 48">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M14 8h14l6 6v13H14z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M28 8v7h6M18 18h10M18 23h8" />
-        <circle strokeLinecap="round" strokeLinejoin="round" cx="31" cy="31" r="5" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="m35 35 5 5" />
+      <symbol id="hub-icon-location-city" viewBox="0 0 48 48">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10 40h28" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M14 40V15l10-5 10 5v25" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20 20h2M26 20h2M20 26h2M26 26h2M22 40v-7h4v7" />
       </symbol>
-      <symbol id="hub-icon-sell" viewBox="0 0 48 48">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 23 24 11l15 12" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M14 21v18h20V21" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M22 39V28h8v11" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M31 17h8v8M39 17 28 28" />
-      </symbol>
-      <symbol id="hub-icon-agent" viewBox="0 0 48 48">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10 39c1.5-6 6-9 12-9s10.5 3 12 9" />
-        <circle strokeLinecap="round" strokeLinejoin="round" cx="22" cy="19" r="6" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M29 25 38 18l7 6M33 23v13h10V23" />
-      </symbol>
-      <symbol id="hub-icon-prices" viewBox="0 0 48 48">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 39h30" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M14 34V22M24 34V14M34 34V27" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 18 23 10l9 12 8-7" />
-      </symbol>
-      <symbol id="hub-icon-buy" viewBox="0 0 48 48">
-        <circle strokeLinecap="round" strokeLinejoin="round" cx="17" cy="22" r="7" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="m22 27 8 8 4-4 3 3 4-4-8-8" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13 22h.1" />
-      </symbol>
-      <symbol id="hub-icon-home" viewBox="0 0 48 48">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 23 24 11l15 12" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M14 21v18h20V21" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 39V28h6v11M30 27h4M14 27h4" />
+      <symbol id="hub-icon-location-place" viewBox="0 0 48 48">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M24 42s12-10.5 12-22a12 12 0 0 0-24 0c0 11.5 12 22 12 22Z" />
+        <circle cx="24" cy="20" r="4.5" strokeLinecap="round" strokeLinejoin="round" />
       </symbol>
     </svg>
   );
@@ -197,32 +149,28 @@ function locationLinks(slug: string, label: string) {
     return {
       href: `/${template.prefix}-${slug}`,
       label: hubLinkLabel(pageType, label),
-      description: hubLinkDescription(pageType, label),
-      pageType,
     };
-  }).filter((link): link is { href: string; label: string; description: string; pageType: SeoPageType } => Boolean(link));
+  }).filter((link): link is { href: string; label: string } => Boolean(link));
 }
 
 function LocationLinkGrid({ location }: { location: SeoLocationRow }) {
   return (
-    <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+    <nav aria-label={`Weiterführende Seiten für ${location.location_label}`} className="mt-4 flex flex-wrap gap-2">
       {locationLinks(location.location_slug, location.location_label).map((link) => (
         <Link
           key={link.href}
           href={link.href}
-          className="group block rounded-xl border border-[#E5E7EB] bg-white p-6 shadow-[0_8px_24px_rgba(17,24,39,0.04)] transition hover:-translate-y-[3px] hover:border-[#CBD5E1] hover:shadow-[0_14px_34px_rgba(17,24,39,0.08)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brackish)]/35"
+          className="inline-flex min-h-10 items-center rounded-full border border-[color:var(--color-brass)]/28 bg-white px-4 py-2 text-sm font-semibold leading-tight text-[color:var(--color-navy)] transition hover:border-[color:var(--color-brass)] hover:bg-[color:var(--color-section)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brackish)]/35"
         >
-          <HubIcon pageType={link.pageType} />
-          <span className="mt-5 block text-[19px] font-semibold leading-snug text-[#111827]">{link.label}</span>
-          <span className="mt-3 line-clamp-2 block text-[15px] leading-6 text-[#6B7280]">{link.description}</span>
+          {link.label}
         </Link>
       ))}
-    </div>
+    </nav>
   );
 }
 
 function cleanLocationName(value: string | null | undefined) {
-  return String(value ?? "").trim();
+  return formatLocationLabel(String(value ?? "").trim());
 }
 
 function locationIntroText(location: SeoLocationRow) {
@@ -245,15 +193,31 @@ function locationIntroText(location: SeoLocationRow) {
   return `${label} liegt in Ostfriesland.`;
 }
 
-function LocationDetails({ location, kicker }: { location: SeoLocationRow; kicker: string }) {
+function LocationDetails({
+  location,
+  kicker,
+  indented = false,
+}: {
+  location: SeoLocationRow;
+  kicker: string;
+  indented?: boolean;
+}) {
   return (
-    <details className="group/location border-t border-[color:var(--color-brass)]/15 py-3 first:border-t-0">
+    <details
+      suppressHydrationWarning
+      className={`group/location border-t border-[color:var(--color-brass)]/15 py-3 first:border-t-0 ${
+        indented ? "ml-4 sm:ml-6" : ""
+      }`}
+    >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-md px-1 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brackish)]/35">
-        <span>
-          <span className="block font-semibold text-[color:var(--color-navy)]">{location.location_label}</span>
-          <span className="mt-1 block text-xs text-[color:var(--color-graphite)]">
-            {kicker}
-            {location.plz ? ` - ${location.plz}` : ""}
+        <span className="flex min-w-0 items-start gap-3">
+          <LocationTypeIcon type={indented ? "place" : "city"} />
+          <span className="min-w-0">
+            <span className="block font-semibold text-[color:var(--color-navy)]">{location.location_label}</span>
+            <span className="mt-1 block text-xs text-[color:var(--color-graphite)]">
+              {kicker}
+              {location.plz ? ` - PLZ ${location.plz}` : ""}
+            </span>
           </span>
         </span>
         <span
@@ -315,7 +279,10 @@ export default function RegionHub({ data }: { data: RegionHubData }) {
       <div className="space-y-8">
         {regionGroups.map((group) => (
           <section key={group.displayLabel}>
-            <details className="group/region rounded-xl border border-[color:var(--color-brass)]/20 bg-white px-3 py-1 shadow-[0_8px_24px_rgba(17,24,39,0.03)]">
+            <details
+              suppressHydrationWarning
+              className="group/region rounded-xl border border-[color:var(--color-brass)]/20 bg-white px-3 py-1 shadow-[0_8px_24px_rgba(17,24,39,0.03)]"
+            >
               <summary
                 aria-labelledby={`region-${regionGroupId(group.displayLabel)}`}
                 className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg px-1 py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brackish)]/35"
@@ -336,7 +303,11 @@ export default function RegionHub({ data }: { data: RegionHubData }) {
 
               <div className="divide-y divide-[color:var(--color-brass)]/20 border-t border-[color:var(--color-brass)]/20">
                 {group.cities.map((city) => (
-                  <details key={`${group.displayLabel}-${cityKey(city.city)}`} className="group/city">
+                  <details
+                    key={`${group.displayLabel}-${cityKey(city.city)}`}
+                    suppressHydrationWarning
+                    className="group/city"
+                  >
                     <summary className="flex cursor-pointer list-none items-center justify-between gap-4 rounded-lg px-1 py-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brackish)]/35">
                     <span className="text-xl font-semibold leading-tight text-[color:var(--color-navy)] sm:text-2xl">
                       {city.city}
@@ -352,17 +323,19 @@ export default function RegionHub({ data }: { data: RegionHubData }) {
                   <div className="pb-6">
                     <div className="mb-3 flex flex-wrap gap-2 text-xs font-medium text-[color:var(--color-graphite)]">
                       <span className="rounded-full bg-[color:var(--color-section)] px-3 py-1">{group.displayLabel}</span>
-                      <span className="rounded-full bg-[color:var(--color-section)] px-3 py-1">
-                        {city.places.length > 0 ? `${city.places.length} Orte und Ortsteile` : "Keine Ortsteile gepflegt"}
-                      </span>
+                      {city.places.length > 0 ? (
+                        <span className="rounded-full bg-[color:var(--color-section)] px-3 py-1">
+                          {city.places.length} Orte und Ortsteile
+                        </span>
+                      ) : null}
                     </div>
 
                     <h3 className="mb-4 font-[family-name:var(--font-playfair)] text-2xl leading-tight text-[color:var(--color-navy)]">
-                      Der Immobilienmarkt in {city.city} – dein Einstieg
+                      Der Immobilienmarkt {formatLocationPhraseFromName(city.city)} – dein Einstieg
                     </h3>
 
                     <p className="mb-6 max-w-3xl text-[15px] leading-7 text-[color:var(--color-graphite)] sm:text-base">
-                      Der Immobilienmarkt in {city.city} ist in vielen Bereichen stabil, gleichzeitig aber schwer realistisch einzuschätzen.
+                      Der Immobilienmarkt {formatLocationPhraseFromName(city.city)} ist in vielen Bereichen stabil, gleichzeitig aber schwer realistisch einzuschätzen.
                       Viele Eigentümer stehen vor der Frage, welcher Preis tatsächlich erzielbar ist und wie ein Verkauf sinnvoll strukturiert werden sollte.
                       Hier findest du den passenden Einstieg – je nachdem, wo du gerade stehst.
                     </p>
@@ -373,7 +346,7 @@ export default function RegionHub({ data }: { data: RegionHubData }) {
                       ) : null}
 
                       {city.places.map((place) => (
-                        <LocationDetails key={place.location_slug} location={place} kicker="Ort / Ortsteil" />
+                        <LocationDetails key={place.location_slug} location={place} kicker="Ort / Ortsteil" indented />
                       ))}
 
                       {!city.cityLocation && city.places.length === 0 ? (

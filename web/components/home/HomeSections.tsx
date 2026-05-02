@@ -5,6 +5,12 @@ import DeferredWhyFrisiaInteractive from "@/components/home/DeferredWhyFrisiaInt
 import DeferredTestimonialsCarousel from "@/components/home/DeferredTestimonialsCarousel.client";
 import DeferredProofCasesCarousel from "@/components/home/DeferredProofCasesCarousel.client";
 import Process9plus1MobileCarousel from "@/components/home/Process9plus1MobileCarousel.client";
+import { FAQ_ITEMS } from "@/components/home/homeFaqItems";
+import {
+  SELLING_SITUATION_HUB,
+  SELLING_SITUATIONS,
+  type SellingSituation,
+} from "@/lib/selling-situations/data";
 
 const PHONE_HREF = "tel:+4949419867700";
 const MAIL = "info@frisia-immobilien.de";
@@ -53,38 +59,6 @@ const GEO_QA_ITEMS = [
   },
 ] as const;
 
-const FAQ_ITEMS = [
-  {
-    question: "Was kostet ein Immobilienmakler in Aurich?",
-    answer:
-      "Die Maklerprovision beim Immobilienverkauf in Aurich und Niedersachsen liegt in der Regel bei insgesamt 7,14 % des Kaufpreises inklusive Mehrwertsteuer. Käufer und Verkäufer teilen sich diese Provision zu gleichen Teilen. Für Eigentümer und Käufer bedeutet das: Die Kosten entstehen erst, wenn die Immobilie erfolgreich verkauft wurde.",
-  },
-  {
-    question: "Wie finde ich einen guten Immobilienmakler in Aurich?",
-    answer:
-      "Ein guter Immobilienmakler in Aurich kennt den lokalen Immobilienmarkt genau, verfügt über aktuelle Vergleichsdaten und arbeitet mit einem klar strukturierten Verkaufsprozess. Wichtig sind außerdem transparente Kommunikation, eine realistische Preisstrategie und eine sorgfältige Prüfung der Kaufinteressenten.",
-  },
-  {
-    question: "Wie lange dauert ein Hausverkauf in Aurich?",
-    answer:
-      "Ein Hausverkauf in Aurich dauert im Durchschnitt etwa zwei bis vier Monate. Die genaue Dauer hängt von Faktoren wie Lage, Preisstrategie, Objektzustand und aktueller Nachfrage ab. Eine realistische Marktpreisermittlung ist dabei der wichtigste Erfolgsfaktor.",
-  },
-  {
-    question: "Wann ist der beste Zeitpunkt, eine Immobilie zu verkaufen?",
-    answer:
-      "Der beste Zeitpunkt für einen Immobilienverkauf hängt von mehreren Faktoren ab. Neben der aktuellen Marktsituation spielen auch Lage, Zustand der Immobilie und persönliche Lebensumstände eine Rolle. In vielen Regionen wie Aurich bleibt die Nachfrage nach guten Wohnimmobilien stabil.",
-  },
-  {
-    question: "Wie wird der Wert einer Immobilie in Aurich ermittelt?",
-    answer:
-      "Der Wert einer Immobilie in Aurich wird anhand verschiedener Faktoren bestimmt. Dazu gehören Lage, Grundstücksgröße, Baujahr, Zustand, Ausstattung sowie aktuelle Vergleichspreise ähnlicher Immobilien in Aurich und Umgebung. Immobilienmakler nutzen dafür Marktanalysen, regionale Verkaufsdaten und Bewertungsverfahren.",
-  },
-  {
-    question: "Ist jetzt ein guter Zeitpunkt, eine Immobilie in Aurich zu verkaufen?",
-    answer:
-      "Der Immobilienmarkt in Aurich ist stark von Lage, Objektart und Nachfrage abhängig. Gut gepflegte Immobilien in gefragten Wohnlagen erzielen weiterhin stabile Preise. Entscheidend für einen erfolgreichen Verkauf ist eine realistische Marktpreisermittlung und eine professionelle Vermarktung.",
-  },
-] as const;
 const PROOF_CASES = [
   {
     title: "Fall 1 – Einfamilienhaus vor dem Ruhestand",
@@ -105,6 +79,10 @@ const PROOF_CASES = [
     outcome: "Ergebnis: Kontrollierter Verkaufsprozess mit klarer Verhandlungssicherheit.",
   },
 ] as const;
+const HOME_SELLING_SITUATION_KEYS = ["alter", "erbschaft", "diskret"] as const;
+const HOME_SELLING_SITUATIONS = HOME_SELLING_SITUATION_KEYS.map((key) =>
+  SELLING_SITUATIONS.find((situation) => situation.key === key),
+).filter((situation): situation is SellingSituation => Boolean(situation));
 const OBJECTION_ITEMS = [
   {
     concern: "Ich will keinen Preisfehler machen.",
@@ -168,7 +146,7 @@ const STEP3_ITEMS = [
 ] as const;
 const LAZY_SECTION_CLASS = "[content-visibility:auto] [contain-intrinsic-size:980px]";
 
-function SocialIcon({ platform }: { platform: "instagram" | "facebook" | "linkedin" | "youtube" }) {
+function SocialIcon({ platform }: { platform: "instagram" | "facebook" | "linkedin" }) {
   if (platform === "instagram") {
     return (
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
@@ -197,12 +175,7 @@ function SocialIcon({ platform }: { platform: "instagram" | "facebook" | "linked
       </svg>
     );
   }
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
-      <path d="M21 8.5a2.7 2.7 0 0 0-1.9-1.9C17.5 6.2 12 6.2 12 6.2s-5.5 0-7.1.4A2.7 2.7 0 0 0 3 8.5c-.4 1.6-.4 3.5-.4 3.5s0 1.9.4 3.5a2.7 2.7 0 0 0 1.9 1.9c1.6.4 7.1.4 7.1.4s5.5 0 7.1-.4a2.7 2.7 0 0 0 1.9-1.9c.4-1.6.4-3.5.4-3.5s0-1.9-.4-3.5z" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M10.1 15.2l5-3.2-5-3.2v6.4z" fill="currentColor" />
-    </svg>
-  );
+  return null;
 }
 
 const EIGENTUEMER_VERKAUF_ITEMS = [
@@ -255,12 +228,12 @@ type RegionalMarktLink = {
 
 const REGIONAL_MARKT_LINKS: readonly RegionalMarktLink[] = [
   {
-    title: "Immobilienmarkt Aurich",
-    copy: "Aktuelle Entwicklungen im Immobilienmarkt der Stadt Aurich.",
-    imageSrc: "/images/why/verkaufen.png",
-    imageAlt: "Immobilienmarkt Aurich mit regionaler Wohnimmobilie und Marktumfeld",
-    href: "/immobilienmarkt-aurich",
-    cta: "Immobilienmarkt Aurich",
+    title: "Immobilienbewertung Aurich",
+    copy: "Marktwert realistisch einordnen lassen.",
+    imageSrc: "/images/why/verkaufen.webp",
+    imageAlt: "Immobilienbewertung Aurich mit regionaler Wohnimmobilie und Marktumfeld",
+    href: "/immobilienbewertung-aurich",
+    cta: "Immobilienbewertung Aurich",
   },
   {
     title: "Immobilienpreise Aurich",
@@ -276,16 +249,16 @@ const REGIONAL_MARKT_LINKS: readonly RegionalMarktLink[] = [
     imageSrc: "/images/regions/ostfriesland-karte.webp",
     imageAlt: "Regionale Preisunterschiede zwischen Aurich und Ostfriesland auf einer Übersichtskarte",
     imageContain: true,
-    href: "/immobilienpreise-ostfriesland",
-    cta: "Immobilienpreise Ostfriesland",
+    href: "/regionen-ostfriesland",
+    cta: "Regionen Ostfriesland",
   },
   {
-    title: "Vergleichsdaten aus der Region",
-    copy: "Marktdaten aus Aurich, Emden, Norden, Leer und Wittmund.",
-    imageSrc: "/images/why/reichweite.png",
+    title: "Immobilienpreise Ostfriesland",
+    copy: "Lokale Preisberichte für Aurich, Emden, Norden, Leer und Wittmund.",
+    imageSrc: "/images/why/reichweite.webp",
     imageAlt: "Vergleichsdaten aus der Region mit digitaler Marktübersicht und Reichweite",
-    href: "/immobilienpreise-ostfriesland",
-    cta: "Immobilienpreise Ostfriesland",
+    href: "/immobilienpreise",
+    cta: "Immobilienpreise ansehen",
   },
 ] as const;
 type TestStep = {
@@ -298,42 +271,42 @@ const TEST_SECTION_STEPS: TestStep[] = [
   {
     number: "1",
     shortTitle: "Marktsituation klären",
-    detail: "Marktsituation und Immobilienpreise im regionalen Markt analysieren. Das machen wir in einem persönlichen Gespräch vor Ort.",
+    detail: "Wir klären die reale Marktsituation – persönlich vor Ort. Du weißt sofort, was deine Immobilie heute wert ist.",
   },
   {
     number: "2",
     shortTitle: "Zielpreis festlegen",
-    detail: "Zielpreisrahmen auf Basis belastbarer Vergleichsdaten festlegen.",
+    detail: "Belastbaren Preisrahmen auf Basis echter Vergleichsdaten festlegen.",
   },
   {
     number: "3",
     shortTitle: "Unterlagen ordnen",
-    detail: "Unterlagenbestand prüfen und fehlende Dokumente strukturiert ergänzen.",
+    detail: "Unterlagen prüfen und fehlende Dokumente vollständig ergänzen.",
   },
   {
     number: "4",
     shortTitle: "Immobilie positionieren",
-    detail: "Die Immobilie präzise für den regionalen Markt positionieren.",
+    detail: "Immobilie präzise im regionalen Markt positionieren.",
   },
   {
     number: "5",
     shortTitle: "Vermarktung festlegen",
-    detail: "Vermarktungsstrategie festlegen – diskret oder öffentlich.",
+    detail: "Passende Vermarktungsstrategie festlegen – diskret oder öffentlich.",
   },
   {
     number: "6",
     shortTitle: "Interessenten prüfen",
-    detail: "Anfragen steuern, Interessenten qualifizieren und Finanzierung prüfen.",
+    detail: "Anfragen steuern, Interessenten prüfen und Finanzierung sichern.",
   },
   {
     number: "7",
     shortTitle: "Besichtigungen steuern",
-    detail: "Besichtigungen strukturieren und Rückmeldungen systematisch auswerten.",
+    detail: "Besichtigungen organisieren und Rückmeldungen auswerten.",
   },
   {
     number: "8",
     shortTitle: "Verhandlung führen",
-    detail: "Verhandlungen führen und die Käuferauswahl fundiert vorbereiten.",
+    detail: "Verhandlungen führen und Käuferauswahl fundiert vorbereiten.",
   },
   {
     number: "9",
@@ -522,7 +495,7 @@ export function Section9plus1() {
             <div>
               <p className={META_CLASS}>VERKAUFSPROZESS IMMOBILIE</p>
               <h2 className={`${HEADING_CLASS} max-w-full text-[1.72rem] leading-[1.08] sm:text-[1.9rem] md:text-[2.45rem]`}>
-                9+1: Der strukturierte Weg zum Verkauf
+                Der strukturierte Weg zum Verkauf (9+1 Prinzip)
               </h2>
 
               <div className="mt-8 max-w-[72ch] space-y-4 text-[1.02rem] leading-[1.78] text-[color:var(--color-graphite)]">
@@ -557,10 +530,10 @@ export function Section9plus1() {
                 </p>
               </div>
             </div>
-            <div className="mt-10 hidden rounded-[28px] border border-[color:var(--color-brass)]/28 bg-white p-6 md:block md:p-8">
+            <div className="mt-10 hidden rounded-[28px] border border-[color:var(--color-brass)]/34 bg-white p-6 shadow-[0_16px_36px_rgba(27,48,64,0.06)] md:block md:p-8">
               <div className="flex flex-col gap-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center">
-                  <div className="inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-navy)] text-2xl font-semibold text-white shadow-sm">
+                  <div className="inline-flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-brass)] text-2xl font-semibold text-white shadow-[0_10px_24px_rgba(139,111,61,0.22)]">
                     +1
                   </div>
                   <div>
@@ -579,29 +552,64 @@ export function Section9plus1() {
 
             <Process9plus1MobileCarousel slides={PROCESS_MOBILE_SLIDES} />
 
-            <div className="mt-8 hidden gap-5 md:grid md:grid-cols-2">
-              {TEST_SECTION_STEPS.map((step) => (
-                <article
-                  key={step.number}
-                  className={`flex h-full min-h-[220px] flex-col rounded-[26px] border border-[color:var(--color-brass)]/18 bg-white p-6 md:p-7 ${step.number === "1" ? "md:col-span-2 md:min-h-[180px]" : ""}`}
-                >
-                  <div className="inline-flex rounded-full bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--color-navy)] shadow-sm ring-1 ring-[color:var(--color-brass)]/20">
-                    Unser Schritt {step.number}
-                  </div>
-                  <div className="mt-4 flex h-full items-start gap-3">
-                    <Image
-                      src={`/images/prozess/schritt_${step.number.padStart(2, "0")}.webp`}
-                      alt={`Icon Schritt ${step.number}`}
-                      width={60}
-                      height={60}
-                      className="h-[60px] w-[60px] shrink-0 object-contain"
-                    />
-                    <p className="text-[0.98rem] leading-[1.72] text-[color:var(--color-graphite)]">
-                      {step.detail}
-                    </p>
-                  </div>
-                </article>
-              ))}
+            <div className="mt-8 hidden md:block">
+              <div className="flex items-center gap-4 px-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em]">
+                <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-navy)] text-white shadow-[0_10px_24px_rgba(27,48,64,0.18)]">
+                  Start
+                </span>
+                <span className="h-px flex-1 bg-gradient-to-r from-[color:var(--color-navy)]/28 via-[color:var(--color-brass)]/30 to-[color:var(--color-navy)]/28" />
+                <span className="inline-flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--color-brass)]/32 bg-white text-[color:var(--color-navy)] shadow-[0_8px_20px_rgba(27,48,64,0.07)]">
+                  Weg
+                </span>
+                <span className="h-px flex-1 bg-gradient-to-r from-[color:var(--color-navy)]/20 via-[color:var(--color-brass)]/30 to-[color:var(--color-navy)]/34" />
+                <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-[color:var(--color-navy)] text-white shadow-[0_10px_24px_rgba(27,48,64,0.18)]">
+                  Ziel
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-5 hidden gap-5 md:grid md:grid-cols-2">
+              {TEST_SECTION_STEPS.map((step) => {
+                const isEndpoint = step.number === "1" || step.number === "9";
+
+                return (
+                  <article
+                    key={step.number}
+                    className={`relative flex h-full min-h-[220px] flex-col overflow-hidden rounded-[26px] border p-6 md:p-7 ${
+                      isEndpoint
+                        ? "border-[color:var(--color-brass)]/34 bg-white shadow-[0_16px_34px_rgba(27,48,64,0.08)]"
+                        : "border-[color:var(--color-brass)]/18 bg-white"
+                    } ${step.number === "1" ? "md:col-span-2 md:min-h-[180px]" : ""}`}
+                  >
+                    {isEndpoint ? (
+                      <span className="absolute right-5 top-5 rounded-full border border-[color:var(--color-brass)]/28 bg-white/80 px-3 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
+                        {step.number === "1" ? "Start" : "Ziel"}
+                      </span>
+                    ) : null}
+                    <div
+                      className={`inline-flex self-start rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] shadow-sm ring-1 ${
+                        isEndpoint
+                          ? "bg-[color:var(--color-navy)] text-white ring-[color:var(--color-navy)]/15"
+                          : "bg-white text-[color:var(--color-navy)] ring-[color:var(--color-brass)]/22"
+                      }`}
+                    >
+                      Unser Schritt {step.number}
+                    </div>
+                    <div className="mt-4 flex h-full items-start gap-3">
+                      <Image
+                        src={`/images/prozess/schritt_${step.number.padStart(2, "0")}.webp`}
+                        alt={`Icon Schritt ${step.number}`}
+                        width={60}
+                        height={60}
+                        className="h-[60px] w-[60px] shrink-0 object-contain"
+                      />
+                      <p className="text-[0.98rem] leading-[1.72] text-[color:var(--color-graphite)]">
+                        {step.detail}
+                      </p>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
 
             <div className="mt-12 border-l-[3px] border-[color:var(--color-brass)]/55 pl-5 text-[1rem] font-semibold leading-[1.55] text-[color:var(--color-navy)] md:mt-20 md:ml-10 md:pl-6">
@@ -640,7 +648,7 @@ export function Section9plus1() {
 
 export function WhyFrisiaBlock() {
   return (
-    <section id="warum-frisia" className={`bg-white ${SECTION_Y} ${LAZY_SECTION_CLASS}`}>
+    <section id="warum-frisia" className={`bg-[color:var(--color-section)] ${SECTION_Y} ${LAZY_SECTION_CLASS}`}>
       <Wrap>
         <DeferredWhyFrisiaInteractive fallback={<WhyFrisiaStaticFallback />} />
       </Wrap>
@@ -650,11 +658,11 @@ export function WhyFrisiaBlock() {
 
 export function WarumEigentuemerVerkaufenBlock() {
   return (
-    <section id="warum-eigentuemer-verkaufen" className={`bg-[color:var(--color-section)] ${SECTION_Y} ${LAZY_SECTION_CLASS}`}>
+    <section id="warum-eigentuemer-verkaufen" className={`bg-white ${SECTION_Y} ${LAZY_SECTION_CLASS}`}>
       <Wrap>
         <div className="w-full">
           <p className={META_CLASS}>IMMOBILIE VERKAUFEN AURICH</p>
-          <h2 className={HEADING_CLASS}>Warum der Verkauf deiner Immobilie mit Frisia Immobilien strukturierter, sicherer und ruhiger abläuft</h2>
+          <h2 className={HEADING_CLASS}>Warum viele Entscheidungen beim Hausverkauf schwerfallen</h2>
           <p className="mt-5 max-w-[80ch] text-[1rem] leading-[1.72] text-[color:var(--color-graphite)]">
             Frisia Immobilien begleitet Eigentümer im regionalen Immobilienmarkt in Aurich und ganz Ostfriesland – mit
             klarer Struktur, belastbarer Bewertung und persönlicher Verantwortung.
@@ -662,7 +670,7 @@ export function WarumEigentuemerVerkaufenBlock() {
           <div className="relative mt-7 grid gap-[18px] md:grid-cols-2">
             <div
               aria-hidden="true"
-              className="pointer-events-none absolute left-0 top-0 z-[5] h-full w-full bg-[length:555px_auto] bg-[position:-110px_-15px] bg-no-repeat opacity-[0.3] md:w-[calc(50%-9px)]"
+              className="pointer-events-none absolute left-0 top-0 z-[5] hidden h-full bg-[length:555px_auto] bg-[position:-110px_-15px] bg-no-repeat opacity-[0.3] md:block md:w-[calc(50%-9px)]"
               style={{
                 backgroundImage: "url('/images/frisia/frisia_f.webp')",
               }}
@@ -699,6 +707,123 @@ export function WarumEigentuemerVerkaufenBlock() {
               </article>
             ))}
           </div>
+        </div>
+      </Wrap>
+    </section>
+  );
+}
+
+export function VerkaufssituationenBlock() {
+  return (
+    <section id="verkaufssituationen" className={`overflow-x-clip bg-[color:var(--color-section)] ${SECTION_Y} ${LAZY_SECTION_CLASS}`}>
+      <Wrap>
+        <div className="w-full">
+          <p className={META_CLASS}>VERKAUFSSITUATIONEN AURICH</p>
+          <h2 className={`${HEADING_CLASS} mt-3 max-w-none`}>
+            Wenn das Haus nicht mehr passt, braucht die Entscheidung Ruhe
+          </h2>
+          <div className="mt-7 w-full space-y-4 text-[1.02rem] leading-[1.78] text-[color:var(--color-graphite)]">
+            <p>
+              Manche Verkäufe beginnen nicht mit einer Anzeige, sondern mit einer Lebenslage:
+              Alter, Erbschaft oder der Wunsch nach Diskretion.
+            </p>
+            <p>
+              Frisia Immobilien ordnet zuerst die Situation ein und führt danach in eine fundierte{" "}
+              <Link href="/immobilienbewertung-aurich" className="underline decoration-[color:var(--color-brass)]/60 underline-offset-4 hover:text-[color:var(--color-brackish)]">
+                Immobilienbewertung
+              </Link>{" "}
+              und einen strukturierten{" "}
+              <Link href="/haus-verkaufen-aurich" className="underline decoration-[color:var(--color-brass)]/60 underline-offset-4 hover:text-[color:var(--color-brackish)]">
+                Hausverkauf
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-12 space-y-6">
+          <div className="grid gap-6 md:grid-cols-3">
+            {HOME_SELLING_SITUATIONS.map((situation) => (
+              <Link
+                key={situation.path}
+                href={situation.path}
+                className="group flex h-full min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-[color:var(--color-brass)]/25 bg-white shadow-[0_18px_52px_rgba(21,39,53,0.06)] transition hover:-translate-y-0.5 hover:border-[color:var(--color-brass)]"
+              >
+                <span className="relative block aspect-[16/9] min-h-[13rem] overflow-hidden">
+                  <Image
+                    src={situation.image}
+                    alt={situation.imageAlt}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.46)_34%,rgba(255,255,255,0.12)_62%,rgba(255,255,255,0)_100%)]"
+                  />
+                </span>
+                <span className="flex flex-1 flex-col p-6 md:p-7">
+                  <span className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--color-brackish)]">
+                    {situation.eyebrow}
+                  </span>
+                  <span className="mt-3 block text-[1.18rem] font-semibold leading-tight text-[color:var(--color-navy)] md:text-[1.25rem] xl:text-[1.32rem]">
+                    {situation.headline}
+                  </span>
+                  <span className="mt-4 block text-[0.98rem] leading-[1.68] text-[color:var(--color-graphite)]">
+                    {situation.subline}
+                  </span>
+                  <span className="mt-5 inline-flex items-center text-sm font-semibold text-[color:var(--color-navy)] underline decoration-[color:var(--color-brass)]/60 underline-offset-4 group-hover:text-[color:var(--color-brackish)]">
+                    Zur Situation
+                  </span>
+                </span>
+              </Link>
+            ))}
+          </div>
+          <Link
+            href={SELLING_SITUATION_HUB.path}
+            className="inline-flex min-h-14 w-full items-center justify-center rounded-[1.75rem] border border-[color:var(--color-brass)]/45 bg-white px-6 py-4 text-base font-semibold text-[color:var(--color-navy)] transition-colors hover:bg-[color:var(--color-section)]"
+          >
+            Alle Verkaufssituationen ansehen
+          </Link>
+        </div>
+      </Wrap>
+    </section>
+  );
+}
+
+export function DecisionFirstBlock() {
+  return (
+    <section id="erst-einordnen" className={`bg-[color:var(--color-section)] ${SECTION_Y} ${LAZY_SECTION_CLASS}`}>
+      <Wrap>
+        <div className="grid gap-8 md:grid-cols-[minmax(0,0.72fr)_minmax(18rem,0.28fr)] md:items-start">
+          <div>
+            <p className={META_CLASS}>ERSTE EINORDNUNG</p>
+            <h2 className={HEADING_CLASS}>Erst einordnen. Dann entscheiden.</h2>
+            <div className="mt-7 max-w-[78ch] space-y-4 text-[1.02rem] leading-[1.78] text-[color:var(--color-graphite)]">
+              <p>
+                Ein guter Hausverkauf beginnt nicht mit einer Anzeige, sondern mit Klarheit: Was ist realistisch,
+                welche Optionen bestehen und welcher Ablauf passt zur Situation?
+              </p>
+              <p>
+                Frisia Immobilien ordnet zuerst Wert, Lage, Zustand und Verkaufsanlass ein. Danach lässt sich ruhig
+                entscheiden, ob Bewertung, Vorbereitung oder Vermarktung der nächste sinnvolle Schritt ist.
+              </p>
+            </div>
+          </div>
+          <aside className="rounded-2xl border border-[color:var(--color-brass)]/25 bg-white p-6 shadow-[0_18px_52px_rgba(21,39,53,0.05)]">
+            <p className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
+              Nächster Schritt
+            </p>
+            <p className="mt-3 text-[1.18rem] font-semibold leading-[1.45] text-[color:var(--color-navy)]">
+              Fundierte Bewertung statt Bauchgefühl.
+            </p>
+            <a
+              href="#immobilienbewertung"
+              className="mt-5 inline-flex min-h-12 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-5 py-3 text-sm font-semibold text-white"
+            >
+              Bewertung starten
+            </a>
+          </aside>
         </div>
       </Wrap>
     </section>
@@ -872,13 +997,13 @@ export function ProofCasesBlock() {
 
 export function WarumEigentuemerBeauftragenBlock() {
   return (
-    <section id="warum-beauftragen" className={`bg-[color:var(--color-section)] ${SECTION_Y} ${LAZY_SECTION_CLASS}`}>
+    <section id="warum-beauftragen" className={`bg-white ${SECTION_Y} ${LAZY_SECTION_CLASS}`}>
       <Wrap>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:items-start">
           <div>
             <p className={META_CLASS}>WARUM EIGENTÜMER FRISIA BEAUFTRAGEN</p>
             <h2 className="mt-3 font-[family-name:var(--font-playfair)] text-[1.95rem] leading-[1.17] tracking-[-0.012em] text-[color:var(--color-navy)] md:text-[2.3rem]">
-              Rundum-sorglos-Begleitung beim Immobilienverkauf
+              Wir kümmern uns persönlich um deinen Verkauf
             </h2>
 
             <div className="mt-6 max-w-[78ch] space-y-4 text-[1rem] leading-[1.75] text-[color:var(--color-graphite)]">
@@ -929,7 +1054,7 @@ export function WarumEigentuemerBeauftragenBlock() {
           <aside className="order-first lg:order-none lg:sticky lg:top-24">
             <div className="overflow-hidden rounded-3xl border border-[color:var(--color-brass)]/25 bg-[color:var(--color-section)] shadow-[0_8px_24px_rgba(27,48,64,0.06)]">
               <Image
-                src="/images/why/frisia-prinzip-klassische_werte.png"
+                src="/images/why/frisia-prinzip-klassische_werte.webp"
                 alt="Frisia Prinzip: persönliche Verantwortung, Verlässlichkeit und strukturierter Immobilienverkauf"
                 width={1200}
                 height={1500}
@@ -1084,13 +1209,13 @@ export function RegionNapBlock() {
                 Immobilienbewertung in Aurich
               </Link>
               <Link
-                href="/immobilie-verkaufen-aurich"
+                href="/haus-verkaufen-aurich"
                 className="rounded-xl border border-[color:var(--color-brass)]/30 px-4 py-2 text-[color:var(--color-navy)] transition-colors hover:text-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
                 data-track="region_link_click"
-                data-track-label="immobilie_verkaufen"
+                data-track-label="haus_verkaufen"
                 data-track-location="region_block"
               >
-                Immobilie verkaufen
+                Haus verkaufen
               </Link>
               <Link
                 href="/immobilienmakler-aurich"
@@ -1132,7 +1257,7 @@ export function FaqBlock() {
     <section id="faq" className={`bg-[color:var(--color-section)] ${SECTION_Y} ${LAZY_SECTION_CLASS} pb-28 md:pb-36`}>
       <Wrap>
         <p className={META_CLASS}>HAEUFIGE FRAGEN ZUM IMMOBILIENVERKAUF</p>
-        <h2 className={HEADING_CLASS}>FAQ – Immobilienmakler Aurich</h2>
+        <h2 className={HEADING_CLASS}>Häufige Fragen zum Hausverkauf in Aurich</h2>
         <div className="mt-7 overflow-hidden divide-y divide-[rgba(139,111,61,0.16)] rounded-[36px] border border-[rgba(139,111,61,0.18)] bg-white">
           {FAQ_ITEMS.map((item, idx) => (
             <details key={item.question} className="group bg-white p-6" open={idx === 0}>
@@ -1318,7 +1443,7 @@ export function ClosingCta() {
         <div className="relative z-10 max-w-3xl">
           <p className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-white/75">IMMOBILIENBEWERTUNG AURICH</p>
           <h2 className="font-[family-name:var(--font-playfair)] text-[2rem] leading-[1.15] tracking-[-0.015em] text-white md:text-[2.45rem]">
-            Der erste Schritt zu einem geordneten und rechtssicheren Verkauf beginnt mit einer fundierten Bewertung.
+            Jetzt deine Immobilie fundiert bewerten lassen
           </h2>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <a
@@ -1355,9 +1480,9 @@ export function HomeFooter() {
       <Wrap>
         <div className="grid gap-6 border-b border-[rgba(0,0,0,0.06)] pb-8 text-[0.9rem] leading-[1.62] text-[color:var(--color-graphite)] md:grid-cols-2 lg:grid-cols-4 md:items-start">
           <div>
-            <h2 className="font-[family-name:var(--font-playfair)] text-[1.7rem] leading-[1.1] text-[color:var(--color-navy)]">
+            <div className="font-[family-name:var(--font-playfair)] text-[1.7rem] leading-[1.1] text-[color:var(--color-navy)]">
               Kontaktiere uns
-            </h2>
+            </div>
             <p className="mt-3 max-w-[26ch] text-[0.86rem] leading-[1.6] text-[color:var(--color-graphite)]/90">
               Persönliche Begleitung für Verkauf, Kauf und Bewertung im regionalen Markt in Aurich und ganz Ostfriesland.
             </p>
@@ -1414,15 +1539,6 @@ export function HomeFooter() {
                 <SocialIcon platform="linkedin" />
                 <span>LinkedIn</span>
               </a>
-              <a
-                href="https://www.youtube.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-0 py-1 text-[0.86rem] transition-colors hover:text-[color:var(--color-brackish)]"
-              >
-                <SocialIcon platform="youtube" />
-                <span>YouTube</span>
-              </a>
             </div>
           </div>
           <div>
@@ -1457,11 +1573,11 @@ export function HomeFooter() {
           <div>
             <p className="text-[0.76rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">Leistungen</p>
             <div className="mt-2 space-y-1">
-              <Link href="/immobilie-verkaufen-aurich" className="block hover:text-[color:var(--color-brackish)]">Immobilie verkaufen in Aurich</Link>
+              <Link href="/haus-verkaufen-aurich" className="block hover:text-[color:var(--color-brackish)]">Haus verkaufen in Aurich</Link>
               <Link href="/immobilienbewertung" className="block hover:text-[color:var(--color-brackish)]">Immobilienbewertung</Link>
               <Link href="/immobilien-aurich" className="block hover:text-[color:var(--color-brackish)]">Immobilie kaufen</Link>
               <Link href="/immobilienpreise" className="block hover:text-[color:var(--color-brackish)]">Marktberichte</Link>
-              <Link href="/immobilie-verkaufen-aurich" className="block hover:text-[color:var(--color-brackish)]">Ratgeber Immobilienverkauf</Link>
+              <Link href="/haus-verkaufen-aurich" className="block hover:text-[color:var(--color-brackish)]">Ratgeber Hausverkauf</Link>
             </div>
           </div>
           <div>
@@ -1486,7 +1602,6 @@ export function HomeFooter() {
             <p className="mt-5 text-[0.76rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">Presse</p>
             <div className="mt-2 space-y-1">
               <Link href="/presse" className="block hover:text-[color:var(--color-brackish)]">Presseberichte</Link>
-              <Link href="/unternehmensmeldungen" className="block hover:text-[color:var(--color-brackish)]">Unternehmensmeldungen</Link>
             </div>
           </div>
           <div>
@@ -1595,7 +1710,7 @@ function WhyFrisiaStaticFallback() {
           <div className="md:col-span-5">
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-[color:var(--color-section)]/45">
               <Image
-                src="/images/why/frisia_alte-werte.png"
+                src="/images/why/frisia_alte-werte.webp"
                 alt="Das Frisia Prinzip mit klassischen Werten und persönlicher Verantwortung"
                 width={900}
                 height={1200}
@@ -1665,7 +1780,7 @@ function RegionalMarktStaticFallback() {
 
       <div className="relative z-10">
       <p className={META_CLASS}>REGIONALER IMMOBILIENMARKT</p>
-      <h2 className={HEADING_CLASS}>Immobilienmarkt Aurich und Ostfriesland</h2>
+      <h2 className={HEADING_CLASS}>Der Immobilienmarkt in Aurich & Ostfriesland</h2>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,0.98fr)_minmax(28rem,0.9fr)] lg:items-stretch">
         <div className="flex flex-col">
@@ -1792,5 +1907,3 @@ function TestimonialsStaticFallback() {
     </div>
   );
 }
-
-export { FAQ_ITEMS };

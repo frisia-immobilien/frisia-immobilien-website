@@ -3,7 +3,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/seo/JsonLd";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
+import { formatLocationPhraseFromName, isIslandLocationName } from "@/lib/seo/locationDisplay";
 import {
   INTENT_LABELS,
   parseLandingSlug,
@@ -12,6 +15,8 @@ import {
   toTitleCase,
 } from "@/lib/regions";
 import {
+  PHONE_DISPLAY,
+  PHONE_HREF,
   createBreadcrumbListJsonLd,
   createFAQPageJsonLd,
   createServiceJsonLd,
@@ -31,9 +36,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!parsed) return {};
 
   const location = toTitleCase(parsed.location);
+  const locationPhrase = formatLocationPhraseFromName(location);
   const intent = INTENT_LABELS[parsed.intent];
-  const title = `${intent} ${location}`;
-  const description = `Frisia Immobilien begleitet Eigentümer in ${location} mit strukturierter Immobilienbewertung, klarer Preisstrategie und verlässlichem Immobilienverkauf im regionalen Markt.`;
+  const title = `${intent} ${isIslandLocationName(location) ? locationPhrase : location}`;
+  const description =
+    parsed.intent === "immobilienmakler"
+      ? `Immobilienmakler ${locationPhrase}: Frisia Immobilien begleitet Bewertung, Preisstrategie, Käuferprüfung und Verkauf mit regionaler Marktkenntnis.`
+      : parsed.intent === "immobilienpreise"
+        ? `Immobilienpreise ${locationPhrase}: aktuelle Markteinordnung, Preisentwicklung und Orientierung für Eigentümer mit Frisia Immobilien.`
+        : parsed.intent === "haus-verkaufen"
+          ? `Haus verkaufen ${locationPhrase}: strukturierte Bewertung, klare Preisstrategie und verlässliche Begleitung bis zum Notartermin.`
+          : parsed.intent === "immobilienbewertung"
+            ? `Immobilienbewertung ${locationPhrase}: realistische Preisspanne, regionale Vergleichsdaten und persönliche Einordnung durch Frisia Immobilien.`
+            : `Immobilien ${locationPhrase}: Marktüberblick, regionale Angebote und Suchauftrag für passende Häuser und Wohnungen.`;
 
   return buildPageMetadata({
     title,
@@ -56,8 +71,9 @@ export default async function RegionLandingPage({ params }: PageProps) {
   }
 
   const location = toTitleCase(parsed.location);
+  const locationPhrase = formatLocationPhraseFromName(location);
   const intentLabel = INTENT_LABELS[parsed.intent];
-  const h1 = `${intentLabel} ${location}`;
+  const h1 = `${intentLabel} ${isIslandLocationName(location) ? locationPhrase : location}`;
 
   const path = `/regionen-ostfriesland/${resolvedParams.slug}`;
 
@@ -69,15 +85,15 @@ export default async function RegionLandingPage({ params }: PageProps) {
 
   const faqItems = [
     {
-      question: `Wie unterstützt Frisia Immobilien Eigentümer in ${location}?`,
+      question: `Wie unterstützt Frisia Immobilien Eigentümer ${locationPhrase}?`,
       answer: `Mit strukturierter Bewertung, klarer Preisstrategie und persönlicher Begleitung bis zum Notartermin im regionalen Markt von ${location}.`,
     },
     {
-      question: `Ist die Erstberatung in ${location} unverbindlich?`,
+      question: `Ist die Erstberatung ${locationPhrase} unverbindlich?`,
       answer: "Ja, die erste Einschätzung ist unverbindlich und dient als klare Entscheidungsgrundlage für Eigentümer.",
     },
     {
-      question: `Welche regionalen Faktoren sind in ${location} wichtig?`,
+      question: `Welche regionalen Faktoren sind ${locationPhrase} wichtig?`,
       answer: "Lage, Zustand, Baujahr, energetischer Standard und aktuelle Vergleichsobjekte aus der Region sind entscheidend.",
     },
   ];
@@ -85,14 +101,14 @@ export default async function RegionLandingPage({ params }: PageProps) {
   const webPageJsonLd = createWebPageJsonLd({
     path,
     name: h1,
-    description: `Regionale Landingpage für Eigentümer in ${location} mit Fokus auf Bewertung, Preisstrategie und Immobilienverkauf.`,
+    description: `Regionale Landingpage für Eigentümer ${locationPhrase} mit Fokus auf Bewertung, Preisstrategie und Immobilienverkauf.`,
   });
 
   const serviceJsonLd = createServiceJsonLd({
     path,
     name: h1,
     serviceType: intentLabel,
-    description: `Frisia Immobilien begleitet Eigentümer in ${location} mit strukturierter Markteinordnung, Vermarktung und persönlicher Begleitung.`,
+    description: `Frisia Immobilien begleitet Eigentümer ${locationPhrase} mit strukturierter Markteinordnung, Vermarktung und persönlicher Begleitung.`,
     areaServed: [location, "Aurich", "Ostfriesland", "Emden", "Leer", "Wittmund", "Norden"],
   });
 
@@ -105,7 +121,19 @@ export default async function RegionLandingPage({ params }: PageProps) {
       <JsonLd data={serviceJsonLd} />
       <JsonLd data={faqJsonLd} />
 
-      <section className="mx-auto grid w-full max-w-[1240px] gap-10 px-4 py-16 sm:px-6 md:grid-cols-12 md:items-center md:py-20">
+      <MobileHeroSection
+        eyebrow="Regionale Landingpage"
+        title={h1}
+        description={`Frisia Immobilien begleitet Eigentümer ${locationPhrase} mit marktgerechter Einordnung, strukturierter Vermarktung und persönlicher Verantwortung.`}
+        imageSrc="/images/hero/haus-verkaufen-aurich.webp"
+        imageAlt={`Immobilienmarkt ${location} - Frisia Immobilien`}
+        imagePosition="58% center"
+        primaryCta={{ href: "/immobilienbewertung-aurich", label: "Immobilie bewerten lassen" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Kostenfrei", "Regional", "Persönlich"]}
+      />
+
+      <section className="mx-auto hidden w-full max-w-[1240px] gap-10 px-4 py-16 sm:px-6 md:grid md:grid-cols-12 md:items-center md:py-20">
         <div className="md:col-span-7">
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
             Regionale Landingpage
@@ -113,8 +141,9 @@ export default async function RegionLandingPage({ params }: PageProps) {
           <h1 className="mt-3 font-[family-name:var(--font-playfair)] text-4xl leading-[1.15] tracking-[-0.015em] text-[color:var(--color-navy)] md:text-5xl">
             {h1}
           </h1>
+          <HeroDivider />
           <p className="mt-6 max-w-3xl text-lg leading-[1.7] text-[color:var(--color-graphite)]">
-            Frisia Immobilien begleitet Eigentümer in {location} mit marktgerechter Einordnung, strukturierter
+            Frisia Immobilien begleitet Eigentümer {locationPhrase} mit marktgerechter Einordnung, strukturierter
             Vermarktung und persönlicher Verantwortung. So entsteht ein ruhiger und verlässlicher Immobilienverkauf.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -143,13 +172,13 @@ export default async function RegionLandingPage({ params }: PageProps) {
       <section className="bg-[color:var(--color-section)] py-14 md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
           <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">
-            Markt- und Preislage in {location}
+            Markt- und Preislage {locationPhrase}
           </h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <article className="rounded-2xl border border-[color:var(--color-brass)]/25 bg-white p-6">
               <h3 className="text-2xl font-semibold text-[color:var(--color-navy)]">Relevante Marktfaktoren</h3>
               <p className="mt-3 text-base leading-[1.75] text-[color:var(--color-graphite)]">
-                Baujahr, Zustand, Lagequalität und Grundstücksgröße wirken sich in {location} unmittelbar auf Nachfrage
+                Baujahr, Zustand, Lagequalität und Grundstücksgröße wirken sich {locationPhrase} unmittelbar auf Nachfrage
                 und Verkaufsgeschwindigkeit aus.
               </p>
             </article>
@@ -181,7 +210,7 @@ export default async function RegionLandingPage({ params }: PageProps) {
           <h4 className="text-lg font-semibold text-[color:var(--color-navy)]">Interne Verlinkung</h4>
           <ul className="mt-3 space-y-2 text-sm text-[color:var(--color-graphite)]">
             <li><Link href="/immobilienbewertung-aurich" className="underline underline-offset-4">Immobilienbewertung Aurich</Link></li>
-            <li><Link href="/immobilie-verkaufen-aurich" className="underline underline-offset-4">Immobilie verkaufen Aurich</Link></li>
+            <li><Link href="/haus-verkaufen-aurich" className="underline underline-offset-4">Haus verkaufen Aurich</Link></li>
             <li><Link href="/immobilienmakler-aurich" className="underline underline-offset-4">Immobilienmakler Aurich</Link></li>
             <li><Link href="/regionen-ostfriesland" className="underline underline-offset-4">Regionen Ostfriesland</Link></li>
           </ul>

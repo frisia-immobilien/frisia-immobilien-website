@@ -1,22 +1,23 @@
 import type { LandingTemplate } from "./types";
+import { formatLocationPhraseFromName } from "@/lib/seo/locationDisplay";
 
 export const immobilienpreiseTemplate: LandingTemplate = {
   pageType: "immobilienpreise",
   prefix: "immobilienpreise",
   label: "Immobilienpreise",
-  h1: (location) => `Immobilienpreise in ${location}`,
-  title: (location) => `Immobilienpreise in ${location} | Frisia Immobilien`,
+  h1: (location) => `Immobilienpreise ${formatLocationPhraseFromName(location)}`,
+  title: (location) => `Immobilienpreise ${formatLocationPhraseFromName(location)} | Frisia Immobilien`,
   description: (location) =>
-    `Immobilienpreise in ${location}: aktuelle Preise, Preisentwicklung, Marktdaten und klare Einordnung für Eigentümer.`,
+    `Immobilienpreise ${formatLocationPhraseFromName(location)}: aktuelle Preise, Preisentwicklung, Marktdaten und klare Einordnung für Eigentümer.`,
   intro: (location) =>
-    `Aktuelle Preise, Entwicklung und klare Einordnung für Eigentümer in ${location}.`,
+    `Aktuelle Preise, Entwicklung und klare Einordnung für Eigentümer ${formatLocationPhraseFromName(location)}.`,
   text1: () =>
     "Die Immobilienpreise zeigen dir, wie sich der Markt entwickelt. Entscheidend ist jedoch, wo deine Immobilie heute konkret darin steht.",
   text2: () =>
     "Der Markt gibt eine Richtung vor - aber nicht den genauen Wert deiner Immobilie.",
   faq: (location) => [
     {
-      question: `Wie entwickeln sich die Immobilienpreise in ${location} aktuell?`,
+      question: `Wie entwickeln sich die Immobilienpreise ${formatLocationPhraseFromName(location)} aktuell?`,
       answer:
         "Die Immobilienpreise hängen von Angebot, Nachfrage, Zinsen, Lagequalität und Objektzustand ab. Die dargestellten Werte zeigen eine Orientierung, ersetzen aber keine individuelle Bewertung deiner Immobilie.",
     },
@@ -26,7 +27,7 @@ export const immobilienpreiseTemplate: LandingTemplate = {
         "Nein. Angebotspreise sind die Preise, mit denen Immobilien am Markt angeboten werden. Der tatsächliche Verkaufspreis entsteht erst durch Nachfrage, Verhandlung, Käuferprüfung und Abschluss. Deshalb kann der erzielte Preis vom Angebotspreis abweichen.",
     },
     {
-      question: `Was beeinflusst den Preis meiner Immobilie in ${location}?`,
+      question: `Was beeinflusst den Preis meiner Immobilie ${formatLocationPhraseFromName(location)}?`,
       answer:
         "Entscheidend sind Lage, Zustand, Grundstück, Wohnfläche, Grundriss, Energieeffizienz, Modernisierung, Ausstattung und aktuelle Nachfrage. Auch die richtige Preisstrategie beeinflusst, wie stark Käufer reagieren.",
     },

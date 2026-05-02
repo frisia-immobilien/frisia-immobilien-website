@@ -7,7 +7,17 @@ export type LeadSyncHouseType =
   | "multi_family";
 export type LeadSyncReason = "sale" | "buy" | "rent_out" | "unknown";
 export type LeadSyncUsage = "rented" | "owner_occupied" | "vacant" | "unknown";
-export type LeadSyncCondition = "unknown" | "good" | "normal" | "needs_work";
+export type LeadSyncCondition =
+  | "unknown"
+  | "good"
+  | "normal"
+  | "needs_work"
+  | "new_modernized"
+  | "well_kept"
+  | "light_renovation"
+  | "renovation"
+  | "heavy_needs_work"
+  | "demolition";
 export type LeadSyncQuality = "simple" | "medium" | "high" | "very_high" | "unknown";
 export type LeadSyncSalutation = "mrs" | "mr" | "none";
 

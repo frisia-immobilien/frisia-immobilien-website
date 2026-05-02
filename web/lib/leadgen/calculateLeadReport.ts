@@ -4,14 +4,19 @@ import { sendReportLink } from "@/lib/email/sendReportLink";
 import { resolveLandValue } from "@/lib/land/resolveLandValue";
 import {
   createLeadReport,
+  createManualLeadReport,
   getLeadRequestById,
   insertLeadEvent,
   updateLeadStatus,
 } from "@/lib/leadgen/repository";
 import { resolveMarketData } from "@/lib/market/resolveMarketData";
-import { createNote, createTask, updatePropertyRemark } from "@/lib/propstack/client";
+import { createNote, createTask, formatLeadOtherExtrasLines, updatePropertyRemark } from "@/lib/propstack/client";
 import { createRandomToken, getReportExpiryDate } from "@/lib/security/hashToken";
-import { calculateValuation } from "@/lib/valuation/calculateValuation";
+import {
+  calculateValuation,
+  getManualReviewReasonForValuationInput,
+  type ValuationInput,
+} from "@/lib/valuation/calculateValuation";
 
 function getBaseUrl(request: Request) {
   if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/$/, "");
@@ -22,6 +27,14 @@ function getBaseUrl(request: Request) {
 
 function hasResidentialRequirements(lead: { living_area: number | null; construction_year: number | null }) {
   return Boolean(lead.living_area && lead.living_area > 0 && lead.construction_year);
+}
+
+function objectTypeLabel(value: string | null) {
+  if (value === "haus") return "Haus";
+  if (value === "wohnung") return "Wohnung";
+  if (value === "grundstueck") return "Grundstück";
+  if (value === "gewerbe") return "Gewerbe";
+  return value || "k. A.";
 }
 
 function buildRemark(input: {
@@ -35,29 +48,52 @@ function buildRemark(input: {
   marketLevel: string;
 }) {
   const lead = input.lead;
+  const otherExtrasLines = formatLeadOtherExtrasLines(lead);
+  const address = [
+    [lead.street, lead.house_number].filter(Boolean).join(" "),
+    [lead.postal_code, lead.city].filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return [
-    "Automatische Marktpreiseinschätzung über Frisia Immobilien Leadgenerator",
+    "Leadgenerator Bewertung gestartet",
     "",
-    `Objektart: ${lead.object_type ?? "k. A."}`,
-    `Adresse: ${[lead.street, lead.house_number, lead.postal_code, lead.city].filter(Boolean).join(" ") || "k. A."}`,
-    `Baujahr: ${lead.construction_year ?? "k. A."}`,
-    `Wohnfläche: ${lead.living_area ? `${lead.living_area} m²` : "k. A."}`,
-    `Grundstück: ${lead.plot_area ? `${lead.plot_area} m²` : "k. A."}`,
-    `Zimmer: ${lead.rooms ?? "k. A."}`,
-    `Zustand: ${lead.condition ?? "k. A."}`,
-    `Ausstattung: ${lead.equipment ?? "k. A."}`,
+    "Adresse:",
+    address || "k. A.",
     "",
-    `Berechneter Orientierungswert intern: ${input.adjustedValue.toLocaleString("de-DE")} €`,
-    `Ausgegebene Wertspanne: ${input.rangeMin.toLocaleString("de-DE")} € - ${input.rangeMax.toLocaleString("de-DE")} €`,
+    "Immobilienart:",
+    objectTypeLabel(lead.object_type),
     "",
-    `Datenbasis: ${input.dataBasis}`,
-    `Verwendete Datenebene: ${input.marketLevel}`,
-    `Erstellt am: ${new Date().toLocaleString("de-DE")}`,
-    `Ergebnislink gültig bis: ${input.expiresAt.toLocaleDateString("de-DE")}`,
-    `Ergebnislink: ${input.reportUrl}`,
+    "Wohnfläche:",
+    lead.living_area ? `${lead.living_area} m²` : "k. A.",
     "",
-    "Hinweis:",
-    "Automatisierte Ersteinschätzung auf Grundlage der Nutzereingaben. Keine Vor-Ort-Prüfung. Keine Verkehrswertermittlung.",
+    "Grundstück:",
+    lead.plot_area ? `${lead.plot_area} m²` : "k. A.",
+    "",
+    "Baujahr:",
+    `${lead.construction_year ?? "k. A."}`,
+    "",
+    "Zustand:",
+    lead.condition ?? "k. A.",
+    ...(otherExtrasLines.length > 0 ? ["", ...otherExtrasLines] : []),
+    "",
+    "Berechnete Spanne:",
+    `${input.rangeMin.toLocaleString("de-DE")} € - ${input.rangeMax.toLocaleString("de-DE")} €`,
+    "",
+    "Orientierungswert:",
+    `${input.adjustedValue.toLocaleString("de-DE")} €`,
+    "",
+    "Status:",
+    "offen",
+    "",
+    "Nächster Schritt:",
+    "Rückruf / persönliche Prüfung",
+    "",
+    "Bewertungslink:",
+    input.reportUrl,
+    "",
+    `Link gültig bis: ${input.expiresAt.toLocaleDateString("de-DE")}`,
   ].join("\n");
 }
 
@@ -67,10 +103,12 @@ async function createManualReviewTask(
 ) {
   if (!lead.propstack_contact_id && !lead.propstack_property_id) return;
 
+  const otherExtrasLines = formatLeadOtherExtrasLines(lead);
+
   try {
     await createTask({
       title: lead.object_type === "grundstueck" ? "Grundstück manuell anhand Bodenrichtwert prüfen" : "Marktpreis manuell prüfen",
-      body: reason,
+      body: [reason, ...(otherExtrasLines.length > 0 ? ["", ...otherExtrasLines] : [])].join("\n"),
       contactId: lead.propstack_contact_id,
       propertyId: lead.propstack_property_id,
     });
@@ -81,6 +119,49 @@ async function createManualReviewTask(
       payload: { stage: "manual_review_task", message: error instanceof Error ? error.message : String(error) },
     });
   }
+}
+
+async function returnManualReview(
+  lead: NonNullable<Awaited<ReturnType<typeof getLeadRequestById>>>,
+  reason: string,
+  eventReason: string,
+  request: Request,
+) {
+  await createManualReviewTask(lead, reason);
+  const token = createRandomToken();
+  const expiresAt = getReportExpiryDate();
+  const report = await createManualLeadReport({ lead, token, expiresAt, reason });
+  if (!report) throw new Error("Manueller Bewertungsreport konnte nicht erstellt werden.");
+
+  const reportUrl = `${getBaseUrl(request)}/bewertung-ergebnis/${token}`;
+  const sent = await sendReportLink({ lead: report, reportUrl });
+  const emailWasSent = sent.provider === "propstack" || sent.provider === "resend";
+  await updateLeadStatus(lead.id, emailWasSent ? "report_sent" : "valuation_calculated");
+  await insertLeadEvent({
+    leadRequestId: lead.id,
+    eventName: "valuation_failed",
+    payload: { reason: eventReason, manualReview: true, reportId: report.id },
+  });
+  if (emailWasSent) {
+    await insertLeadEvent({
+      leadRequestId: lead.id,
+      eventName: "email_sent",
+      payload: { provider: sent.provider, messageId: sent.messageId, manualReview: true },
+    });
+  }
+
+  return {
+    success: true as const,
+    manualReview: true as const,
+    reason,
+    leadRequestId: lead.id,
+    reportId: report.id,
+    reportUrl,
+    expiresAt: expiresAt.toISOString(),
+    emailProvider: sent.provider,
+    emailSentAt: emailWasSent ? new Date().toISOString() : null,
+    email: lead.email,
+  };
 }
 
 async function syncValuationToPropstack(input: {
@@ -96,18 +177,25 @@ async function syncValuationToPropstack(input: {
   if (!input.lead.propstack_property_id) return;
 
   const remark = buildRemark(input);
+  const otherExtrasLines = formatLeadOtherExtrasLines(input.lead);
 
   try {
     await updatePropertyRemark(input.lead.propstack_property_id, remark);
     await createNote({
-      title: "Automatische Marktpreiseinschätzung",
+      title: "Leadgenerator Bewertung gestartet",
       body: remark,
       contactId: input.lead.propstack_contact_id,
       propertyId: input.lead.propstack_property_id,
     });
     await createTask({
-      title: "Bewertung besprechen und Eigentümer qualifizieren",
-      body: "Die automatische Marktpreiseinschätzung wurde erstellt. Bitte Ergebnis persönlich einordnen und Eigentümer qualifizieren.",
+      title: "Rückruf / Bewertung prüfen",
+      body: [
+        "Lead aus dem Leadgenerator prüfen.",
+        "Marktwerteinschätzung besprechen, offene Angaben klären und nächsten Schritt anbieten.",
+        ...(otherExtrasLines.length > 0 ? ["", ...otherExtrasLines] : []),
+        "",
+        "Priorität: hoch",
+      ].join("\n"),
       contactId: input.lead.propstack_contact_id,
       propertyId: input.lead.propstack_property_id,
     });
@@ -129,10 +217,12 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
   await insertLeadEvent({ leadRequestId: lead.id, eventName: "valuation_started" });
 
   if (lead.object_type === "gewerbe") {
-    await createManualReviewTask(lead, "Gewerbe-Lead ohne automatische Bewertung qualifizieren.");
-    await updateLeadStatus(lead.id, "failed");
-    await insertLeadEvent({ leadRequestId: lead.id, eventName: "valuation_failed", payload: { reason: "commercial_manual" } });
-    return { success: true as const, manualReview: true, reason: "Gewerbe wird manuell qualifiziert." };
+    return returnManualReview(
+      lead,
+      "Gewerbeimmobilien prüfen wir persönlich, weil Lage, Nutzung und Ertragsdaten stark einzelfallabhängig sind.",
+      "commercial_manual",
+      input.request,
+    );
   }
 
   let valuation;
@@ -154,15 +244,18 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
     });
 
     if (!market) {
-      await createManualReviewTask(lead, "Keine geeigneten Marktdaten für die automatische Bewertung gefunden.");
-      await updateLeadStatus(lead.id, "failed");
-      await insertLeadEvent({ leadRequestId: lead.id, eventName: "valuation_failed", payload: { reason: "no_market_data" } });
-      return { success: true as const, manualReview: true, reason: "Keine ausreichend belastbaren Marktdaten vorhanden." };
+      return returnManualReview(
+        lead,
+        "Für diese Lage liegen keine ausreichend belastbaren Marktdaten vor. Wir prüfen die Einordnung deshalb persönlich.",
+        "no_market_data",
+        input.request,
+      );
     }
 
     marketDataId = market.market_data_id;
-    valuation = calculateValuation({
+    const valuationInput: ValuationInput = {
       object_type: lead.object_type,
+      sub_type: lead.sub_type,
       living_area: Number(lead.living_area),
       plot_area: lead.plot_area,
       rooms: lead.rooms,
@@ -170,13 +263,21 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
       condition: lead.condition,
       equipment: lead.equipment,
       energy_class: lead.energy_class,
+      reason: lead.reason,
+      selling_intent: lead.selling_intent,
       elevator: lead.elevator,
       balcony: lead.balcony,
       garden: lead.garden,
       garage: lead.garage,
       basement: lead.basement,
       market,
-    });
+    };
+    const manualReviewReason = getManualReviewReasonForValuationInput(valuationInput);
+    if (manualReviewReason) {
+      return returnManualReview(lead, manualReviewReason, "valuation_discount_limit", input.request);
+    }
+
+    valuation = calculateValuation(valuationInput);
   } else if (lead.object_type === "grundstueck") {
     if (!lead.plot_area || lead.plot_area <= 0) {
       return { success: false as const, status: 400, error: "Für Grundstücke fehlt die Grundstücksfläche." };
@@ -197,16 +298,21 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
     });
 
     if (!land) {
-      await createManualReviewTask(lead, "BORIS/Bodenrichtwert konnte nicht automatisch ermittelt werden.");
-      await updateLeadStatus(lead.id, "failed");
-      await insertLeadEvent({ leadRequestId: lead.id, eventName: "valuation_failed", payload: { reason: "no_boris_data" } });
-      return { success: true as const, manualReview: true, reason: "Bodenrichtwert nicht automatisch verfügbar." };
+      return returnManualReview(
+        lead,
+        "Für dieses Grundstück konnte kein belastbarer Bodenrichtwert automatisch ermittelt werden. Wir prüfen die Bewertung persönlich.",
+        "no_boris_data",
+        input.request,
+      );
     }
 
     valuation = calculateValuation({
       object_type: "grundstueck",
       plot_area: Number(lead.plot_area),
       bodenrichtwert_eur_m2: land.bodenrichtwert_eur_m2,
+      erschliessung: lead.condition,
+      bebaubarkeit: lead.sub_type,
+      bebauungsgebiet: lead.sub_type,
     });
   } else {
     return { success: false as const, status: 400, error: "Objektart fehlt." };
@@ -217,7 +323,7 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
   const report = await createLeadReport({ lead, token, expiresAt, valuation, marketDataId });
   if (!report) throw new Error("Report konnte nicht erstellt werden.");
 
-  const reportUrl = `${getBaseUrl(input.request)}/bewertung/${token}`;
+  const reportUrl = `${getBaseUrl(input.request)}/bewertung-ergebnis/${token}`;
 
   await syncValuationToPropstack({
     lead,
@@ -231,13 +337,14 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
   });
 
   const sent = await sendReportLink({ lead: report, reportUrl });
-  await updateLeadStatus(lead.id, sent.provider === "failed" ? "valuation_calculated" : "report_sent");
+  const emailWasSent = sent.provider === "propstack" || sent.provider === "resend";
+  await updateLeadStatus(lead.id, emailWasSent ? "report_sent" : "valuation_calculated");
   await insertLeadEvent({
     leadRequestId: lead.id,
     eventName: "valuation_completed",
     payload: { reportId: report.id, rangeMin: valuation.range_min, rangeMax: valuation.range_max },
   });
-  if (sent.provider !== "failed") {
+  if (emailWasSent) {
     await insertLeadEvent({
       leadRequestId: lead.id,
       eventName: "email_sent",
@@ -259,7 +366,7 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
     },
     confidence: { score: valuation.accuracy_score, label: valuation.confidence_label },
     emailProvider: sent.provider,
-    emailSentAt: sent.provider === "failed" ? null : new Date().toISOString(),
+    emailSentAt: emailWasSent ? new Date().toISOString() : null,
     email: lead.email,
   };
 }

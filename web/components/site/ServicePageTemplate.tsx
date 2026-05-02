@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import {
   PHONE_DISPLAY,
   PHONE_HREF,
@@ -74,12 +76,25 @@ export default function ServicePageTemplate(props: Props) {
       <JsonLd data={faqJsonLd} />
       <JsonLd data={relatedLinksJsonLd} />
 
-      <section className="mx-auto grid w-full max-w-[1240px] gap-10 px-4 py-16 sm:px-6 md:grid-cols-12 md:items-center md:py-20">
+      <MobileHeroSection
+        eyebrow={props.eyebrow}
+        title={props.h1}
+        description={props.intro}
+        imageSrc="/images/hero/haus-verkaufen-aurich.webp"
+        imageAlt={props.imageAlt}
+        imagePosition="58% center"
+        primaryCta={{ href: "/immobilienbewertung-aurich", label: "Immobilie bewerten" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Kostenfrei", "Persönlich", "Regional"]}
+      />
+
+      <section className="mx-auto hidden w-full max-w-[1240px] gap-10 px-4 py-16 sm:px-6 md:grid md:grid-cols-12 md:items-center md:py-20">
         <div className="md:col-span-7">
           <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">{props.eyebrow}</p>
           <h1 className="mt-3 font-[family-name:var(--font-playfair)] text-4xl leading-[1.14] tracking-[-0.015em] text-[color:var(--color-navy)] md:text-5xl">
             {props.h1}
           </h1>
+          <HeroDivider />
           <p className="mt-6 max-w-4xl text-lg leading-[1.7] text-[color:var(--color-graphite)]">{props.intro}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/immobilienbewertung-aurich" className="rounded-xl bg-[color:var(--color-navy)] px-5 py-3 text-sm font-semibold text-white">

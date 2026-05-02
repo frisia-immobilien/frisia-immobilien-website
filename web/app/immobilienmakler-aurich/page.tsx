@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
+import RegionalCrossLinks, { RegionalInlineLinks, RegionalLocalFAQ } from "@/components/seo/RegionalCrossLinks";
+import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import {
   ADDRESS,
   AREA_SERVED,
@@ -22,7 +26,7 @@ import {
 const PAGE_PATH = "/immobilienmakler-aurich";
 const PAGE_TITLE = "Immobilienmakler Aurich – Frisia Immobilien";
 const PAGE_DESCRIPTION =
-  "Immobilie in Aurich verkaufen? Frisia Immobilien begleitet Sie mit klarer Preisstrategie und Struktur bis zum Notartermin.";
+  "Haus in Aurich verkaufen? Frisia Immobilien begleitet Sie mit klarer Preisstrategie und Struktur bis zum Notartermin.";
 const HERO_IMAGE = "/images/hero/haus-verkaufen-aurich.webp";
 
 export const metadata: Metadata = {
@@ -34,7 +38,7 @@ export const metadata: Metadata = {
     "Immobilienmakler Aurich",
     "Makler Aurich",
     "Immobilienmakler Ostfriesland",
-    "Immobilie verkaufen Aurich",
+    "Haus verkaufen Aurich",
     "Immobilienbewertung Aurich",
     "Immobilienmarkt Aurich",
   ],
@@ -140,7 +144,13 @@ const processSteps = [
   },
 ] as const;
 
-const regionItems = ["Aurich", "Emden", "Leer", "Wittmund", "Norden"] as const;
+const regionItems = [
+  { label: "Aurich", href: "/immobilienmakler-aurich" },
+  { label: "Emden", href: "/immobilienmakler-emden" },
+  { label: "Leer", href: "/immobilienmakler-leer" },
+  { label: "Wittmund", href: "/immobilienmakler-wittmund" },
+  { label: "Norden", href: "/immobilienmakler-norden" },
+] as const;
 
 const trustItems = [
   {
@@ -152,7 +162,7 @@ const trustItems = [
     label: "Jahre kombinierte Markterfahrung im Team.*",
   },
   {
-    icon: "/images/immobilienbewertung/locator_pin.png",
+    icon: "/images/immobilienbewertung/locator_pin.webp",
     label: "Regional verwurzelt in Aurich und ganz Ostfriesland.",
   },
 ] as const;
@@ -235,13 +245,6 @@ const faqItems = [
   },
 ] as const;
 
-const internalLinks = [
-  { href: "/immobilie-verkaufen-aurich", label: "Immobilie verkaufen in Aurich" },
-  { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung Aurich" },
-  { href: "/immobilienpreise/aurich", label: "Immobilienpreise Aurich" },
-  { href: "/immobilien-aurich", label: "Aktuelle Immobilien" },
-] as const;
-
 function CheckLine({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex min-w-0 gap-3">
@@ -305,7 +308,39 @@ export default function ImmobilienmaklerAurichPage() {
       <JsonLd data={breadcrumbJsonLd} />
       <JsonLd data={faqJsonLd} />
 
-      <section id="top" className="relative isolate overflow-hidden border-b border-[color:var(--color-brass)]/15 bg-white">
+      <MobileHeroSection
+        eyebrow="Immobilienmakler in Aurich & Ostfriesland"
+        title="Immobilienmakler Aurich"
+        titleClassName="max-w-[18rem] text-[clamp(2.05rem,9.2vw,2.55rem)]"
+        description={
+          <div className="space-y-2.5">
+            <p>Beim Verkauf entscheidet die richtige Einordnung.</p>
+            <ul className="space-y-1.5 font-medium text-[color:var(--color-navy)]">
+              <li className="flex gap-2">
+                <span aria-hidden="true" className="shrink-0">✔</span>
+                <span>Zu hoch → bleibt liegen</span>
+              </li>
+              <li className="flex gap-2">
+                <span aria-hidden="true" className="shrink-0">✔</span>
+                <span>Zu niedrig → Geldverlust</span>
+              </li>
+            </ul>
+            <p>
+              Frisia Immobilien bewertet realistisch und begleitet Sie bis zum Abschluss.
+            </p>
+          </div>
+        }
+        imageSrc={HERO_IMAGE}
+        imageAlt="Ruhiges Wohnhaus in Aurich mit gepflegtem Garten"
+        imagePosition="58% center"
+        imageHeightClassName="h-[clamp(330px,calc(100svh-21rem),380px)]"
+        imageQuality={55}
+        primaryCta={{ href: "/immobilienbewertung-aurich", label: "Immobilie bewerten lassen" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Kostenfrei", "Regional", "Persönlich"]}
+      />
+
+      <section id="top" className="relative isolate hidden overflow-hidden border-b border-[color:var(--color-brass)]/15 bg-white md:block">
         <div className="absolute inset-0 -z-10">
           <Image
             src={HERO_IMAGE}
@@ -317,7 +352,7 @@ export default function ImmobilienmaklerAurichPage() {
             quality={55}
             className="object-cover object-[58%_50%]"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,#ffffff_0%,rgba(255,255,255,0.98)_30%,rgba(255,255,255,0.78)_52%,rgba(255,255,255,0.18)_78%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,#ffffff_0%,rgba(255,255,255,0.9)_24%,rgba(255,255,255,0.46)_43%,rgba(255,255,255,0.08)_62%,rgba(255,255,255,0)_82%)]" />
           <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-white/90 to-transparent md:hidden" />
         </div>
 
@@ -329,6 +364,7 @@ export default function ImmobilienmaklerAurichPage() {
             <h1 className="mt-5 font-[family-name:var(--font-playfair)] text-[3.2rem] leading-[0.98] tracking-[-0.018em] text-[color:var(--color-navy)] sm:text-[4.1rem] lg:text-[5.1rem]">
               Immobilienmakler Aurich
             </h1>
+            <HeroDivider />
             <h2 className="mt-5 max-w-[18ch] font-[family-name:var(--font-playfair)] text-[2.35rem] leading-[1.06] tracking-[-0.014em] text-[color:var(--color-navy)] sm:text-[3.1rem] lg:text-[3.65rem]">
               Ihr Immobilienmakler in Aurich und ganz Ostfriesland
             </h2>
@@ -360,7 +396,14 @@ export default function ImmobilienmaklerAurichPage() {
                 href={PHONE_HREF}
                 className="inline-flex min-h-14 w-full min-w-0 items-center justify-center gap-3 rounded-2xl border border-[color:var(--color-navy)]/28 bg-white/90 px-7 py-4 text-center text-[0.98rem] font-semibold text-[color:var(--color-navy)] transition-colors hover:border-[color:var(--color-brackish)] hover:text-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)] sm:w-auto"
               >
-                <span aria-hidden="true">☎</span>
+                <Image
+                  src="/images/icons/phone.webp"
+                  alt=""
+                  width={14}
+                  height={14}
+                  aria-hidden="true"
+                  className="h-[13.5px] w-[13.5px] shrink-0 object-contain"
+                />
                 {PHONE_DISPLAY}
               </a>
             </div>
@@ -368,6 +411,8 @@ export default function ImmobilienmaklerAurichPage() {
           <div aria-hidden="true" className="hidden md:block" />
         </div>
       </section>
+
+      <RegionalCrossLinks locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienmakler" placement="hero" />
 
       <section className="bg-[color:var(--color-section)] px-5 py-16 sm:px-8 md:py-20 lg:px-12">
         <div className="mx-auto max-w-6xl">
@@ -409,7 +454,9 @@ export default function ImmobilienmaklerAurichPage() {
         </div>
       </section>
 
-      <section className="bg-white px-5 py-16 sm:px-8 md:py-20 lg:px-12">
+      <AurichMarketTeaser tone="white" />
+
+      <section className="bg-[color:var(--color-section)] px-5 py-16 sm:px-8 md:py-20 lg:px-12">
         <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[0.85fr_1.15fr] md:items-start">
           <div>
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.15em] text-[color:var(--color-brackish)]">
@@ -426,14 +473,14 @@ export default function ImmobilienmaklerAurichPage() {
             <p>
               Ohne fundierte Marktkenntnis entstehen häufig Unsicherheiten im Verkaufsprozess - oder Entscheidungen, die sich im Nachhinein als teuer herausstellen.
             </p>
-            <p className="font-semibold text-[color:var(--color-navy)]">
+            <p className="border-l-2 border-[color:var(--color-brass)] pl-5 font-semibold text-[color:var(--color-navy)]">
               Ein erfahrener Immobilienmakler übernimmt die Einordnung, strukturiert den Ablauf und sorgt für eine sichere Abwicklung.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] px-5 py-16 sm:px-8 md:py-20 lg:px-12">
+      <section className="bg-white px-5 py-16 sm:px-8 md:py-20 lg:px-12">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.15em] text-[color:var(--color-brackish)]">
@@ -465,7 +512,7 @@ export default function ImmobilienmaklerAurichPage() {
         </div>
       </section>
 
-      <section className="bg-white px-5 py-16 sm:px-8 md:py-20 lg:px-12">
+      <section className="bg-[color:var(--color-section)] px-5 py-16 sm:px-8 md:py-20 lg:px-12">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-4xl">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.15em] text-[color:var(--color-brackish)]">
@@ -475,7 +522,7 @@ export default function ImmobilienmaklerAurichPage() {
               So läuft der Verkauf mit Frisia Immobilien
             </h2>
             <p className="mt-5 max-w-3xl text-[1.02rem] leading-[1.75] text-[color:var(--color-graphite)]">
-              Ein klar strukturierter Ablauf nach dem Frisia 9+1 Verkaufsprozess - speziell für Eigentümer im regionalen Markt in Aurich und ganz Ostfriesland.
+              Ein klar strukturierter Ablauf nach dem Frisia 9+1 Verkaufsprozess - speziell für Eigentümer in Aurich, Ostfriesland und den umliegenden Teilmärkten.
             </p>
           </div>
 
@@ -501,11 +548,11 @@ export default function ImmobilienmaklerAurichPage() {
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] px-5 py-16 sm:px-8 md:py-20 lg:px-12">
+      <section className="bg-white px-5 py-16 sm:px-8 md:py-20 lg:px-12">
         <div className="mx-auto grid max-w-6xl gap-10 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div className="rounded-[1.6rem] border border-[color:var(--color-brass)]/18 bg-white p-6 shadow-[0_18px_50px_rgba(15,23,42,0.05)]">
             <Image
-              src="/images/regions/immobilienmakler-aurich-karte-hell.png"
+              src="/images/regions/immobilienmakler-aurich-karte-hell.webp"
               alt="Regionale Einordnung für Aurich und Ostfriesland"
               width={780}
               height={520}
@@ -541,16 +588,20 @@ export default function ImmobilienmaklerAurichPage() {
             </div>
             <div className="mt-7 flex flex-wrap gap-2">
               {regionItems.map((item) => (
-                <span key={item} className="rounded-full border border-[color:var(--color-brass)]/22 bg-white px-4 py-2 text-sm font-semibold text-[color:var(--color-navy)]">
-                  {item}
-                </span>
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="rounded-full border border-[color:var(--color-brass)]/22 bg-white px-4 py-2 text-sm font-semibold text-[color:var(--color-navy)] transition-colors hover:border-[color:var(--color-brass)] hover:bg-[color:var(--color-section)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+                >
+                  {item.label}
+                </Link>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-white px-5 py-16 sm:px-8 md:py-20 lg:px-12">
+      <section className="bg-[color:var(--color-section)] px-5 py-16 sm:px-8 md:py-20 lg:px-12">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1fr]">
           <div>
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.15em] text-[color:var(--color-brackish)]">
@@ -579,7 +630,7 @@ export default function ImmobilienmaklerAurichPage() {
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] px-5 py-16 sm:px-8 md:py-20 lg:px-12">
+      <section className="bg-white px-5 py-16 sm:px-8 md:py-20 lg:px-12">
         <div className="mx-auto grid max-w-6xl gap-8 rounded-[1.8rem] border border-[color:var(--color-brass)]/18 bg-[color:var(--color-section)] px-6 py-8 shadow-[0_18px_52px_rgba(15,23,42,0.055)] md:grid-cols-[1fr_auto] md:items-center md:px-10 md:py-10">
           <div>
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.15em] text-[color:var(--color-brackish)]">
@@ -607,27 +658,13 @@ export default function ImmobilienmaklerAurichPage() {
             </a>
           </div>
         </div>
-
-        <nav className="mx-auto mt-8 max-w-6xl rounded-[1.4rem] border border-[color:var(--color-brass)]/14 bg-white p-5" aria-label="Weiterführende Seiten">
-          <p className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--color-brackish)]">
-            Weiterführende Informationen
-          </p>
-          <ul className="mt-4 flex flex-wrap gap-2">
-            {internalLinks.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="inline-flex min-h-11 items-center rounded-full border border-[color:var(--color-brass)]/20 px-4 py-2 text-sm font-semibold text-[color:var(--color-navy)] transition-colors hover:bg-[color:var(--color-section)]"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
       </section>
 
-      <section className="bg-white px-5 pb-6 sm:px-8 lg:px-12" aria-label="Hinweis zu Erfahrungswerten">
+      <RegionalInlineLinks locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienmakler" pageType="immobilienmakler" />
+      <RegionalLocalFAQ locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienmakler" pageType="immobilienmakler" />
+      <RegionalCrossLinks locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienmakler" placement="bottom" />
+
+      <section className="bg-[color:var(--color-section)] px-5 pb-6 sm:px-8 lg:px-12" aria-label="Hinweis zu Erfahrungswerten">
         <div className="mx-auto max-w-6xl">
           <p className="text-right text-[0.78rem] leading-relaxed text-[color:var(--color-graphite)]/55">
             *Die Angaben beziehen sich auf die gemeinsame Berufserfahrung und die vermittelten Immobilien des Teams von Frisia Immobilien.

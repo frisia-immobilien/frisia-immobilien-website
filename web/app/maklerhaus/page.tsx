@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import JsonLd from "@/components/seo/JsonLd";
+import HeroDivider from "@/components/site/HeroDivider";
 import { buildPageMetadata } from "@/lib/metadata";
 import {
   ADDRESS,
@@ -45,7 +46,7 @@ const faq = [
 const teamMembers = [
   {
     name: "Sebastian Munzig",
-    image: "/images/team/sebastian-munzig.jpg",
+    image: "/images/team/sebastian-munzig-profilbild.webp",
     role: "Geschäftsführender Gesellschafter",
     focus: "Experte für Wohnimmobilien",
     experience: "Seit 2019 aktiv in der Immobilienvermittlung.",
@@ -66,7 +67,7 @@ const teamMembers = [
   },
   {
     name: "Uwe G. Sandomeer",
-    image: "/images/team/uwe-sandomeer.png",
+    image: "/images/team/uwe-sandomeer-profilbild.webp",
     role: "Experte für Wohn- und Gewerbeimmobilien",
     focus: "Fokus auf Gewerbeimmobilien",
     experience: "20 Jahre Erfahrung in Aurich und Umgebung.",
@@ -86,7 +87,7 @@ const teamMembers = [
   },
   {
     name: "Tonnie Olthof",
-    image: "/images/team/tonnie-olthoff.jpg",
+    image: "/images/team/tonnie-olthof-profilbild2.webp",
     role: "Experte für Wohn- und Ferienimmobilien",
     focus: "Fokus auf Ferienimmobilien",
     experience: "28 Jahre Erfahrung, besonders mit Kunden aus den Niederlanden bis hin zu den Kap Verden.",
@@ -105,6 +106,28 @@ const teamMembers = [
     text:
       "Tonnie Olthof begleitet Eigentümer und Interessenten mit besonderer Stärke im Segment Ferienimmobilien. Seine internationale Erfahrung schafft Sicherheit in der Ansprache, Einordnung und Vermarktung grenzüberschreitender Zielgruppen.",
   },
+] as const;
+
+const regionalPageLinks = [
+  { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung Aurich" },
+  { href: "/haus-verkaufen-aurich", label: "Haus verkaufen Aurich" },
+  { href: "/immobilienpreise-aurich", label: "Immobilienpreise Aurich" },
+  { href: "/immobilienmakler-aurich", label: "Immobilienmakler Aurich" },
+  { href: "/regionen-ostfriesland", label: "Regionen Ostfriesland" },
+  { href: "/haus-kaufen-aurich", label: "Haus kaufen" },
+  { href: "/immobilien-aurich", label: "Immobilien Aurich" },
+] as const;
+
+const nearbyRegionalLinks = [
+  { href: "/immobilienmakler-aurich", label: "Aurich" },
+  { href: "/immobilienmakler-emden", label: "Emden" },
+  { href: "/immobilienmakler-leer", label: "Leer" },
+  { href: "/immobilienmakler-norden", label: "Norden" },
+  { href: "/immobilienmakler-wittmund", label: "Wittmund" },
+  { href: "/immobilienmakler-wiesmoor", label: "Wiesmoor" },
+  { href: "/immobilienmakler-suedbrookmerland", label: "Südbrookmerland" },
+  { href: "/immobilienmakler-krummhoern", label: "Krummhörn" },
+  { href: "/immobilienmakler-grossheide", label: "Großheide" },
 ] as const;
 
 export default function MaklerhausPage() {
@@ -137,11 +160,7 @@ export default function MaklerhausPage() {
     "@context": "https://schema.org",
     "@type": "ItemList",
     "@id": `${canonical}#related-links`,
-    itemListElement: [
-      { href: "/immobilienmakler-aurich", label: "Immobilienmakler Aurich" },
-      { href: "/immobilie-verkaufen-aurich", label: "Immobilie verkaufen Aurich" },
-      { href: "/kontakt", label: "Persönliche Beratung" },
-    ].map((link, index) => ({
+    itemListElement: [...regionalPageLinks, ...nearbyRegionalLinks].map((link, index) => ({
       "@type": "ListItem",
       position: index + 1,
       name: link.label,
@@ -201,70 +220,161 @@ export default function MaklerhausPage() {
       <JsonLd data={relatedLinksJsonLd} />
       <JsonLd data={teamJsonLd} />
 
-      <section className="relative isolate overflow-hidden bg-white">
-        <div className="absolute inset-0 -z-10">
-          <Image
-            src="/images/maklerhaus/buero1.webp"
-            alt="Büro von Frisia Immobilien in Aurich"
-            fill
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            className="object-cover object-[58%_50%]"
-          />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_30%,rgba(255,255,255,0.68)_50%,rgba(255,255,255,0.08)_82%)]" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-white/92 to-transparent md:hidden" />
-        </div>
+      <section className="relative isolate overflow-hidden bg-[#F4F2EC]">
+        <div className="md:hidden">
+          <div className="relative h-[clamp(410px,calc(100svh-17rem),470px)] overflow-hidden">
+            <Image
+              src="/images/maklerhaus/buero1.webp"
+              alt="Büro von Frisia Immobilien in Aurich"
+              fill
+              priority
+              fetchPriority="high"
+              sizes="100vw"
+              className="object-cover object-[58%_50%]"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.38)_0%,rgba(255,255,255,0.18)_38%,rgba(255,255,255,0)_74%)]" />
 
-        <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] w-full max-w-[1440px] flex-col justify-center px-5 pb-14 pt-20 sm:px-8 md:min-h-[calc(100svh-4rem)] md:pb-40 lg:px-12">
-          <div className="max-w-[42rem] min-w-0">
-            <p className="mb-5 text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
-              MAKLERHAUS · AURICH & OSTFRIESLAND
+            <div className="relative z-10 px-[1.65rem] pt-9">
+              <div className="relative isolate max-w-[20rem]">
+                <div className="pointer-events-none absolute -inset-x-3 -inset-y-4 -z-10 bg-[linear-gradient(105deg,rgba(255,255,255,0.5)_0%,rgba(255,255,255,0.28)_58%,rgba(255,255,255,0)_75%,rgba(255,255,255,0)_100%)] blur-[1px]" />
+                <p className="max-w-[16rem] text-[0.66rem] font-semibold uppercase leading-[1.65] tracking-[0.22em] text-[color:var(--color-navy)]/78">
+                  Maklerhaus · Aurich & Ostfriesland
+                </p>
+                <div className="mt-6 max-w-[10.5ch] font-[family-name:var(--font-playfair)] text-[clamp(2.05rem,9.45vw,2.5rem)] leading-[0.98] tracking-normal text-[color:var(--color-navy)]">
+                  Frisia Immobilien:
+                  <br />
+                  Das Maklerhaus
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white px-[1.65rem] pb-4 pt-5">
+            <p className="max-w-[22rem] border-l-[5px] border-[color:var(--color-brass)] pl-5 text-[0.76rem] leading-[1.42] text-[color:var(--color-graphite)]">
+              Persönlich. Regional. Verlässlich. Wir stehen für klare Kommunikation, kompetente Beratung und partnerschaftliche Zusammenarbeit.
             </p>
-            <h1 className="max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] tracking-normal text-[color:var(--color-navy)]">
-              Frisia Immobilien:
-              <br />
-              Das Maklerhaus
-            </h1>
-            <div className="mt-8 h-1 w-28 bg-[color:var(--color-brass)]" />
-            <p className="mt-8 max-w-[36rem] text-[1.15rem] leading-[1.65] text-[color:var(--color-navy)] md:text-[1.28rem]">
-              Persönlich. Regional. Verlässlich.
-              <br />
-              Wir stehen für klare Kommunikation, kompetente Beratung und partnerschaftliche Zusammenarbeit – mit mehr als 50 Jahren gemeinsamer Berufserfahrung.
-            </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+
+            <div className="mt-5 grid grid-cols-[1.25fr_1fr] gap-2.5">
               <Link
                 href="#team"
-                className="inline-flex min-h-14 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition-colors hover:bg-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+                className="inline-flex min-h-[3.75rem] items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-4 py-3 text-center text-[1rem] font-semibold leading-tight text-white shadow-[0_18px_40px_-28px_rgba(27,48,64,0.78)] transition-colors hover:bg-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
               >
-                Mehr über unser Maklerhaus
+                Mehr zu unserem Team
               </Link>
               <a
                 href={PHONE_HREF}
-                className="inline-flex min-h-14 items-center justify-center gap-3 rounded-xl border border-[color:var(--color-brass)]/65 bg-white/88 px-7 py-4 text-base font-semibold text-[color:var(--color-navy)] transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+                className="inline-flex min-h-[3.75rem] flex-col items-center justify-center whitespace-nowrap rounded-xl border border-[color:var(--color-brass)]/55 bg-white px-[0.55rem] py-2.5 text-center font-semibold leading-tight text-[color:var(--color-navy)] shadow-[0_16px_46px_-36px_rgba(27,48,64,0.55)] transition-colors hover:border-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
               >
-                <span aria-hidden="true">☎</span>
-                {PHONE_DISPLAY}
+                <span className="text-[clamp(0.65rem,2.84vw,0.78rem)]">Einfach kurz sprechen</span>
+                <span className="mt-1 text-[clamp(0.8rem,3.55vw,0.93rem)]">{PHONE_DISPLAY}</span>
               </a>
             </div>
+
+            <ul className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 pb-1 text-[0.6rem] font-semibold leading-none text-[color:var(--color-navy)]">
+              {["Regional", "Persönlich", "50+ Jahre Erfahrung"].map((item) => (
+                <li key={item} className="flex items-center gap-1 whitespace-nowrap">
+                  <span className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border border-[color:var(--color-navy)]/70 text-[color:var(--color-navy)]">
+                    <svg aria-hidden="true" viewBox="0 0 16 16" className="h-2 w-2" fill="none">
+                      <path d="m4 8 2.4 2.4L12 5.4" stroke="currentColor" strokeWidth="2.15" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
-        <div className="bg-white/94 shadow-[0_-18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm md:absolute md:inset-x-0 md:bottom-0">
-          <div className="mx-auto grid max-w-[1240px] gap-4 px-5 py-6 sm:px-8 md:grid-cols-4 md:gap-0 lg:px-12">
-            {[
-              { icon: "F", text: "Regional verwurzelt in Aurich & Ostfriesland" },
-              { icon: "◎", text: "Persönliche Ansprechpartner statt anonymer Abläufe" },
-              { icon: "☆", text: "Über 25 Jahre Erfahrung auf dem Immobilienmarkt" },
-              { icon: "✓", text: "Seriös. Diskret. Vertrauensvoll." },
-            ].map((item, index) => (
-              <div key={item.text} className={`flex items-center gap-4 ${index > 0 ? "md:border-l md:border-[color:var(--color-brass)]/25 md:pl-8" : ""}`}>
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-[color:var(--color-navy)]/20 text-xl font-semibold text-[color:var(--color-navy)]">
-                  {item.icon}
-                </span>
-                <p className="text-sm font-medium leading-[1.45] text-[color:var(--color-navy)]">{item.text}</p>
+        <div className="relative isolate hidden overflow-hidden bg-white md:block">
+          <div className="absolute inset-0 -z-10">
+            <Image
+              src="/images/maklerhaus/buero1.webp"
+              alt="Büro von Frisia Immobilien in Aurich"
+              fill
+              priority
+              fetchPriority="high"
+              sizes="100vw"
+              className="object-cover object-[58%_50%]"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.72)_26%,rgba(255,255,255,0.34)_46%,rgba(255,255,255,0.06)_66%,rgba(255,255,255,0)_88%)]" />
+          </div>
+
+          <div className="mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-[1440px] flex-col justify-center px-8 pb-40 pt-20 lg:px-12">
+            <div className="max-w-[42rem] min-w-0">
+              <p className="mb-5 text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
+                MAKLERHAUS · AURICH & OSTFRIESLAND
+              </p>
+              <h1 className="max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] tracking-normal text-[color:var(--color-navy)]">
+                Frisia Immobilien:
+                <br />
+                Das Maklerhaus
+              </h1>
+              <HeroDivider />
+              <p className="mt-8 max-w-[36rem] text-[1.28rem] leading-[1.65] text-[color:var(--color-navy)]">
+                Persönlich. Regional. Verlässlich.
+                <br />
+                Wir stehen für klare Kommunikation, kompetente Beratung und partnerschaftliche Zusammenarbeit – mit mehr als 50 Jahren gemeinsamer Berufserfahrung.
+              </p>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <Link
+                  href="#team"
+                  className="inline-flex min-h-14 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition-colors hover:bg-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+                >
+                  Mehr zu unserem Team
+                </Link>
+                <a
+                  href={PHONE_HREF}
+                  className="inline-flex min-h-14 items-center justify-center gap-3 rounded-xl border border-[color:var(--color-brass)]/65 bg-white/88 px-7 py-4 text-base font-semibold text-[color:var(--color-navy)] transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+                >
+                  <Image
+                    src="/images/icons/phone.webp"
+                    alt=""
+                    width={14}
+                    height={14}
+                    aria-hidden="true"
+                    className="h-[13.5px] w-[13.5px] shrink-0 object-contain"
+                  />
+                  {PHONE_DISPLAY}
+                </a>
               </div>
-            ))}
+            </div>
+          </div>
+
+          <div className="absolute inset-x-0 bottom-0 bg-white/94 shadow-[0_-18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+            <div className="mx-auto grid max-w-[1240px] gap-0 px-8 py-6 md:grid-cols-4 lg:px-12">
+              {[
+                {
+                  iconSrc: "/images/maklerhaus/icons/regional-verwurzelt.webp",
+                  text: "Regional verwurzelt in Aurich & Ostfriesland",
+                },
+                {
+                  iconSrc: "/images/maklerhaus/icons/persoenliche-ansprechpartner.webp",
+                  text: "Persönliche Ansprechpartner statt anonymer Abläufe",
+                },
+                {
+                  iconSrc: "/images/maklerhaus/icons/25-jahre-erfahrung.webp",
+                  text: "Über 25 Jahre Erfahrung auf dem Immobilienmarkt",
+                },
+                {
+                  iconSrc: "/images/maklerhaus/icons/serioes.webp",
+                  text: "Seriös. Diskret. Vertrauensvoll.",
+                },
+              ].map((item, index) => (
+                <div key={item.text} className={`flex items-center gap-4 ${index > 0 ? "border-l border-[color:var(--color-brass)]/25 pl-8" : ""}`}>
+                  <span className="flex h-14 w-14 shrink-0 items-center justify-center">
+                    <Image
+                      src={item.iconSrc}
+                      alt=""
+                      width={52}
+                      height={52}
+                      aria-hidden="true"
+                      className="h-[52px] w-[52px] object-contain mix-blend-multiply"
+                    />
+                  </span>
+                  <p className="text-sm font-medium leading-[1.45] text-[color:var(--color-navy)]">{item.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -278,13 +388,13 @@ export default function MaklerhausPage() {
             </h2>
             <div className="mt-5 space-y-4 text-base leading-[1.8] text-[color:var(--color-graphite)]">
               <p>
-                Frisia Immobilien ist ein inhabergeführtes Maklerhaus mit Sitz in Aurich - direkt an der Haxtumer Mühle, zwischen den gewachsenen Wohnlagen in Extum und den Neubaugebieten im Timp und in Haxtum.
+                Frisia Immobilien ist ein inhabergeführtes Maklerhaus mit Sitz in Aurich – direkt an der Haxtumer Mühle, zwischen den gewachsenen Wohnlagen in Extum und den Neubaugebieten in Timp und Haxtum.
               </p>
               <p>
-                Diese Lage ist bewusst gewählt: Aurich bildet als wirtschaftliches und geografisches Zentrum den Mittelpunkt des Immobilienmarktes in Ostfriesland. Von hier aus lassen sich Marktbewegungen früh erkennen, Entwicklungen einordnen und Entscheidungen fundiert treffen.
+                Aurich bildet den Mittelpunkt des Immobilienmarktes in Ostfriesland. Von hier aus lassen sich Preisentwicklungen früh erkennen und realistisch einordnen.
               </p>
               <p>
-                Frisia Immobilien arbeitet genau dort, wo sich Angebot, Nachfrage und Preisentwicklung konzentrieren - nah am Markt, nah an den Menschen und mit einem klaren Verständnis für die Region.
+                Frisia Immobilien arbeitet nah am Markt – dort, wo Angebot, Nachfrage und tatsächliche Verkaufspreise entstehen.
               </p>
             </div>
           </div>
@@ -294,10 +404,17 @@ export default function MaklerhausPage() {
               <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Gewachsene Strukturen. Neue Entwicklung.</h3>
               <div className="mt-4 space-y-4 text-base leading-[1.8] text-[color:var(--color-graphite)]">
                 <p>
-                  Diese Lage ist kein Zufall. Sie verbindet zwei entscheidende Faktoren: gewachsene Strukturen und neue Entwicklung. Genau dort, wo sich der Markt bewegt, ist Frisia Immobilien positioniert.
+                  Die Lage verbindet bestehende Wohngebiete mit neuen Entwicklungen.
                 </p>
+                <div>
+                  <p className="font-semibold text-[color:var(--color-navy)]">Für Eigentümer bedeutet das:</p>
+                  <ul className="mt-2 space-y-1">
+                    <li>→ realistische Bewertung auf Basis echter Nachfrage</li>
+                    <li>→ klare Einordnung der Lage innerhalb des Marktes</li>
+                  </ul>
+                </div>
                 <p>
-                  Der Standort bietet kurze Wege, eigene Parkplätze und eine direkte Erreichbarkeit - bewusst gewählt für eine unkomplizierte Zusammenarbeit vor Ort.
+                  Kurze Wege und direkte Erreichbarkeit sorgen für eine einfache und verbindliche Abstimmung vor Ort.
                 </p>
               </div>
             </article>
@@ -306,28 +423,31 @@ export default function MaklerhausPage() {
               <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Das Frisia Prinzip</h3>
               <div className="mt-4 space-y-4 text-base leading-[1.8] text-[color:var(--color-graphite)]">
                 <p>
-                  Das Frisia Prinzip steht für eine klare Haltung: Moderne Vermarktung auf dem neuesten Stand der Technik - kombiniert mit klassischen Werten wie Verlässlichkeit, persönlicher Verantwortung und strukturierter Arbeitsweise.
+                  Jeder Verkauf folgt einer klaren Struktur.
                 </p>
                 <p>
-                  Eigentümer haben einen festen Ansprechpartner. Entscheidungen werden nicht delegiert, sondern begleitet. Jeder Schritt im Verkaufsprozess folgt einer klaren Struktur - von der fundierten Bewertung bis zum rechtssicheren Abschluss.
+                  Du hast einen festen Ansprechpartner. Alle Schritte werden nachvollziehbar eingeordnet – von der Bewertung bis zum Abschluss.
+                </p>
+                <p>
+                  Es geht nicht um schnelle Entscheidungen, sondern um eine fundierte Grundlage.
                 </p>
               </div>
             </article>
 
             <div className="rounded-[1.8rem] bg-[color:var(--color-navy)] p-6 text-white md:p-7">
               <p className="text-base leading-[1.8] text-white/88">
-                Frisia Immobilien arbeitet dort, wo der Markt entsteht: in den gefragten Wohnlagen von Aurich und im gesamten ostfriesischen Raum.
+                Frisia Immobilien arbeitet im regionalen Markt in Aurich und ganz Ostfriesland – dort, wo Käufer tatsächlich suchen und Entscheidungen treffen.
               </p>
               <p className="mt-4 text-xl font-semibold leading-[1.45]">
-                Neueste Technik. Klare Prozesse. Und ein Verständnis für Immobilien, das auf Erfahrung und Verantwortung basiert.
+                Klare Bewertung. Strukturierter Verkauf. Verlässliche Begleitung.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="team" className="mx-auto w-full max-w-[1240px] px-4 py-14 sm:px-6 md:py-16">
-        <div className="rounded-[2rem] border border-[color:var(--color-brass)]/25 bg-[color:var(--color-section)] p-6 md:p-8">
+      <section id="team" className="bg-[color:var(--color-section)] px-4 py-14 sm:px-6 md:py-16">
+        <div className="mx-auto w-full max-w-[1240px] rounded-[2rem] border border-[color:var(--color-brass)]/25 bg-white p-6 md:p-8">
           <div className="max-w-3xl">
             <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">Experten für Wohn-, Gewerbe- und Ferienimmobilien</p>
             <h2 className="mt-3 font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">
@@ -420,19 +540,19 @@ export default function MaklerhausPage() {
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] py-14 md:py-16">
+      <section className="bg-white py-14 md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
           <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">Werte und Arbeitsweise</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-2">
-            <article className="rounded-2xl border border-[color:var(--color-brass)]/25 bg-white p-6">
-              <h3 className="text-2xl font-semibold text-[color:var(--color-navy)]">Persönliche Verantwortung</h3>
-              <p className="mt-3 text-base leading-[1.75] text-[color:var(--color-graphite)]">
+            <article className="rounded-2xl border border-[color:var(--color-navy)] bg-[color:var(--color-navy)] p-6 shadow-[0_18px_45px_-34px_rgba(27,48,64,0.75)]">
+              <h3 className="text-2xl font-semibold text-white">Persönliche Verantwortung</h3>
+              <p className="mt-3 text-base leading-[1.75] text-white/86">
                 Eigentümer haben feste Ansprechpartner und klare Zuständigkeiten im gesamten Ablauf bis zum Notartermin.
               </p>
             </article>
-            <article className="rounded-2xl border border-[color:var(--color-brass)]/25 bg-white p-6">
-              <h3 className="text-2xl font-semibold text-[color:var(--color-navy)]">Klare Struktur statt Reizüberflutung</h3>
-              <p className="mt-3 text-base leading-[1.75] text-[color:var(--color-graphite)]">
+            <article className="rounded-2xl border border-[color:var(--color-navy)] bg-[color:var(--color-navy)] p-6 shadow-[0_18px_45px_-34px_rgba(27,48,64,0.75)]">
+              <h3 className="text-2xl font-semibold text-white">Klare Struktur statt Reizüberflutung</h3>
+              <p className="mt-3 text-base leading-[1.75] text-white/86">
                 Jeder Prozessschritt ist nachvollziehbar aufgebaut: Bewertung, Unterlagen, Vermarktung, Verhandlung und Abschluss.
               </p>
             </article>
@@ -440,37 +560,50 @@ export default function MaklerhausPage() {
         </div>
       </section>
 
-      <section className="mx-auto w-full max-w-[1240px] px-4 py-14 sm:px-6 md:py-16">
-        <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">FAQ zum Maklerhaus Frisia Immobilien</h2>
-        <div className="mt-6 space-y-4">
-          {faq.map((item) => (
-            <article key={item.question} className="rounded-2xl border border-[color:var(--color-brass)]/25 bg-white p-6">
-              <h3 className="text-xl font-semibold leading-[1.4] text-[color:var(--color-navy)]">{item.question}</h3>
-              <p className="mt-2 text-base leading-[1.75] text-[color:var(--color-graphite)]">{item.answer}</p>
-            </article>
-          ))}
-        </div>
+      <section className="bg-[color:var(--color-section)] py-14 md:py-16">
+        <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
+          <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">FAQ zum Maklerhaus Frisia Immobilien</h2>
+          <div className="mt-6 space-y-4">
+            {faq.map((item) => (
+              <article key={item.question} className="rounded-2xl border border-[color:var(--color-brass)]/25 bg-white p-6">
+                <h3 className="text-xl font-semibold leading-[1.4] text-[color:var(--color-navy)]">{item.question}</h3>
+                <p className="mt-2 text-base leading-[1.75] text-[color:var(--color-graphite)]">{item.answer}</p>
+              </article>
+            ))}
+          </div>
 
-        <aside className="mt-8 rounded-2xl border border-[color:var(--color-brass)]/25 bg-[color:var(--color-section)] p-6">
-          <h4 className="text-lg font-semibold text-[color:var(--color-navy)]">Interne Verlinkung</h4>
-          <ul className="mt-3 space-y-2 text-sm text-[color:var(--color-graphite)]">
-            <li>
-              <Link href="/immobilienmakler-aurich" className="underline underline-offset-4">
-                Immobilienmakler Aurich
-              </Link>
-            </li>
-            <li>
-              <Link href="/immobilie-verkaufen-aurich" className="underline underline-offset-4">
-                Immobilie verkaufen Aurich
-              </Link>
-            </li>
-            <li>
-              <Link href="/kontakt" className="underline underline-offset-4">
-                Persönliche Beratung
-              </Link>
-            </li>
-          </ul>
-        </aside>
+          <div className="mt-14">
+            <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">
+              Weiterführende regionale Seiten
+            </h2>
+            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {regionalPageLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-lg border border-[color:var(--color-brass)]/45 bg-white px-7 py-5 text-lg font-semibold text-[color:var(--color-navy)] shadow-[0_18px_44px_-40px_rgba(27,48,64,0.45)] transition hover:border-[color:var(--color-brass)] hover:bg-white/80"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+
+            <h3 className="mt-14 font-[family-name:var(--font-playfair)] text-[1.75rem] leading-tight text-[color:var(--color-navy)] md:text-[2.15rem]">
+              Nachbarorte und Ortsteile
+            </h3>
+            <div className="mt-5 flex flex-wrap gap-3">
+              {nearbyRegionalLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-full border border-[color:var(--color-brass)]/45 bg-white px-5 py-2.5 text-base text-[color:var(--color-graphite)] transition hover:border-[color:var(--color-brass)] hover:text-[color:var(--color-navy)] md:text-lg"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
       </section>
     </main>
   );

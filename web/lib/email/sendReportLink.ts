@@ -1,7 +1,19 @@
 import "server-only";
 
-import { createNote, createTask, sendPropstackMessage } from "@/lib/propstack/client";
+import { Resend } from "resend";
+
+import {
+  createNote,
+  createTask,
+  getBrokerAvatarUrlByEmail,
+  sendPropstackMessage,
+} from "@/lib/propstack/client";
+import { BRAND_NAME, DIRECT_CONTACT, PHONE_DISPLAY } from "@/lib/site";
 import type { LeadReportWithRequest } from "@/lib/types/leadgen";
+
+const RESEND_FALLBACK_FROM_EMAIL = "Frisia Immobilien <onboarding@resend.dev>";
+const REPORT_FROM_EMAIL_ADDRESS = "info@frisia-immobilien.de";
+const REPORT_FROM_EMAIL = "Frisia Immobilien <info@frisia-immobilien.de>";
 
 function escapeHtml(value: string) {
   return value
@@ -12,56 +24,188 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-function nameFor(lead: LeadReportWithRequest) {
-  const first = lead.lead_request.firstname?.trim();
-  const last = lead.lead_request.lastname?.trim();
-  const full = [first, last].filter(Boolean).join(" ");
-  return full || "Interessent/in";
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY fehlt.");
+  }
+
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
-export function renderReportEmail(lead: LeadReportWithRequest, reportUrl: string) {
-  const name = escapeHtml(nameFor(lead));
-  const safeUrl = escapeHtml(reportUrl);
-  const subject = "Deine Immobilienbewertung ist bereit";
+function getReportFromEmail() {
+  return process.env.REPORT_FROM_EMAIL?.trim() || REPORT_FROM_EMAIL;
+}
+
+function getResendFallbackFromEmail() {
+  return process.env.RESEND_FALLBACK_FROM_EMAIL?.trim() || RESEND_FALLBACK_FROM_EMAIL;
+}
+
+function isUnverifiedResendDomainError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.toLowerCase().includes("domain is not verified");
+}
+
+function emailTrackingUrl(reportUrl: string) {
+  try {
+    const url = new URL(reportUrl);
+    url.searchParams.set("utm_source", "email");
+    url.searchParams.set("utm_medium", "leadgenerator");
+    url.searchParams.set("utm_campaign", "marktwerteinschaetzung");
+    return url.toString();
+  } catch {
+    const separator = reportUrl.includes("?") ? "&" : "?";
+    return `${reportUrl}${separator}utm_source=email&utm_medium=leadgenerator&utm_campaign=marktwerteinschaetzung`;
+  }
+}
+
+function greetingName(input: { firstname?: string | null; lastname?: string | null }) {
+  const firstName = String(input.firstname ?? "").trim();
+  if (firstName) return firstName;
+
+  const lastName = String(input.lastname ?? "").trim();
+  return lastName || null;
+}
+
+function greetingLine(input: { firstname?: string | null; lastname?: string | null }) {
+  const name = greetingName(input);
+  return name ? `Hallo ${name},` : "Hallo,";
+}
+
+export function renderReportEmail(
+  lead: LeadReportWithRequest,
+  reportUrl: string,
+  contactImageUrl: string = DIRECT_CONTACT.imagePath,
+) {
+  const trackedUrl = emailTrackingUrl(reportUrl);
+  const safeUrl = escapeHtml(trackedUrl);
+  const subject = "Deine Werteinschätzung ist fertig";
+  const greeting = greetingLine(lead.lead_request);
   const text = [
-    `Sehr geehrte/r ${name},`,
+    BRAND_NAME.toUpperCase(),
     "",
-    "vielen Dank für Ihre Anfrage.",
+    "Deine erste Werteinschätzung ist vorbereitet.",
     "",
-    "Auf Grundlage Ihrer Angaben haben wir eine erste Marktpreiseinschätzung für Ihre Immobilie erstellt.",
+    greeting,
     "",
-    `Sie können Ihre persönliche Einschätzung hier ansehen: ${reportUrl}`,
+    "vielen Dank für deine Angaben.",
     "",
-    "Der Link ist 30 Tage gültig.",
+    "Deine persönliche Ergebnisseite ist jetzt abrufbar. Dort siehst du die aktuelle Wertspanne deiner Immobilie – übersichtlich und nachvollziehbar dargestellt.",
     "",
-    "Bitte beachten Sie: Diese Einschätzung basiert auf statistischen Vergleichsdaten und Ihren Eingaben. Sie ersetzt keine persönliche Bewertung vor Ort. Lage, Zustand, Ausstattung und besondere Merkmale können den tatsächlichen Verkaufspreis beeinflussen.",
+    "Wertspanne jetzt ansehen",
+    trackedUrl,
     "",
-    "Gerne ordnen wir das Ergebnis persönlich mit Ihnen ein und zeigen Ihnen, welcher Verkaufspreis realistisch erreichbar ist.",
+    "Die angezeigte Spanne gibt dir eine erste Orientierung.",
+    "",
+    "Der entscheidende Schritt ist jetzt die persönliche Einordnung:",
+    "Wir prüfen die Einschätzung im Detail und sagen dir klar, welcher Verkaufspreis realistisch und am Markt durchsetzbar ist.",
+    "",
+    "So vermeidest du typische Fehler wie:",
+    "– zu niedriger Verkaufspreis",
+    "– lange Vermarktungsdauer",
+    "– unnötige Unsicherheit",
+    "",
+    "Gerne übernehme ich diese Prüfung direkt für dich.",
     "",
     "Viele Grüße",
-    "Sebastian Munzig",
+    "",
+    DIRECT_CONTACT.name,
+    "Immobilienmakler (IHK)",
+    "DEKRA-zertifizierter Sachverständiger für Immobilienbewertung D1",
+    "",
     "Frisia Immobilien",
-    "04941 986770-0",
+    `Telefon: ${PHONE_DISPLAY}`,
   ].join("\n");
 
   const html = `
-    <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.65;color:#1B3040;">
-      <p>Sehr geehrte/r ${name},</p>
-      <p>vielen Dank für Ihre Anfrage.</p>
-      <p>Auf Grundlage Ihrer Angaben haben wir eine erste Marktpreiseinschätzung für Ihre Immobilie erstellt.</p>
-      <p style="margin:22px 0;">
-        <a href="${safeUrl}" style="display:inline-block;background:#1B3040;color:#ffffff;padding:13px 18px;border-radius:8px;text-decoration:none;font-weight:700;">
-          Bewertung öffnen
-        </a>
-      </p>
-      <p>Der Link ist 30 Tage gültig.</p>
-      <p><strong>Bitte beachten Sie:</strong> Diese Einschätzung basiert auf statistischen Vergleichsdaten und Ihren Eingaben. Sie ersetzt keine persönliche Bewertung vor Ort. Lage, Zustand, Ausstattung und besondere Merkmale können den tatsächlichen Verkaufspreis beeinflussen.</p>
-      <p>Gerne ordnen wir das Ergebnis persönlich mit Ihnen ein und zeigen Ihnen, welcher Verkaufspreis realistisch erreichbar ist.</p>
-      <p>Viele Grüße<br>Sebastian Munzig<br>Frisia Immobilien<br>04941 986770-0</p>
+    <div style="background:#f4f6f9;padding:28px 16px;font-family:Arial,Helvetica,sans-serif;color:#1b3040;">
+      <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e3e8ef;border-radius:18px;overflow:hidden;">
+        <div style="padding:30px 34px 10px 34px;">
+          <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#3f535d;">${escapeHtml(
+            BRAND_NAME.toUpperCase(),
+          )}</div>
+          <h1 style="margin:18px 0 0 0;font-size:30px;line-height:1.18;color:#1b3040;font-family:Georgia,'Times New Roman',serif;font-weight:700;">Deine erste Werteinschätzung ist vorbereitet.</h1>
+        </div>
+
+        <div style="padding:22px 34px 34px 34px;font-size:16px;line-height:1.72;color:#465762;">
+          <p style="margin:0 0 18px 0;color:#1b3040;">${escapeHtml(greeting)}</p>
+          <p style="margin:0 0 18px 0;">vielen Dank für deine Angaben.</p>
+          <p style="margin:0 0 22px 0;">Deine persönliche Ergebnisseite ist jetzt abrufbar. Dort siehst du die aktuelle Wertspanne deiner Immobilie – übersichtlich und nachvollziehbar dargestellt.</p>
+
+          <p style="margin:28px 0 30px 0;">
+            <a href="${safeUrl}" style="display:inline-block;background:#1b3040;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 22px;border-radius:6px;">
+              Wertspanne jetzt ansehen
+            </a>
+          </p>
+
+          <p style="margin:0 0 18px 0;">Die angezeigte Spanne gibt dir eine erste Orientierung.</p>
+          <p style="margin:0 0 16px 0;">Der entscheidende Schritt ist jetzt die persönliche Einordnung:<br>Wir prüfen die Einschätzung im Detail und sagen dir klar, welcher Verkaufspreis realistisch und am Markt durchsetzbar ist.</p>
+          <p style="margin:0 0 10px 0;">So vermeidest du typische Fehler wie:</p>
+          <p style="margin:0 0 22px 0;">
+            – zu niedriger Verkaufspreis<br>
+            – lange Vermarktungsdauer<br>
+            – unnötige Unsicherheit
+          </p>
+          <p style="margin:0 0 28px 0;">Gerne übernehme ich diese Prüfung direkt für dich.</p>
+
+          <p style="margin:0 0 18px 0;color:#1b3040;">Viele Grüße</p>
+          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0;">
+            <tr>
+              <td style="width:116px;vertical-align:top;padding:0 22px 0 6px;">
+                <img src="${escapeHtml(contactImageUrl)}" width="116" alt="${escapeHtml(
+                  DIRECT_CONTACT.name,
+                )}" style="display:block;width:116px;height:auto;border:0;outline:none;border-radius:8px;">
+              </td>
+              <td style="vertical-align:top;color:#1b3040;font-size:16px;line-height:1.55;">
+                <strong>${escapeHtml(DIRECT_CONTACT.name)}</strong><br>
+                Immobilienmakler (IHK)<br>
+                DEKRA-zertifizierter Sachverständiger für Immobilienbewertung D1<br><br>
+                <strong>Frisia Immobilien</strong><br>
+                Telefon: ${escapeHtml(PHONE_DISPLAY)}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
     </div>
   `;
 
   return { subject, text, html };
+}
+
+async function sendResendReportEmail(input: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}) {
+  const resend = getResendClient();
+  const send = async (from: string) => {
+    const response = await resend.emails.send({
+      from,
+      to: input.to,
+      subject: input.subject,
+      html: input.html,
+      text: input.text,
+    });
+
+    if (response.error) {
+      throw new Error(response.error.message || "Resend konnte die E-Mail nicht versenden.");
+    }
+
+    return response.data?.id ?? null;
+  };
+
+  const primaryFrom = getReportFromEmail();
+  try {
+    return await send(primaryFrom);
+  } catch (error) {
+    const fallbackFrom = getResendFallbackFromEmail();
+    if (!isUnverifiedResendDomainError(error) || fallbackFrom === primaryFrom) {
+      throw error;
+    }
+
+    return send(fallbackFrom);
+  }
 }
 
 export async function sendReportLink(input: {
@@ -71,7 +215,9 @@ export async function sendReportLink(input: {
   const email = input.lead.lead_request.email;
   if (!email) throw new Error("Lead hat keine E-Mail-Adresse.");
 
-  const rendered = renderReportEmail(input.lead, input.reportUrl);
+  const contactImageUrl =
+    (await getBrokerAvatarUrlByEmail(DIRECT_CONTACT.email).catch(() => null)) || DIRECT_CONTACT.imagePath;
+  const rendered = renderReportEmail(input.lead, input.reportUrl, contactImageUrl);
 
   try {
     const messageId = await sendPropstackMessage({
@@ -80,12 +226,43 @@ export async function sendReportLink(input: {
       html: rendered.html,
       contactId: input.lead.lead_request.propstack_contact_id,
       propertyId: input.lead.lead_request.propstack_property_id,
+      assignedBrokerEmail: REPORT_FROM_EMAIL_ADDRESS,
     });
 
     return { provider: "propstack" as const, messageId };
   } catch (error) {
+    const propstackErrorMessage = error instanceof Error ? error.message : String(error);
+
+    try {
+      const messageId = await sendResendReportEmail({
+        to: email,
+        subject: rendered.subject,
+        html: rendered.html,
+        text: rendered.text,
+      });
+
+      await createNote({
+        title: "Bewertungslink per E-Mail versendet",
+        body: [
+          "Der Bewertungslink wurde per Resend an den Eigentümer versendet.",
+          "",
+          `Empfänger: ${email}`,
+          `Betreff: ${rendered.subject}`,
+          "",
+          "Hinweis:",
+          `Der direkte Propstack-Mailversand war nicht verfügbar: ${propstackErrorMessage}`,
+        ].join("\n"),
+        contactId: input.lead.lead_request.propstack_contact_id,
+        propertyId: input.lead.lead_request.propstack_property_id,
+      }).catch(() => null);
+
+      return { provider: "resend" as const, messageId };
+    } catch (resendError) {
+      const resendErrorMessage = resendError instanceof Error ? resendError.message : String(resendError);
+
     const body = [
       "Propstack E-Mail-Versand konnte nicht automatisch abgeschlossen werden.",
+      "Resend konnte die E-Mail ebenfalls nicht automatisch versenden.",
       "",
       "Bitte folgende E-Mail aus Propstack an den Kontakt senden:",
       "",
@@ -93,7 +270,8 @@ export async function sendReportLink(input: {
       "",
       rendered.text,
       "",
-      `Technischer Hinweis: ${error instanceof Error ? error.message : String(error)}`,
+        `Technischer Hinweis Propstack: ${propstackErrorMessage}`,
+        `Technischer Hinweis Resend: ${resendErrorMessage}`,
     ].join("\n");
 
     try {
@@ -114,6 +292,7 @@ export async function sendReportLink(input: {
       return { provider: "propstack_task" as const, messageId: null };
     } catch {
       return { provider: "failed" as const, messageId: null };
+    }
     }
   }
 }

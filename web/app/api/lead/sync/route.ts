@@ -120,8 +120,11 @@ export async function POST(request: Request) {
       });
     }
 
+    let propstackSyncError: string | null = null;
+
     try {
       if (lead.email) {
+        const previousContactId = lead.propstack_contact_id;
         const contactId = await createOrUpdateContact({
           contactId: lead.propstack_contact_id,
           email: lead.email,
@@ -131,37 +134,60 @@ export async function POST(request: Request) {
           consent: lead.consent_given,
         });
 
-        if (contactId) {
-          lead = (await updateLeadPropstackIds({ leadId: lead.id, contactId })) ?? lead;
-          await insertLeadEvent({
-            leadRequestId: lead.id,
-            eventName: lead.propstack_contact_id ? "propstack_contact_updated" : "propstack_contact_created",
-            payload: { contactId },
-          });
+        if (!contactId) {
+          throw new Error("Propstack-Kontakt konnte nicht bestätigt werden.");
         }
+
+        lead = (await updateLeadPropstackIds({ leadId: lead.id, contactId })) ?? lead;
+        await insertLeadEvent({
+          leadRequestId: lead.id,
+          eventName: previousContactId ? "propstack_contact_updated" : "propstack_contact_created",
+          payload: { contactId },
+        });
       }
 
       if (hasAddress(lead)) {
+        const previousPropertyId = lead.propstack_property_id;
         const propertyId = await createOrUpdateProperty({
           propertyId: lead.propstack_property_id,
           lead,
         });
 
-        if (propertyId) {
-          lead = (await updateLeadPropstackIds({ leadId: lead.id, propertyId })) ?? lead;
-          await insertLeadEvent({
-            leadRequestId: lead.id,
-            eventName: "propstack_property_created",
-            payload: { propertyId },
-          });
+        if (!propertyId) {
+          throw new Error("Propstack-Immobilie konnte nicht bestätigt werden.");
         }
+
+        lead = (await updateLeadPropstackIds({ leadId: lead.id, propertyId })) ?? lead;
+        await insertLeadEvent({
+          leadRequestId: lead.id,
+          eventName: "propstack_property_created",
+          payload: { propertyId, action: previousPropertyId ? "updated" : "created" },
+        });
       }
     } catch (error) {
+      propstackSyncError = error instanceof Error ? error.message : String(error);
       await insertLeadEvent({
         leadRequestId: lead.id,
         eventName: "valuation_failed",
-        payload: { stage: "propstack_sync", message: error instanceof Error ? error.message : String(error) },
+        payload: { stage: "propstack_sync", message: propstackSyncError },
       });
+    }
+
+    if (propstackSyncError) {
+      return NextResponse.json(
+        {
+          success: false,
+          leadId: lead.id,
+          leadRequestId: lead.id,
+          status: lead.status,
+          error: `Propstack-Sync fehlgeschlagen: ${propstackSyncError}`,
+          propstack: {
+            contactId: lead.propstack_contact_id,
+            propertyId: lead.propstack_property_id,
+          },
+        },
+        { status: 502 },
+      );
     }
 
     return NextResponse.json({

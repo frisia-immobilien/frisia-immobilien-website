@@ -1,6 +1,7 @@
 import "server-only";
 
 import { sql } from "@/lib/db";
+import { formatLocationPhraseFromName } from "@/lib/seo/locationDisplay";
 import type { SeoPageType } from "@/lib/types/leadgen";
 
 type SeoImageRow = {
@@ -11,9 +12,9 @@ type SeoImageRow = {
 };
 
 const FALLBACKS = {
-  region: "/images/regions/fallback/region-ostfriesland.jpg",
-  city: "/images/regions/fallback/city-default.jpg",
-  district: "/images/regions/fallback/district-default.jpg",
+  region: "/images/regions/fallback/region-ostfriesland.webp",
+  city: "/images/regions/fallback/city-default.webp",
+  district: "/images/regions/fallback/district-default.webp",
 };
 
 export async function getLocationImage(input: {
@@ -57,7 +58,7 @@ export async function getLocationImage(input: {
 
   return {
     src,
-    alt: `Immobilienmarkt in ${input.location_label} - Frisia Immobilien`,
+    alt: `Immobilienmarkt ${formatLocationPhraseFromName(input.location_label)} - Frisia Immobilien`,
     title: `Immobilienmarkt ${input.location_label}`,
     caption: null,
     isFallback: true,

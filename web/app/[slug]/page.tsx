@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import JsonLd from "@/components/seo/JsonLd";
-import InternalLinks from "@/components/seo/InternalLinks";
 import LocationFAQ from "@/components/seo/LocationFAQ";
 import LocationHero from "@/components/seo/LocationHero";
 import LocationText from "@/components/seo/LocationText";
 import MarketStats from "@/components/seo/MarketStats";
+import RegionalCrossLinks, { RegionalInlineLinks, RegionalLocalFAQ } from "@/components/seo/RegionalCrossLinks";
 import SeoCTA from "@/components/seo/SeoCTA";
 import BrokerLocationTemplate from "@/components/seo/BrokerLocationTemplate";
 import HouseBuyingLocationTemplate from "@/components/seo/HouseBuyingLocationTemplate";
@@ -100,6 +100,7 @@ export default async function SeoLandingPage({ params }: PageProps) {
       ) : (
         <>
       <LocationHero data={data} />
+      <RegionalCrossLinks data={data} placement="hero" />
       <MarketStats houseMarket={data.houseMarket} apartmentMarket={data.apartmentMarket} />
       <section className="mx-auto w-full max-w-[1240px] px-4 py-12 sm:px-6 md:py-14">
         <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)]">
@@ -128,7 +129,9 @@ export default async function SeoLandingPage({ params }: PageProps) {
       ) : null}
         </>
       )}
-      <InternalLinks data={data} />
+      <RegionalInlineLinks data={data} />
+      <RegionalLocalFAQ data={data} />
+      <RegionalCrossLinks data={data} placement="bottom" />
     </main>
   );
 }

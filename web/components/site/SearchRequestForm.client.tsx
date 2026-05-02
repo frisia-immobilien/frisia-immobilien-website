@@ -317,14 +317,23 @@ export default function SearchRequestForm() {
                 <label htmlFor={fieldId("livingSpaceMin")} className="text-[0.78rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
                   Fläche ab
                 </label>
-                <input
-                  id={fieldId("livingSpaceMin")}
-                  inputMode="decimal"
-                  value={form.livingSpaceMin}
-                  onChange={(event) => updateField("livingSpaceMin", event.target.value)}
-                  placeholder="z. B. 90"
-                  className="mt-2 min-h-12 w-full rounded-2xl border border-[color:var(--color-brass)]/24 bg-[color:var(--color-section)]/45 px-4 py-3 text-[color:var(--color-navy)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/60 focus:border-[color:var(--color-brackish)]"
-                />
+                <div className="relative mt-2">
+                  <input
+                    id={fieldId("livingSpaceMin")}
+                    inputMode="decimal"
+                    value={form.livingSpaceMin}
+                    onChange={(event) => updateField("livingSpaceMin", event.target.value)}
+                    placeholder="z. B. 90"
+                    aria-describedby={fieldId("livingSpaceMinUnit")}
+                    className="min-h-12 w-full rounded-2xl border border-[color:var(--color-brass)]/24 bg-[color:var(--color-section)]/45 px-4 py-3 pr-14 text-[color:var(--color-navy)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/60 focus:border-[color:var(--color-brackish)]"
+                  />
+                  <span
+                    id={fieldId("livingSpaceMinUnit")}
+                    className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm font-semibold text-[color:var(--color-graphite)]/70"
+                  >
+                    m²
+                  </span>
+                </div>
               </div>
 
               <div>
@@ -553,7 +562,7 @@ export default function SearchRequestForm() {
               <span>
                 Ich stimme zu, dass Frisia Immobilien meine Angaben verarbeitet und mich zu passenden Immobilien sowie zu meinem Suchauftrag kontaktieren darf. Hinweise dazu findest du in der{" "}
                 <Link
-                  href="/datenschutz"
+                  href="/recht/datenschutz"
                   className="font-semibold text-[color:var(--color-navy)] underline decoration-[color:var(--color-brass)] underline-offset-4 transition-colors hover:text-[color:var(--color-brackish)]"
                 >
                   Datenschutzerklärung

@@ -1,18 +1,12 @@
 import HomeHero from "@/components/home/HomeHero";
 import HomeLeadBlock from "@/components/home/HomeLeadBlock";
+import DeferredHomeBelowFold from "@/components/home/DeferredHomeBelowFold.client";
 import {
-  ClosingCta,
-  FaqBlock,
-  FAQ_ITEMS,
-  ProofCasesBlock,
-  RegionalMarktBlock,
-  Section9plus1,
-  StandortAurichBlock,
-  TestimonialsBlock,
-  WhyFrisiaBlock,
-  WarumEigentuemerBeauftragenBlock,
+  DecisionFirstBlock,
+  VerkaufssituationenBlock,
   WarumEigentuemerVerkaufenBlock,
 } from "@/components/home/HomeSections";
+import { FAQ_ITEMS } from "@/components/home/homeFaqItems";
 import JsonLd from "@/components/seo/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";
 import {
@@ -35,7 +29,6 @@ export const metadata = buildPageMetadata({
     "Immobilienmakler Aurich",
     "Immobilienbewertung Aurich",
     "Haus verkaufen Aurich",
-    "Immobilie verkaufen Aurich",
     "Immobilien Ostfriesland",
   ],
 });
@@ -44,7 +37,7 @@ const siteNavigationJsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     { "@type": "SiteNavigationElement", name: "Startseite", url: `${SITE_URL}/` },
-    { "@type": "SiteNavigationElement", name: "Immobilie verkaufen", url: `${SITE_URL}/immobilie-verkaufen-aurich` },
+    { "@type": "SiteNavigationElement", name: "Haus verkaufen", url: `${SITE_URL}/haus-verkaufen-aurich` },
     { "@type": "SiteNavigationElement", name: "Immobilienbewertung", url: `${SITE_URL}/immobilienbewertung-aurich` },
     { "@type": "SiteNavigationElement", name: "Immobilien", url: `${SITE_URL}/immobilien-aurich` },
     { "@type": "SiteNavigationElement", name: "Makler Aurich", url: `${SITE_URL}/immobilienmakler-aurich` },
@@ -63,11 +56,11 @@ const serviceJsonLd = [
       "Strukturierte Immobilienbewertung in Aurich und Ostfriesland mit klarer Preisstrategie für Eigentümer.",
   }),
   createServiceJsonLd({
-    path: "/immobilie-verkaufen-aurich",
-    name: "Immobilie verkaufen Aurich",
+    path: "/haus-verkaufen-aurich",
+    name: "Haus verkaufen Aurich",
     serviceType: "Immobilienverkauf",
     description:
-      "Strukturierter Immobilienverkauf in Aurich mit rechtssicherer Begleitung und diskreter Vermarktung.",
+      "Strukturierter Hausverkauf in Aurich mit rechtssicherer Begleitung und diskreter Vermarktung.",
   }),
   createServiceJsonLd({
     path: "/immobilienpreise-aurich",
@@ -105,17 +98,11 @@ export default function HomePage() {
       <JsonLd data={faqJsonLd} />
 
       <HomeHero />
-      <HomeLeadBlock />
+      <VerkaufssituationenBlock />
       <WarumEigentuemerVerkaufenBlock />
-      <RegionalMarktBlock />
-      <Section9plus1 />
-      <ProofCasesBlock />
-      <WarumEigentuemerBeauftragenBlock />
-      <WhyFrisiaBlock />
-      <TestimonialsBlock />
-      <StandortAurichBlock />
-      <FaqBlock />
-      <ClosingCta />
+      <DecisionFirstBlock />
+      <HomeLeadBlock />
+      <DeferredHomeBelowFold />
     </main>
   );
 }

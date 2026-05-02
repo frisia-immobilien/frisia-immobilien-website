@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import {
   PHONE_DISPLAY,
   PHONE_HREF,
@@ -71,7 +73,19 @@ export default function EditorialPageTemplate({
       <JsonLd data={webPageJsonLd} />
       <JsonLd data={relatedLinksJsonLd} />
 
-      <section className="relative w-full py-16 md:py-20">
+      <MobileHeroSection
+        eyebrow={eyebrow}
+        title={h1}
+        description={intro}
+        imageSrc="/images/hero/haus-verkaufen-aurich.webp"
+        imageAlt={imageAlt}
+        imagePosition="58% center"
+        primaryCta={{ href: "/immobilienbewertung-aurich", label: "Immobilie bewerten" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Persönlich", "Regional", "Verlässlich"]}
+      />
+
+      <section className="relative hidden w-full py-16 md:block md:py-20">
         <div className="grid w-screen md:grid-cols-12 md:items-center">
           <div className="col-start-1 px-4 sm:px-6 md:col-span-6">
             <div className="mx-auto max-w-[620px]">
@@ -79,6 +93,7 @@ export default function EditorialPageTemplate({
               <h1 className="mt-3 max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.35rem,4.6vw,4.4rem)] leading-[1.04] tracking-normal text-[color:var(--color-navy)]">
                 {h1}
               </h1>
+              <HeroDivider />
               <p className="mt-6 max-w-4xl text-lg leading-[1.7] text-[color:var(--color-graphite)]">{intro}</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/immobilienbewertung-aurich" className="rounded-xl bg-[color:var(--color-navy)] px-5 py-3 text-sm font-semibold text-white">

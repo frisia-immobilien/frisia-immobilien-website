@@ -70,6 +70,24 @@ function getPriceLabel(item: PropertyListItem) {
   return item.priceLabel;
 }
 
+function resolveAreaMetric(item: PropertyListItem) {
+  const hasLivingSpace = item.livingSpace !== null && item.livingSpace > 0;
+
+  if (item.isCommercial && !hasLivingSpace) {
+    return {
+      label: "Nutzfläche",
+      shortLabel: "Nutzfl.",
+      value: item.usableFloorSpace,
+    };
+  }
+
+  return {
+    label: "Wohnfläche",
+    shortLabel: "Wohnfl.",
+    value: item.livingSpace,
+  };
+}
+
 export default function PropertyListingDirectory({ items }: PropertyListingDirectoryProps) {
   const cityOptions = useMemo(
     () => [...new Set(items.map((item) => item.city).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de-DE")),
@@ -117,6 +135,7 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
   );
   const featuredItem = filteredItems[0] ?? null;
   const remainingItems = featuredItem ? filteredItems.slice(1) : [];
+  const featuredAreaMetric = featuredItem ? resolveAreaMetric(featuredItem) : null;
 
   return (
     <div id="immobilien-filter" className="mt-10 scroll-mt-24">
@@ -288,9 +307,9 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
 
                     <div className="mt-7 grid gap-3 sm:grid-cols-2">
                       <div className="rounded-[1.4rem] border border-[color:var(--color-brass)]/16 bg-white/92 p-4">
-                        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[color:var(--color-brackish)]">Wohnfläche</p>
+                        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[color:var(--color-brackish)]">{featuredAreaMetric?.label}</p>
                         <p className="mt-1 text-[1.05rem] font-semibold text-[color:var(--color-navy)]">
-                          {formatMetric(featuredItem.livingSpace, "m²") ?? "k. A."}
+                          {formatMetric(featuredAreaMetric?.value ?? null, "m²") ?? "k. A."}
                         </p>
                       </div>
                       <div className="rounded-[1.4rem] border border-[color:var(--color-brass)]/16 bg-white/92 p-4">
@@ -337,7 +356,10 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
 
           {remainingItems.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-              {remainingItems.map((item) => (
+              {remainingItems.map((item) => {
+                const areaMetric = resolveAreaMetric(item);
+
+                return (
                 <article
                   key={item.id}
                   className="group overflow-hidden rounded-[2rem] border border-[color:var(--color-brass)]/25 bg-white shadow-[0_18px_60px_rgba(15,23,42,0.06)] transition-transform duration-300 hover:-translate-y-1 hover:shadow-[0_26px_80px_rgba(15,23,42,0.09)]"
@@ -386,8 +408,8 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
 
                     <div className="mt-5 grid grid-cols-3 gap-3 rounded-[1.5rem] bg-[color:var(--color-section)]/55 p-4 text-sm text-[color:var(--color-graphite)]">
                       <div>
-                        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[color:var(--color-brackish)]">Wohnfl.</p>
-                        <p className="mt-1 font-semibold text-[color:var(--color-navy)]">{formatMetric(item.livingSpace, "m²") ?? "k. A."}</p>
+                        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[color:var(--color-brackish)]">{areaMetric.shortLabel}</p>
+                        <p className="mt-1 font-semibold text-[color:var(--color-navy)]">{formatMetric(areaMetric.value, "m²") ?? "k. A."}</p>
                       </div>
                       <div>
                         <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-[color:var(--color-brackish)]">Grundst.</p>
@@ -409,7 +431,8 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
                     </div>
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
           ) : null}
         </div>

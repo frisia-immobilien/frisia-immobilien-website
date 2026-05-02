@@ -15,6 +15,8 @@ type PropstackBroker = {
   id: number;
   name?: string | null;
   email?: string | null;
+  avatar?: string | null;
+  avatar_url?: string | null;
 };
 
 type PropstackContactInput = {
@@ -50,7 +52,11 @@ type PropstackMessageInput = {
   html: string;
   contactId?: number | null;
   propertyId?: number | null;
+  assignedBrokerEmail?: string | null;
+  assignedBrokerName?: string | null;
 };
+
+const DEFAULT_LEAD_BROKER_ID = 395771;
 
 function requireApiKey() {
   if (!env.PROPSTACK_API_KEY) {
@@ -73,6 +79,31 @@ function compact<T extends Record<string, unknown>>(value: T) {
 function normalizeText(value: unknown) {
   const text = String(value ?? "").trim();
   return text.length > 0 ? text : null;
+}
+
+function euro(value: number | string | null | undefined) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(number)) return null;
+  return `${Math.round(number).toLocaleString("de-DE")} EUR`;
+}
+
+export function formatLeadOtherExtrasLines(lead: LeadRequestRow) {
+  const otherExtras = normalizeText(lead.other_extras);
+  const otherExtrasValue = euro(lead.other_extras_value_eur);
+  if (!otherExtras && !otherExtrasValue) return [] as string[];
+
+  return [
+    "Zusatzangaben",
+    `Andere Extras: ${otherExtras ?? "k. A."}`,
+    `Wert der anderen Extras: ${otherExtrasValue ?? "k. A."}`,
+  ];
+}
+
+function formatLeadOtherExtrasRemark(lead: LeadRequestRow) {
+  const lines = formatLeadOtherExtrasLines(lead);
+  if (lines.length === 0) return null;
+  return ["Website Leadgenerator", "", ...lines].join("\n");
 }
 
 function normalizeSlug(value: unknown) {
@@ -133,6 +164,16 @@ async function fetchBrokers() {
   return brokerCachePromise;
 }
 
+export async function getBrokerAvatarUrlByEmail(email: string) {
+  const normalizedEmail = normalizeText(email)?.toLowerCase();
+  if (!normalizedEmail) return null;
+
+  const response = await propstackV1Fetch("/brokers");
+  const broker = matchBrokerByNames(toArray<PropstackBroker>(response), [normalizedEmail]);
+
+  return normalizeText(broker?.avatar) ?? normalizeText(broker?.avatar_url);
+}
+
 function matchBrokerByNames(items: PropstackBroker[], candidates: string[]) {
   const normalizedCandidates = candidates.map(normalizeSlug).filter(Boolean);
 
@@ -178,7 +219,19 @@ async function resolveTaskBrokerId(input: Pick<PropstackTaskInput, "assignedBrok
   if (matchedBroker?.id) return matchedBroker.id;
   if (hasSpecificAssignee) return null;
 
-  return Number(env.PROPSTACK_BROKER_ID || 0) || null;
+  return Number(env.PROPSTACK_BROKER_ID || 0) || DEFAULT_LEAD_BROKER_ID;
+}
+
+async function resolveSpecificBrokerId(input: Pick<PropstackMessageInput, "assignedBrokerEmail" | "assignedBrokerName">) {
+  if (!input.assignedBrokerEmail && !input.assignedBrokerName) return null;
+
+  const brokers = await fetchBrokers();
+  const matchedBroker = matchBrokerByNames(brokers, [
+    input.assignedBrokerEmail || "",
+    input.assignedBrokerName || "",
+  ]);
+
+  return matchedBroker?.id ?? null;
 }
 
 async function propstackV1Fetch(path: string, init?: { method?: "GET" | "POST" | "PUT"; body?: unknown }) {
@@ -303,6 +356,7 @@ export async function createOrUpdateProperty(input: PropstackPropertyInput) {
     number_of_rooms: lead.rooms ?? undefined,
     construction_year: lead.construction_year ?? undefined,
     energy_efficiency_class: normalizeText(lead.energy_class),
+    description_note: input.propertyId ? undefined : formatLeadOtherExtrasRemark(lead),
   });
 
   const body = { property };
@@ -365,8 +419,21 @@ export async function updatePropertyRemark(propertyId: number, remark: string) {
 }
 
 export async function sendPropstackMessage(input: PropstackMessageInput) {
+  const brokerId = input.assignedBrokerEmail || input.assignedBrokerName
+    ? await resolveSpecificBrokerId(input)
+    : Number(env.PROPSTACK_BROKER_ID || 0) ||
+      (await resolveTaskBrokerId({
+        assignedBrokerEmail: env.PROPSTACK_LEAD_BROKER_EMAIL,
+        assignedBrokerName: env.PROPSTACK_LEAD_BROKER_NAME,
+      })) ||
+      DEFAULT_LEAD_BROKER_ID;
+
+  if (!brokerId) {
+    throw new Error("Propstack-Absender konnte nicht bestätigt werden.");
+  }
+
   const message = compact({
-    broker_id: env.PROPSTACK_BROKER_ID ? Number(env.PROPSTACK_BROKER_ID) : undefined,
+    broker_id: brokerId,
     snippet_id: env.PROPSTACK_REPORT_SNIPPET_ID ? Number(env.PROPSTACK_REPORT_SNIPPET_ID) : undefined,
     to: [input.to],
     subject: input.subject,

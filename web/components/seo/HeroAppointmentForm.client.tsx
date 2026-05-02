@@ -9,6 +9,7 @@ type SubmitState = "idle" | "submitting" | "success" | "error";
 type HeroAppointmentFormProps = {
   locationLabel: string;
   displayLocationLabel?: string;
+  displayLocationPhrase?: string;
   locationSlug: string;
 };
 
@@ -80,10 +81,11 @@ function FormField({
   );
 }
 
-export default function HeroAppointmentForm({ locationLabel, displayLocationLabel, locationSlug }: HeroAppointmentFormProps) {
+export default function HeroAppointmentForm({ locationLabel, displayLocationLabel, displayLocationPhrase, locationSlug }: HeroAppointmentFormProps) {
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const visibleLocation = displayLocationLabel ?? locationLabel;
+  const visibleLocationPhrase = displayLocationPhrase ?? `in ${visibleLocation}`;
 
   useEffect(() => {
     if (submitState !== "success" || !message) return;
@@ -202,7 +204,7 @@ export default function HeroAppointmentForm({ locationLabel, displayLocationLabe
           Persönlichen Bewertungstermin vereinbaren
         </h2>
         <p className="mt-[15px] text-center text-xs leading-5 text-[color:var(--color-graphite)]">
-          Vor-Ort-Bewertung deiner Immobilie in {visibleLocation} – individuell und fundiert
+          Vor-Ort-Bewertung deiner Immobilie {visibleLocationPhrase} – individuell und fundiert
         </p>
         <p className="mt-[15px] text-center text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-[color:var(--color-brackish)]">
           Termin meist kurzfristig möglich
@@ -226,7 +228,7 @@ export default function HeroAppointmentForm({ locationLabel, displayLocationLabe
 
         <p className="mt-3 text-center text-[0.65rem] leading-4 text-[color:var(--color-graphite)]">
           Mit dem Absenden dürfen wir dich zur Terminanfrage kontaktieren. Details stehen in der{" "}
-          <Link href="/datenschutz" className="underline underline-offset-2">
+          <Link href="/recht/datenschutz" className="underline underline-offset-2">
             Datenschutzerklärung
           </Link>
           .

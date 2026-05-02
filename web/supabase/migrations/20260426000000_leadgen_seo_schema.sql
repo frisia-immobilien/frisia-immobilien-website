@@ -102,6 +102,8 @@ CREATE TABLE IF NOT EXISTS public.lead_requests (
   garden BOOLEAN,
   garage BOOLEAN,
   basement BOOLEAN,
+  other_extras TEXT,
+  other_extras_value_eur NUMERIC(12,2),
   renovation_status TEXT,
   heating_type TEXT,
   consent_given BOOLEAN NOT NULL DEFAULT FALSE,

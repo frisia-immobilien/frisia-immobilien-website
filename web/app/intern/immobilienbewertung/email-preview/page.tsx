@@ -3,11 +3,16 @@ import Link from "next/link";
 
 import type { LeadValuationRow } from "@/lib/immobilienbewertung/lead-records";
 import { renderLeadValuationEmail } from "@/lib/immobilienbewertung/templates/valuation-email";
-import { absoluteUrl } from "@/lib/site";
+import { getBrokerAvatarUrlByEmail } from "@/lib/propstack/client";
+import { absoluteUrl, DIRECT_CONTACT } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Interne Preview: Bewertungs-E-Mail",
-  description: "Interne Vorschau der Immobilienbewertungs-E-Mail.",
+  description:
+    "Interne, nicht indexierbare Vorschau der Immobilienbewertungs-E-Mail mit festen Beispieldaten.",
+  alternates: {
+    canonical: absoluteUrl("/intern/immobilienbewertung/email-preview"),
+  },
   robots: {
     index: false,
     follow: false,
@@ -48,11 +53,11 @@ const previewLead: LeadValuationRow = {
   other_extras_value_eur: null,
   reason: "sale",
   usage: "owner_occupied",
-  email: "petra.musterfrau@example.com",
+  email: "max.mustermann@example.com",
   salutation: "mrs",
-  first_name: "Petra",
-  last_name: "Musterfrau",
-  name: "Petra Musterfrau",
+  first_name: "Max",
+  last_name: "Mustermann",
+  name: "Max Mustermann",
   phone: "04941 123456",
   consent: true,
   privacy_accepted_at: "2026-04-05T08:32:00.000Z",
@@ -80,11 +85,14 @@ const previewLead: LeadValuationRow = {
   callback_requested_at: null,
 };
 
-export default function Page() {
+export default async function Page() {
   const landingUrl = absoluteUrl("/intern/immobilienbewertung/bewertung-preview");
+  const contactImageUrl =
+    (await getBrokerAvatarUrlByEmail(DIRECT_CONTACT.email).catch(() => null)) || DIRECT_CONTACT.imagePath;
   const preview = renderLeadValuationEmail({
     lead: previewLead,
     landingUrl,
+    contactImageUrl,
   });
 
   return (

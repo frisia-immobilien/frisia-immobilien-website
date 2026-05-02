@@ -1,49 +1,24 @@
-import EditorialPageTemplate from "@/components/site/EditorialPageTemplate";
-import JsonLd from "@/components/seo/JsonLd";
+import type { Metadata } from "next";
+import PressPageContent, {
+  PRESS_HERO_IMAGE,
+  PRESS_PAGE_DESCRIPTION,
+  PRESS_PAGE_TITLE,
+} from "@/components/site/PressPageContent";
 import { buildPageMetadata } from "@/lib/metadata";
-import { createArticleJsonLd } from "@/lib/site";
 
-export const metadata = buildPageMetadata({
-  title: "Presseberichte über Frisia Immobilien",
-  description:
-    "Presseberichte über Frisia Immobilien in Aurich: Einordnung, Wahrnehmung und regionale Marktpräsenz in Ostfriesland.",
+export const metadata: Metadata = buildPageMetadata({
+  title: PRESS_PAGE_TITLE,
+  description: PRESS_PAGE_DESCRIPTION,
   path: "/presse",
+  imagePath: PRESS_HERO_IMAGE,
   keywords: [
     "presse frisia immobilien",
-    "immobilienmakler aurich presse",
+    "presse immobilienmakler aurich",
     "frisia immobilien ostfriesland",
+    "immobilienmarkt aurich presse",
   ],
 });
 
 export default function PressePage() {
-  return (
-    <>
-      <JsonLd
-        data={createArticleJsonLd({
-          path: "/presse",
-          headline: "Presseberichte über Frisia Immobilien",
-          description:
-            "Presseberichte über Frisia Immobilien in Aurich: Einordnung, Wahrnehmung und regionale Marktpräsenz in Ostfriesland.",
-        })}
-      />
-      <EditorialPageTemplate
-        slug="presse"
-        eyebrow="Presse"
-        h1="Presseberichte über Frisia Immobilien"
-        intro="Diese Seite bündelt die Pressepräsenz von Frisia Immobilien. Im Vordergrund stehen regionale Sichtbarkeit, Marktkompetenz und eine klare Einordnung der Leistungen im Immobilienmarkt von Aurich und Ostfriesland."
-        imageAlt="Presseberichte über Frisia Immobilien"
-        sections={[
-          {
-            title: "Zur Zeit liegen keine Pressemitteilungen vor.",
-            body: [],
-          },
-        ]}
-        internalLinks={[
-          { href: "/unternehmensmeldungen", label: "Unternehmensmeldungen" },
-          { href: "/immobilienmakler-aurich", label: "Immobilienmakler Aurich" },
-          { href: "/kontakt", label: "Presse- und Kontaktanfrage" },
-        ]}
-      />
-    </>
-  );
+  return <PressPageContent path="/presse" />;
 }

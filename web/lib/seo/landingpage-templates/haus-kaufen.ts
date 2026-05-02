@@ -1,27 +1,28 @@
 import type { LandingTemplate } from "./types";
+import { formatLocationPhraseFromName } from "@/lib/seo/locationDisplay";
 
 export const hausKaufenTemplate: LandingTemplate = {
   pageType: "haus_kaufen",
   prefix: "haus-kaufen",
   label: "Haus kaufen",
-  h1: (location) => `Haus kaufen in ${location}`,
-  title: (location) => `Haus kaufen in ${location} | Frisia Immobilien`,
+  h1: (location) => `Haus kaufen ${formatLocationPhraseFromName(location)}`,
+  title: (location) => `Haus kaufen ${formatLocationPhraseFromName(location)} | Frisia Immobilien`,
   description: (location) =>
-    `Haus kaufen in ${location}: Orientierung im aktuellen Markt, Preisniveau und Suchauftrag für passende Immobilien.`,
+    `Haus kaufen ${formatLocationPhraseFromName(location)}: Orientierung im aktuellen Markt, Preisniveau und Suchauftrag für passende Immobilien.`,
   intro: (location) =>
-    `Orientierung im aktuellen Markt und klare Schritte, um passende Immobilien in ${location} zu finden.`,
+    `Orientierung im aktuellen Markt und klare Schritte, um passende Immobilien ${formatLocationPhraseFromName(location)} zu finden.`,
   text1: () =>
     "Ein Hauskauf beginnt nicht mit der ersten Besichtigung, sondern mit einer klaren Einordnung: Markt, Preisniveau und die richtige Suchstrategie.",
   text2: () =>
     "Ein Suchauftrag erhöht die Wahrscheinlichkeit, die passende Immobilie zur richtigen Zeit zu finden.",
   faq: (location) => [
     {
-      question: `Wie schwierig ist es, ein Haus in ${location} zu kaufen?`,
+      question: `Wie schwierig ist es, ein Haus ${formatLocationPhraseFromName(location)} zu kaufen?`,
       answer:
         "Das hängt stark von Lage, Budget und Nachfrage ab. In gefragten Bereichen ist die Auswahl oft begrenzt, weshalb eine klare Suchstrategie wichtig ist.",
     },
     {
-      question: `Wie hoch sind die Preise für Häuser in ${location}?`,
+      question: `Wie hoch sind die Preise für Häuser ${formatLocationPhraseFromName(location)}?`,
       answer:
         "Die Preise orientieren sich am Quadratmeterpreis, der Lage und dem Zustand der Immobilie. Durchschnittswerte geben eine Orientierung, ersetzen aber keine individuelle Betrachtung.",
     },

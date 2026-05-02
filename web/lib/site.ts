@@ -20,8 +20,7 @@ export const DIRECT_CONTACT = {
   phoneHref: PHONE_HREF,
   mobileDisplay: "0152 22100100",
   mobileHref: "tel:+4915222100100",
-  imagePath:
-    "https://images.propstack.de/photos/Zv4gx1pNAwhEbbpp1T4rS4gJ/avatar/VoM18qgzuemydkGvtSBpt84y/thumb_Profilbild_Sebastian_Munzig.jpg",
+  imagePath: "/images/team/sebastian-munzig-profilbild.webp",
 } as const;
 
 export const ADDRESS = {
@@ -205,7 +204,7 @@ export function createRealEstateAgentJsonLd(overrides: Record<string, unknown> =
     knowsAbout: [
       "Immobilienbewertung Aurich",
       "Immobilienmakler Aurich",
-      "Immobilie verkaufen Aurich",
+      "Haus verkaufen Aurich",
       "Preisstrategie",
       "Diskreter Immobilienverkauf",
     ],
@@ -230,8 +229,8 @@ export function createRealEstateAgentJsonLd(overrides: Record<string, unknown> =
         },
         {
           "@type": "Offer",
-          url: absoluteUrl("/immobilie-verkaufen-aurich"),
-          itemOffered: { "@type": "Service", name: "Immobilienverkauf" },
+          url: absoluteUrl("/haus-verkaufen-aurich"),
+          itemOffered: { "@type": "Service", name: "Hausverkauf" },
         },
         {
           "@type": "Offer",

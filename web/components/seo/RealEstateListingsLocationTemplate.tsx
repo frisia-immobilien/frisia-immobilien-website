@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import PropertyListingDirectory from "@/components/site/PropertyListingDirectory.client";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
+import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
+import { formatLocationPhrase, formatLocationProseName } from "@/lib/seo/locationDisplay";
 import { getImmobilienAurichListingResult, type PropertyListItem } from "@/lib/propstack";
 import type { SeoLocationRow } from "@/lib/types/leadgen";
 import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/site";
@@ -13,30 +17,6 @@ function normalize(value: string | null | undefined) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/ß/g, "ss")
     .trim();
-}
-
-function formatLocationLabel(label: string) {
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]}, ${parts.slice(1).join(", ")}`;
-}
-
-function formatLocationForTemplate(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district}, ${city}`;
-  return formatLocationLabel(label);
-}
-
-function formatLocationForProse(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district} in ${city}`;
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]} in ${parts.slice(1).join(", ")}`;
 }
 
 function filterListingsForLocation(items: PropertyListItem[], location: SeoLocationRow) {
@@ -102,28 +82,47 @@ function BulletList({ items }: { items: string[] }) {
 }
 
 export default async function RealEstateListingsLocationTemplate({ data }: { data: LocationPageData }) {
-  const location = formatLocationForTemplate(data.location);
-  const proseLocation = formatLocationForProse(data.location);
-  const heroImage = "/images/immobilienbewertung/hero-background.png";
+  const proseLocation = formatLocationProseName(data.location);
+  const locationPhrase = formatLocationPhrase(data.location);
+  const heroImage = "/images/immobilienbewertung/hero-background-sharp.webp";
   const listing = await getImmobilienAurichListingResult();
   const items = filterListingsForLocation(listing.items, data.location);
   const showsFallbackInventory = items.length > 0 && items.length === listing.items.length && data.location.location_type === "ortsteil";
 
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-[color:var(--color-section)]">
-        <Image src={heroImage} alt="" fill priority sizes="100vw" className="object-cover object-right opacity-90" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.50)_34%,rgba(255,255,255,0.18)_58%,rgba(255,255,255,0.04)_100%)]" />
+      <MobileHeroSection
+        eyebrow={`Immobilien ${locationPhrase}`}
+        title={<>Immobilien {locationPhrase}</>}
+        description={
+          <>
+            Aktuelle Immobilienangebote {locationPhrase} - Häuser, Wohnungen und ausgewählte Objekte im Überblick.
+          </>
+        }
+        imageSrc={heroImage}
+        imageAlt=""
+        imagePosition="right center"
+        imageQuality={88}
+        primaryCta={{ href: "/suchauftrag", label: "Suchauftrag starten" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Angebote", "Suchauftrag", "Regional"]}
+      />
+
+      <section className="relative isolate hidden overflow-hidden bg-[color:var(--color-section)] md:block">
+        <Image src={heroImage} alt="" fill priority sizes="100vw" quality={88} className="object-cover object-right opacity-90" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.72)_0%,rgba(255,255,255,0.42)_34%,rgba(255,255,255,0.16)_58%,rgba(255,255,255,0.06)_100%)]" />
+        <div className="absolute inset-0 bg-white/10" />
         <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[1440px] gap-8 px-5 py-14 sm:px-8 md:py-16 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center lg:px-12">
           <div className="min-w-0 max-w-[72rem]">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
-              Immobilien in {location}
+              Immobilien {locationPhrase}
             </p>
-            <h1 className="mt-5 max-w-full break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal] xl:whitespace-nowrap">
-              Immobilien in {location}
+            <h1 className="mt-5 max-w-[18ch] break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
+              Immobilien {locationPhrase}
             </h1>
+            <HeroDivider />
             <p className="mt-7 max-w-3xl text-[1.15rem] leading-[1.65] text-[color:var(--color-navy)] md:text-[1.35rem]">
-              Aktuelle Immobilienangebote in {proseLocation}
+              Aktuelle Immobilienangebote {locationPhrase}
               <span className="block">- Häuser, Wohnungen und ausgewählte Objekte im Überblick.</span>
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -158,10 +157,12 @@ export default async function RealEstateListingsLocationTemplate({ data }: { dat
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] py-12 md:py-16">
+      <RegionalCrossLinks data={data} placement="hero" />
+
+      <section className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight text-[color:var(--color-navy)] md:text-[2.85rem]">
-            Aktuelle Immobilienangebote in {proseLocation}
+            Aktuelle Immobilienangebote {locationPhrase}
           </h2>
           <p className="mt-6 max-w-4xl text-base leading-[1.78] text-[color:var(--color-graphite)] md:text-lg">
             Hier findest du alle Immobilien, die sich aktuell in der Vermarktung befinden.
@@ -197,8 +198,8 @@ export default async function RealEstateListingsLocationTemplate({ data }: { dat
         </div>
       </section>
 
-      <Section title={`Immobilienmarkt in ${proseLocation} - kurze Einordnung`}>
-        <p>Der Immobilienmarkt in {proseLocation} ist geprägt durch Angebot, Nachfrage und Lageunterschiede innerhalb des Ortes.</p>
+      <Section title={`Immobilienmarkt ${locationPhrase} - kurze Einordnung`} muted>
+        <p>Der Immobilienmarkt {locationPhrase} ist geprägt durch Angebot, Nachfrage und Lageunterschiede innerhalb des Ortes.</p>
         <BulletList
           items={[
             "Gefragte Immobilien werden oft schnell entschieden",
@@ -213,7 +214,7 @@ export default async function RealEstateListingsLocationTemplate({ data }: { dat
       <section id="suchauftrag-starten" className="bg-[color:var(--color-navy)] py-12 text-white md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight md:text-[2.85rem]">
-            Passende Immobilien in {proseLocation} frühzeitig erhalten
+            Passende Immobilien {locationPhrase} frühzeitig erhalten
           </h2>
           <p className="mt-5 max-w-4xl text-base leading-[1.8] text-white/86 md:text-lg">
             Mit einem Suchauftrag wirst du über passende Immobilien informiert, bevor sie vollständig am Markt sichtbar sind.

@@ -1,13 +1,14 @@
 import type { LandingTemplate } from "./types";
+import { formatLocationPhraseFromName } from "@/lib/seo/locationDisplay";
 
 export const immobilieVerkaufenTemplate: LandingTemplate = {
   pageType: "immobilie_verkaufen",
   prefix: "immobilie-verkaufen",
   label: "Immobilie verkaufen",
-  h1: (location) => `Immobilie verkaufen in ${location}`,
-  title: (location) => `Immobilie verkaufen in ${location} | Frisia Immobilien`,
+  h1: (location) => `Immobilie verkaufen ${formatLocationPhraseFromName(location)}`,
+  title: (location) => `Immobilie verkaufen ${formatLocationPhraseFromName(location)} | Frisia Immobilien`,
   description: (location) =>
-    `Immobilie in ${location} verkaufen: klare Orientierung zu Markt, Preisrahmen und passender Vorgehensweise mit Frisia Immobilien.`,
+    `Immobilie ${formatLocationPhraseFromName(location)} verkaufen: klare Orientierung zu Markt, Preisrahmen und passender Vorgehensweise mit Frisia Immobilien.`,
   intro: () =>
     "Der richtige Einstieg, um deine Situation klar einzuordnen und eine fundierte Entscheidung zu treffen.",
   text1: () =>
@@ -16,7 +17,7 @@ export const immobilieVerkaufenTemplate: LandingTemplate = {
     "Frisia Immobilien ordnet deine Situation, den Markt und die sinnvolle Vorgehensweise ruhig und strukturiert ein.",
   faq: (location) => [
     {
-      question: `Wann sollte ich meine Immobilie in ${location} verkaufen?`,
+      question: `Wann sollte ich meine Immobilie ${formatLocationPhraseFromName(location)} verkaufen?`,
       answer:
         "Ein Verkauf ist sinnvoll, wenn deine persönliche Situation und der Markt zusammenpassen. Dabei spielen Lebensphase, Zielsetzung und aktuelle Nachfrage eine wichtige Rolle.",
     },
@@ -31,14 +32,24 @@ export const immobilieVerkaufenTemplate: LandingTemplate = {
         "Der richtige Preis entsteht aus Marktanalyse, Vergleichsobjekten und individueller Bewertung. Er sollte so gewählt sein, dass Nachfrage entsteht und gleichzeitig Verhandlungsspielraum bleibt.",
     },
     {
-      question: `Wie lange dauert ein Immobilienverkauf in ${location}?`,
+      question: `Wie lange dauert ein Immobilienverkauf ${formatLocationPhraseFromName(location)}?`,
       answer:
         "Das hängt von Lage, Zustand, Preisstrategie und Nachfrage ab. Ein strukturierter Verkauf mit realistischer Einpreisung verläuft in der Regel deutlich klarer und planbarer.",
     },
     {
       question: "Was bringt mir ein erstes Gespräch mit Frisia Immobilien?",
       answer:
-        `Du erhältst eine klare Einschätzung deiner Situation, eine Einordnung des Marktes in ${location} und eine Orientierung, wie ein sinnvoller nächster Schritt aussehen kann - ohne Verpflichtung.`,
+        `Du erhältst eine klare Einschätzung deiner Situation, eine Einordnung des Marktes ${formatLocationPhraseFromName(location)} und eine Orientierung, wie ein sinnvoller nächster Schritt aussehen kann - ohne Verpflichtung.`,
     },
   ],
+};
+
+export const immobilienVerkaufenTemplate: LandingTemplate = {
+  ...immobilieVerkaufenTemplate,
+  prefix: "immobilien-verkaufen",
+  label: "Immobilien verkaufen",
+  h1: (location) => `Immobilien verkaufen ${formatLocationPhraseFromName(location)}`,
+  title: (location) => `Immobilien verkaufen ${formatLocationPhraseFromName(location)} | Frisia Immobilien`,
+  description: (location) =>
+    `Immobilien ${formatLocationPhraseFromName(location)} verkaufen: unterstützende Orientierung zu Markt, Bewertung und Hausverkauf mit Frisia Immobilien.`,
 };

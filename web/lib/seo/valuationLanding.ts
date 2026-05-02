@@ -1,4 +1,5 @@
 import type { MarketDataRow, SeoLocationRow } from "@/lib/types/leadgen";
+import { formatLocationPhrase, formatLocationPhraseStart } from "@/lib/seo/locationDisplay";
 
 function numeric(value: number | string | null | undefined) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -55,21 +56,22 @@ export function valuationMarketSentence(input: {
   deltaPercent: number | null;
 }) {
   const { location, salesCount, deltaPercent } = input;
-  const label = location.location_label;
+  const locationPhrase = formatLocationPhrase(location);
+  const locationPhraseStart = formatLocationPhraseStart(location);
 
   if (!salesCount || salesCount < 20) {
-    return `Die Datenbasis in ${label} ist begrenzt – eine individuelle Bewertung ist besonders wichtig.`;
+    return `Die Datenbasis ${locationPhrase} ist begrenzt – eine individuelle Bewertung ist besonders wichtig.`;
   }
 
   if (typeof deltaPercent === "number" && deltaPercent > 5) {
-    return `Die Preise in ${label} zeigen aktuell eine steigende Tendenz.`;
+    return `Die Preise ${locationPhrase} zeigen aktuell eine steigende Tendenz.`;
   }
 
   if (typeof deltaPercent === "number" && deltaPercent < -5) {
-    return `Der Markt in ${label} hat sich zuletzt leicht nach unten angepasst.`;
+    return `Der Markt ${locationPhrase} hat sich zuletzt leicht nach unten angepasst.`;
   }
 
-  return `In ${label} unterscheiden sich Preise je nach Lage und Zustand teilweise deutlich.`;
+  return `${locationPhraseStart} unterscheiden sich Preise je nach Lage und Zustand teilweise deutlich.`;
 }
 
 export function hasValuationIndexInputs(input: {

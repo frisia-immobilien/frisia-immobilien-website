@@ -35,6 +35,7 @@ export type PropstackContactFormInput = {
   phone: string;
   message: string;
   originUrl: string;
+  context?: string;
 };
 
 export type PropstackContactFormResult = {
@@ -308,13 +309,15 @@ function htmlEscape(value: string) {
 }
 
 function buildContactDescription(input: PropstackContactFormInput) {
+  const context = input.context || "Website Kontaktformular";
+
   return [
-    `Kontaktanfrage Website vom ${formatCreatedAt()} Uhr`,
+    `${context} vom ${formatCreatedAt()} Uhr`,
     "",
     `Name: ${input.firstName} ${input.lastName}`,
     `E-Mail: ${input.email}`,
     input.phone ? `Telefon: ${input.phone}` : "Telefon: nicht angegeben",
-    "Quelle: Website Kontaktformular",
+    `Quelle: ${context}`,
     input.originUrl ? `Herkunfts-URL: ${input.originUrl}` : "",
     "",
     "Nachricht:",
@@ -328,9 +331,10 @@ function buildContactTaskBody(input: PropstackContactFormInput) {
   const fullName = `${input.firstName} ${input.lastName}`.trim();
   const phone = input.phone || "nicht angegeben";
   const originUrl = input.originUrl || "nicht angegeben";
+  const context = input.context || "Website Kontaktformular";
 
   return `
-    <h2>Kontaktanfrage über die Website</h2>
+    <h2>${htmlEscape(context)}</h2>
     <p><strong>Eingang:</strong> ${htmlEscape(formatCreatedAt())} Uhr</p>
 
     <h3>Kontakt</h3>
@@ -342,7 +346,7 @@ function buildContactTaskBody(input: PropstackContactFormInput) {
 
     <h3>Zuordnung</h3>
     <p>
-      <strong>Quelle:</strong> Website Kontaktformular<br>
+      <strong>Quelle:</strong> ${htmlEscape(context)}<br>
       <strong>Herkunfts-URL:</strong> ${htmlEscape(originUrl)}
     </p>
 
@@ -350,7 +354,7 @@ function buildContactTaskBody(input: PropstackContactFormInput) {
     <p>${htmlEscape(input.message).replaceAll("\n", "<br>")}</p>
 
     <hr>
-    <p><strong>Nächster Schritt:</strong> Kontaktanfrage prüfen und persönlich zurückmelden.</p>
+    <p><strong>Nächster Schritt:</strong> Anfrage prüfen und persönlich zurückmelden.</p>
   `.trim();
 }
 
@@ -392,6 +396,7 @@ async function createOrUpdateContact(input: PropstackContactFormInput, meta: Con
 
 async function createContactNote(contactId: number, input: PropstackContactFormInput, meta: ContactFormMeta) {
   const bodyText = buildContactDescription(input);
+  const title = input.context || "Kontaktanfrage Website";
   const noteBodies = [
     {
       note: compactObject({
@@ -399,7 +404,7 @@ async function createContactNote(contactId: number, input: PropstackContactFormI
         client_ids: [contactId],
         broker_id: meta.brokerId ?? undefined,
         note_type_id: meta.activityTypeId ?? undefined,
-        title: "Kontaktanfrage Website",
+        title,
         body: bodyText,
       }),
     },
@@ -409,7 +414,7 @@ async function createContactNote(contactId: number, input: PropstackContactFormI
         client_ids: [contactId],
         broker_id: meta.brokerId ?? undefined,
         note_type_id: meta.activityTypeId ?? undefined,
-        title: "Kontaktanfrage Website",
+        title,
         body: bodyText,
       }),
     },
@@ -446,12 +451,14 @@ function buildNextBusinessDate() {
 }
 
 async function createContactTask(contactId: number, input: PropstackContactFormInput, meta: ContactFormMeta) {
+  const title = input.context ? `${input.context} prüfen` : "Kontaktanfrage Website prüfen";
+
   const created = await propstackV1Fetch<unknown>("/tasks", {
     method: "POST",
     body: {
       task: compactObject({
         is_reminder: true,
-        title: "Kontaktanfrage Website prüfen",
+        title,
         note_type_id: meta.activityTypeId ?? undefined,
         client_ids: [contactId],
         broker_id: meta.brokerId ?? undefined,

@@ -1,22 +1,23 @@
 import type { LandingTemplate } from "./types";
+import { formatLocationPhraseFromName } from "@/lib/seo/locationDisplay";
 
 export const immobilienTemplate: LandingTemplate = {
   pageType: "immobilien",
   prefix: "immobilien",
   label: "Immobilien",
-  h1: (location) => `Immobilien in ${location}`,
-  title: (location) => `Immobilien in ${location} | Frisia Immobilien`,
+  h1: (location) => `Immobilien ${formatLocationPhraseFromName(location)}`,
+  title: (location) => `Immobilien ${formatLocationPhraseFromName(location)} | Frisia Immobilien`,
   description: (location) =>
-    `Immobilien in ${location}: aktuelle Immobilienangebote, Marktüberblick und Suchauftrag für passende Objekte.`,
+    `Immobilien ${formatLocationPhraseFromName(location)}: aktuelle Immobilienangebote, Marktüberblick und Suchauftrag für passende Objekte.`,
   intro: (location) =>
-    `Aktuelle Immobilienangebote in ${location} - Häuser, Wohnungen und ausgewählte Objekte im Überblick.`,
+    `Aktuelle Immobilienangebote ${formatLocationPhraseFromName(location)} - Häuser, Wohnungen und ausgewählte Objekte im Überblick.`,
   text1: () =>
     "Nicht jede Immobilie ist dauerhaft sichtbar. Entscheidend ist, passende Angebote rechtzeitig zu sehen - und richtig einzuordnen.",
   text2: () =>
     "Mit einem Suchauftrag wirst du über passende Immobilien informiert, bevor sie vollständig am Markt sichtbar sind.",
   faq: (location) => [
     {
-      question: `Welche Immobilienangebote gibt es aktuell in ${location}?`,
+      question: `Welche Immobilienangebote gibt es aktuell ${formatLocationPhraseFromName(location)}?`,
       answer:
         "Die Verfügbarkeit ändert sich laufend. Sichtbar sind Immobilien, die sich aktuell in der Vermarktung befinden. Passende Objekte können aber auch frühzeitig über einen Suchauftrag angeboten werden.",
     },

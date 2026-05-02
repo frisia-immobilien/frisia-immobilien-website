@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import {
   applyGoogleConsentMode,
@@ -10,7 +10,7 @@ import {
   writeConsentToStorage,
 } from "@/lib/consent";
 
-export default function CookieBar() {
+export default function CookieBar({ openSettingsSignal = 0 }: { openSettingsSignal?: number }) {
   const hydrated = useSyncExternalStore(
     () => () => undefined,
     () => true,
@@ -25,6 +25,15 @@ export default function CookieBar() {
 
   const visible = hydrated && (forcedVisible || (ready && !storedConsent && !dismissed));
   const analytics = analyticsOverride ?? Boolean(storedConsent?.analytics);
+
+  const openCookieSettings = useCallback(() => {
+    const current = readConsentFromStorage();
+    setReady(true);
+    setDismissed(false);
+    setAnalyticsOverride(Boolean(current?.analytics));
+    setForcedVisible(true);
+    setSettingsOpen(true);
+  }, []);
 
   useEffect(() => {
     const existing = readConsentFromStorage();
@@ -63,14 +72,7 @@ export default function CookieBar() {
       window.addEventListener("touchstart", revealOnInteraction, { passive: true });
     }, 3500);
 
-    const openSettings = () => {
-      const current = readConsentFromStorage();
-      setReady(true);
-      setDismissed(false);
-      setAnalyticsOverride(Boolean(current?.analytics));
-      setForcedVisible(true);
-      setSettingsOpen(true);
-    };
+    const openSettings = () => openCookieSettings();
 
     window.addEventListener("frisia:open-cookie-settings", openSettings as EventListener);
     return () => {
@@ -84,7 +86,13 @@ export default function CookieBar() {
       window.removeEventListener("touchstart", revealOnInteraction);
       window.removeEventListener("frisia:open-cookie-settings", openSettings as EventListener);
     };
-  }, []);
+  }, [openCookieSettings]);
+
+  useEffect(() => {
+    if (openSettingsSignal <= 0) return;
+    const handle = window.setTimeout(openCookieSettings, 0);
+    return () => window.clearTimeout(handle);
+  }, [openSettingsSignal, openCookieSettings]);
 
   const acceptNecessary = () => {
     writeConsentToStorage({ choice: "necessary", analytics: false });
@@ -178,6 +186,9 @@ export default function CookieBar() {
 
         {settingsOpen ? (
           <div className="mt-3 rounded-xl border border-[color:var(--color-brass)]/30 bg-white/90 px-4 py-3 backdrop-blur">
+            <h2 className="mb-3 text-base font-semibold text-[color:var(--color-navy)]">
+              Cookie-Einstellungen
+            </h2>
             <div className="flex flex-col gap-2">
               <label className="flex items-center justify-between gap-3 text-sm">
                 <span>

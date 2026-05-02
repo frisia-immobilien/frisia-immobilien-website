@@ -225,12 +225,12 @@ export function mapMarketRow(file: string, row: ParsedRow, rowNumber: number): {
   const datensatzTyp = text(row, "datensatz_typ");
   const medianM2 = number(row, "median_preis_eur_m2");
   const locationSlug = publicLocationSlug(row);
+  const hasMedian = medianM2 !== null;
 
   const missing = [
     !objectType ? "object_type" : null,
     !locationJoinKey ? "location_join_key" : null,
     !datensatzTyp ? "datensatz_typ" : null,
-    medianM2 === null ? "median_preis_eur_m2" : null,
     text(row, "leadgen_geeignet") === null ? "leadgen_geeignet" : null,
     text(row, "landingpage_geeignet") === null ? "landingpage_geeignet" : null,
   ].filter(Boolean);
@@ -284,7 +284,7 @@ export function mapMarketRow(file: string, row: ParsedRow, rowNumber: number): {
       objektart: text(row, "objektart"),
       plz: text(row, "plz"),
       plz_bereiche: text(row, "plz_bereiche"),
-      leadgen_geeignet: bool(row, "leadgen_geeignet"),
+      leadgen_geeignet: bool(row, "leadgen_geeignet") && hasMedian,
       leadgen_scope: text(row, "leadgen_scope"),
       landingpage_geeignet: bool(row, "landingpage_geeignet"),
       landingpage_scope: text(row, "landingpage_scope"),

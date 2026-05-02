@@ -6,6 +6,7 @@ import { getPriceHistory } from "@/lib/market/getPriceHistory";
 import { toLocationSlug } from "@/lib/market/normalizeLocation";
 import { buildFallbackContent } from "@/lib/seo/getFallbackContent";
 import { getLocationImage } from "@/lib/seo/getLocationImage";
+import { formatLocationProseName } from "@/lib/seo/locationDisplay";
 import { findTemplateBySlug } from "@/lib/seo/templates";
 import { hasValuationIndexInputs } from "@/lib/seo/valuationLanding";
 import type {
@@ -215,7 +216,7 @@ export async function getLocationPageData(slug: string): Promise<LocationPageDat
   const nearbyLocations = await getNearby(location);
   const content = buildFallbackContent({
     template: parsed.template,
-    locationLabel: location.location_label,
+    locationLabel: formatLocationProseName(location),
     content: customContent,
   });
 

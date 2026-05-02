@@ -34,13 +34,14 @@ const navigationColumns: readonly NavigationColumn[] = [
   {
     title: "Verkaufen & Bewerten",
     links: [
-      { href: "/immobilie-verkaufen-aurich", label: "Immobilie verkaufen" },
-      { href: "/immobilie-verkaufen-aurich", label: "Immobilie verkaufen in Aurich" },
-      { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung" },
-      { href: "/immobilien-aurich", label: "Immobilie kaufen" },
-      { href: "/suchauftrag", label: "Suchauftrag anlegen" },
-      { href: "/immobilienpreise", label: "Marktberichte" },
-      { href: "/immobilie-verkaufen-aurich", label: "Ratgeber Immobilienverkauf" },
+      { href: "/haus-verkaufen-aurich", label: "Haus verkaufen in Aurich" },
+      { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung Aurich" },
+      { href: "/immobilienpreise-aurich", label: "Immobilienpreise Aurich" },
+      { href: "/verkaufssituationen", label: "Verkaufssituationen" },
+      { href: "/immobilie-verkaufen-alter", label: "Verkauf im Alter" },
+      { href: "/immobilie-verkaufen-erbschaft", label: "Verkauf nach Erbschaft" },
+      { href: "/immobilie-verkaufen-scheidung", label: "Verkauf bei Scheidung" },
+      { href: "/immobilie-verkaufen-zeitdruck", label: "Verkauf unter Zeitdruck" },
     ],
   },
   {
@@ -53,12 +54,16 @@ const navigationColumns: readonly NavigationColumn[] = [
     ],
   },
   {
-    title: "Karriere & Presse",
+    title: "Karriere",
     links: [
       { href: "/karriere#immobilienmakler-werden", label: "Immobilienmakler werden" },
       { href: "/karriere#ausbildung", label: "Ausbildung bei Frisia Immobilien" },
-      { href: "/presse", label: "Presseberichte", className: "pt-4" },
-      { href: "/unternehmensmeldungen", label: "Unternehmensmeldungen" },
+    ],
+  },
+  {
+    title: "Presse",
+    links: [
+      { href: "/presse", label: "Presseberichte" },
     ],
   },
 ] as const;
@@ -105,8 +110,8 @@ const seoGroups = [
 ] as const;
 
 const legalLinks = [
-  { href: "/impressum", label: "Impressum" },
-  { href: "/datenschutz", label: "Datenschutz" },
+  { href: "/recht/impressum", label: "Impressum" },
+  { href: "/recht/datenschutz", label: "Datenschutz" },
   { href: "/agb", label: "AGB" },
   { href: "/recht/cookies", label: "Cookie-Hinweise" },
 ] as const;
@@ -115,7 +120,6 @@ const socialLinks = [
   { href: "https://www.instagram.com", label: "Instagram", platform: "instagram" as const },
   { href: "https://www.facebook.com", label: "Facebook", platform: "facebook" as const },
   { href: "https://www.linkedin.com", label: "LinkedIn", platform: "linkedin" as const },
-  { href: "https://www.youtube.com", label: "YouTube", platform: "youtube" as const },
 ] as const;
 
 const footerDividerClass =
@@ -137,7 +141,7 @@ function SocialIcon({
   platform,
   className = "",
 }: {
-  platform: "instagram" | "facebook" | "linkedin" | "youtube";
+  platform: "instagram" | "facebook" | "linkedin";
   className?: string;
 }) {
   if (platform === "instagram") {
@@ -171,12 +175,7 @@ function SocialIcon({
     );
   }
 
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className={`h-5 w-5 ${className}`}>
-      <path d="M21 8.5a2.7 2.7 0 0 0-1.9-1.9C17.5 6.2 12 6.2 12 6.2s-5.5 0-7.1.4A2.7 2.7 0 0 0 3 8.5c-.4 1.6-.4 3.5-.4 3.5s0 1.9.4 3.5a2.7 2.7 0 0 0 1.9 1.9c1.6.4 7.1.4 7.1.4s5.5 0 7.1-.4a2.7 2.7 0 0 0 1.9-1.9c.4-1.6.4-3.5.4-3.5s0-1.9-.4-3.5z" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M10.1 15.2l5-3.2-5-3.2v6.4z" fill="currentColor" />
-    </svg>
-  );
+  return null;
 }
 
 function SeoGroupsGrid({ className }: { className: string }) {
@@ -205,6 +204,7 @@ function SeoGroupsGrid({ className }: { className: string }) {
 export default function SiteFooter() {
   return (
     <footer
+      data-site-footer="true"
       className={`${footerTopDividerClass} relative isolate overflow-hidden bg-[linear-gradient(180deg,var(--color-navy)_0%,color-mix(in_srgb,var(--color-navy)_95%,black)_100%)] text-white/82 [content-visibility:auto] [contain-intrinsic-size:1800px] md:[contain-intrinsic-size:1450px]`}
     >
       <div
@@ -219,7 +219,7 @@ export default function SiteFooter() {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[url('/images/frisia/frisia_f.webp')] bg-no-repeat opacity-[0.7] [background-position:-450px_30px] [background-size:204vw_auto] md:[background-position:-50px_30px] md:[background-size:min(102vw,_1260px)_auto]"
+        className="pointer-events-none absolute inset-0 hidden bg-[url('/images/frisia/frisia_f.webp')] bg-no-repeat opacity-[0.7] [background-position:-50px_30px] [background-size:min(102vw,_1260px)_auto] md:block"
       />
       <div className="relative mx-auto w-full max-w-6xl px-4 sm:px-6">
         <section className={`${footerDividerClass} py-12 sm:py-14 lg:py-16`}>
@@ -305,7 +305,7 @@ export default function SiteFooter() {
         </section>
 
         <section className={`${footerDividerClass} py-12 sm:py-14`}>
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
             {navigationColumns.map((column) => (
               <nav key={column.title} aria-label={column.title} className="space-y-4">
                 <p className="font-[family-name:var(--font-playfair)] text-sm font-semibold uppercase tracking-[0.14em] text-white/82">{column.title}</p>

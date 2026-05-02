@@ -1,8 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
+import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
+import { formatLocationPhrase } from "@/lib/seo/locationDisplay";
 import { medianPricePerM2 } from "@/lib/seo/valuationLanding";
-import type { SeoLocationRow } from "@/lib/types/leadgen";
 import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/site";
 
 function numeric(value: number | string | null | undefined) {
@@ -20,30 +24,6 @@ function formatEuro(value: number | null) {
 
 function formatEuroPerM2(value: number | null) {
   return value ? `ca. ${Math.round(value).toLocaleString("de-DE")} €/m²` : "nicht verfügbar";
-}
-
-function formatLocationLabel(label: string) {
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]}, ${parts.slice(1).join(", ")}`;
-}
-
-function formatLocationForTemplate(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district}, ${city}`;
-  return formatLocationLabel(label);
-}
-
-function formatLocationForProse(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district} in ${city}`;
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]} in ${parts.slice(1).join(", ")}`;
 }
 
 function Section({
@@ -115,9 +95,9 @@ function StepCard({ index, title, text }: { index: string; title: string; text: 
   );
 }
 
-function FaqItem({ question, answer }: { question: string; answer: string }) {
+function FaqItem({ question, answer, defaultOpen = false }: { question: string; answer: string; defaultOpen?: boolean }) {
   return (
-    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0">
+    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-start justify-between gap-5 px-5 py-5 marker:hidden sm:px-6">
         <h3 className="text-base font-semibold leading-snug text-[color:var(--color-navy)] sm:text-lg">{question}</h3>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)] text-xl leading-none text-[color:var(--color-navy)] transition-transform group-open:rotate-45">
@@ -132,28 +112,31 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function HouseBuyingLocationTemplate({ data }: { data: LocationPageData }) {
-  const location = formatLocationForTemplate(data.location);
-  const proseLocation = formatLocationForProse(data.location);
+  const locationPhrase = formatLocationPhrase(data.location);
   const housePriceM2 = medianPricePerM2(data.houseMarket);
   const housePrice = numeric(data.houseMarket?.median_preis_eur);
-  const heroImage = "/images/immobilienbewertung/hero-background.png";
+  const heroImage = "/images/immobilienbewertung/hero-background.webp";
+  const showAurichMarketTeaser = data.location.location_slug === "aurich";
 
   const steps = [
     ["1", "Suche", "Du sichtest Angebote und vergleichst passende Immobilien."],
     ["2", "Besichtigung", "Du prüfst Lage, Zustand, Grundriss und Gesamtbild."],
-    ["3", "Entscheidung", "Du klärst Finanzierung und triffst eine Kaufentscheidung."],
-    ["4", "Verhandlung", "Preis und Rahmenbedingungen werden abgestimmt."],
-    ["5", "Notartermin", "Der Kaufvertrag wird notariell beurkundet."],
-    ["6", "Übergabe", "Die Immobilie wird übergeben."],
+    ["3", "Unterlagenprüfung", "Du prüfst Exposé, Energieausweis, Grundriss und relevante Objektunterlagen."],
+    ["4", "Finanzierung", "Budget, Eigenkapital und Finanzierungszusage werden belastbar geklärt."],
+    ["5", "Entscheidung", "Du triffst eine Kaufentscheidung auf Basis von Objekt, Preis und Rahmenbedingungen."],
+    ["6", "Verhandlung", "Preis, Termine und weitere Rahmenbedingungen werden abgestimmt."],
+    ["7", "Notartermin", "Der Kaufvertrag wird vorbereitet und notariell beurkundet."],
+    ["8", "Kaufpreiszahlung", "Nach Fälligkeit wird der Kaufpreis gezahlt und der Eigentumswechsel vorbereitet."],
+    ["9", "Übergabe", "Die Immobilie wird übergeben und der Abschluss sauber dokumentiert."],
   ] as const;
 
   const faqs = [
     {
-      question: `Wie schwierig ist es, ein Haus in ${proseLocation} zu kaufen?`,
+      question: `Wie schwierig ist es, ein Haus ${locationPhrase} zu kaufen?`,
       answer: "Das hängt stark von Lage, Budget und Nachfrage ab. In gefragten Bereichen ist die Auswahl oft begrenzt, weshalb eine klare Suchstrategie wichtig ist.",
     },
     {
-      question: `Wie hoch sind die Preise für Häuser in ${proseLocation}?`,
+      question: `Wie hoch sind die Preise für Häuser ${locationPhrase}?`,
       answer: "Die Preise orientieren sich am Quadratmeterpreis, der Lage und dem Zustand der Immobilie. Durchschnittswerte geben eine Orientierung, ersetzen aber keine individuelle Betrachtung.",
     },
     {
@@ -172,19 +155,32 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
 
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-[color:var(--color-section)]">
+      <MobileHeroSection
+        eyebrow={`Haus kaufen ${locationPhrase}`}
+        title={<>Haus kaufen {locationPhrase}</>}
+        description={`Orientierung im aktuellen Markt und klare Schritte, um passende Immobilien ${locationPhrase} zu finden.`}
+        imageSrc={heroImage}
+        imageAlt=""
+        imagePosition="right center"
+        primaryCta={{ href: "/suchauftrag", label: "Suchauftrag starten" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Persönlich", "Sicher", "Regional"]}
+      />
+
+      <section className="relative isolate hidden overflow-hidden bg-[color:var(--color-section)] md:block">
         <Image src={heroImage} alt="" fill priority sizes="100vw" className="object-cover object-right opacity-90" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.50)_34%,rgba(255,255,255,0.18)_58%,rgba(255,255,255,0.04)_100%)]" />
         <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[1440px] gap-10 px-5 py-14 sm:px-8 md:py-16 lg:grid-cols-[1.12fr_0.88fr] lg:items-center lg:px-12">
           <div className="max-w-[47rem]">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
-              Haus kaufen in {location}
+              Haus kaufen {locationPhrase}
             </p>
-            <h1 className="mt-5 max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)]">
-              Haus kaufen in {location}
+            <h1 className="mt-5 max-w-full break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
+              Haus kaufen {locationPhrase}
             </h1>
+            <HeroDivider />
             <p className="mt-7 max-w-3xl text-[1.15rem] leading-[1.65] text-[color:var(--color-navy)] md:text-[1.35rem]">
-              Orientierung im aktuellen Markt und klare Schritte, um passende Immobilien in {proseLocation} zu finden.
+              Orientierung im aktuellen Markt und klare Schritte, um passende Immobilien {locationPhrase} zu finden.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link href="/suchauftrag" className="inline-flex min-h-14 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition hover:bg-[color:var(--color-brackish)]">
@@ -218,8 +214,10 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
         </div>
       </section>
 
-      <Section title={`Der Markt für Häuser in ${proseLocation}`}>
-        <p>Wer ein Haus in {proseLocation} kaufen möchte, trifft auf einen Markt, der sich stetig verändert. Entscheidend ist, wie Angebot und Nachfrage aktuell zusammenwirken.</p>
+      <RegionalCrossLinks data={data} placement="hero" />
+
+      <Section title={`Der Markt für Häuser ${locationPhrase}`}>
+        <p>Wer ein Haus {locationPhrase} kaufen möchte, trifft auf einen Markt, der sich stetig verändert. Entscheidend ist, wie Angebot und Nachfrage aktuell zusammenwirken.</p>
         <BulletList
           items={[
             "In gefragten Lagen ist das Angebot begrenzt, während die Nachfrage stabil bleibt",
@@ -230,8 +228,8 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
         <p className="font-semibold text-[color:var(--color-navy)]">Die größte Herausforderung ist nicht das Finden - sondern das rechtzeitige Finden der passenden Immobilie.</p>
       </Section>
 
-      <Section title={`Preisniveau für Häuser in ${proseLocation}`} muted>
-        <p>Das Preisniveau gibt dir eine erste Orientierung, in welchem Bereich sich Immobilien in {proseLocation} bewegen.</p>
+      <Section title={`Preisniveau für Häuser ${locationPhrase}`} muted>
+        <p>Das Preisniveau gibt dir eine erste Orientierung, in welchem Bereich sich Immobilien {locationPhrase} bewegen.</p>
         <dl className="grid gap-4 md:grid-cols-2">
           <DataCard label="Ø Preis pro m²" value={formatEuroPerM2(housePriceM2)} />
           <DataCard label="Ø Kaufpreise Häuser" value={formatEuro(housePrice)} />
@@ -240,7 +238,9 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
         <p className="font-semibold text-[color:var(--color-navy)]">Der Quadratmeterpreis zeigt den Markt - die konkrete Immobilie entscheidet über den finalen Preis.</p>
       </Section>
 
-      <Section title={`Wie der Kauf eines Hauses in ${proseLocation} abläuft`}>
+      {showAurichMarketTeaser ? <AurichMarketTeaser tone="white" /> : null}
+
+      <Section title={`Wie der Kauf eines Hauses ${locationPhrase} abläuft`} muted={showAurichMarketTeaser}>
         <p>Ein Hauskauf folgt in der Regel einem klaren Ablauf - unabhängig von Lage oder Objekt.</p>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {steps.map(([index, title, text]) => (
@@ -250,7 +250,7 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
         <p className="font-semibold text-[color:var(--color-navy)]">Ein strukturierter Ablauf reduziert Unsicherheit und sorgt dafür, dass Entscheidungen klar getroffen werden können.</p>
       </Section>
 
-      <Section title={`Wie du schneller passende Häuser in ${proseLocation} findest`} muted>
+      <Section title={`Wie du schneller passende Häuser ${locationPhrase} findest`} muted={!showAurichMarketTeaser}>
         <p>Viele Kaufinteressenten sehen nur die Immobilien, die bereits online sind. Ein Teil der passenden Objekte wird jedoch frühzeitig vergeben oder gezielt an vorgemerkte Interessenten weitergegeben.</p>
         <BulletList
           items={[
@@ -263,7 +263,7 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
         <p className="font-semibold text-[color:var(--color-navy)]">Eine gute Suchstrategie entscheidet darüber, ob du passende Immobilien rechtzeitig erreichst.</p>
       </Section>
 
-      <Section title={`Suchauftrag für Häuser in ${proseLocation}`}>
+      <Section title={`Suchauftrag für Häuser ${locationPhrase}`} muted={showAurichMarketTeaser}>
         <p>Mit einem Suchauftrag wirst du nicht nur informiert, sondern gezielt berücksichtigt.</p>
         <div className="grid gap-4 md:grid-cols-2">
           <InfoCard title="Früher Zugang" text="Du erhältst passende Immobilien, bevor sie vollständig am Markt sichtbar sind." />
@@ -277,10 +277,10 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
       <section id="suchauftrag-anlegen" className="bg-[color:var(--color-navy)] py-12 text-white md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight md:text-[2.85rem]">
-            Suchauftrag für Häuser in {proseLocation} anlegen
+            Suchauftrag für Häuser {locationPhrase} anlegen
           </h2>
           <p className="mt-5 max-w-4xl text-base leading-[1.8] text-white/86 md:text-lg">
-            Wenn du ein Haus in {proseLocation} suchst, beginnen wir mit einer klaren Struktur: Deine Kriterien, dein Budget und deine Zielvorstellung.
+            Wenn du ein Haus {locationPhrase} suchst, beginnen wir mit einer klaren Struktur: Deine Kriterien, dein Budget und deine Zielvorstellung.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link href="/suchauftrag" className="inline-flex min-h-14 items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-semibold text-[color:var(--color-navy)]">
@@ -297,11 +297,11 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
       <section className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[980px] px-5 sm:px-8">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight text-[color:var(--color-navy)] md:text-[2.85rem]">
-            Häufige Fragen zum Hauskauf in {proseLocation}
+            Häufige Fragen zum Hauskauf {locationPhrase}
           </h2>
           <div className="mt-6 divide-y divide-[color:var(--color-brass)]/20 rounded-xl border border-[color:var(--color-brass)]/25 bg-white shadow-[0_18px_70px_-64px_rgba(27,48,64,0.45)]">
-            {faqs.map((item) => (
-              <FaqItem key={item.question} question={item.question} answer={item.answer} />
+            {faqs.map((item, index) => (
+              <FaqItem key={item.question} question={item.question} answer={item.answer} defaultOpen={index === 0} />
             ))}
           </div>
         </div>

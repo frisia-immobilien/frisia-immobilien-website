@@ -1,9 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import PriceHistoryChart from "@/components/charts/PriceHistoryChart";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
+import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
+import { formatLocationPhrase, formatLocationProseName } from "@/lib/seo/locationDisplay";
 import { daysOnMarket, medianPricePerM2, totalSalesCount } from "@/lib/seo/valuationLanding";
-import type { PriceHistoryRow, SeoLocationRow } from "@/lib/types/leadgen";
+import type { PriceHistoryRow } from "@/lib/types/leadgen";
 import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/site";
 
 function numeric(value: number | string | null | undefined) {
@@ -13,6 +17,10 @@ function numeric(value: number | string | null | undefined) {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+}
+
+function hasPositiveValue(value: number | null) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
 function formatEuro(value: number | null) {
@@ -42,6 +50,8 @@ function demandLabel(salesCount: number | null) {
   return "gering";
 }
 
+const PRICE_TABLE_YEARS = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019] as const;
+
 function formatChange(current: number | null, previous: number | null) {
   if (!current || !previous) return "—";
   const change = ((current - previous) / previous) * 100;
@@ -54,30 +64,6 @@ function changeDirection(current: number | null, previous: number | null) {
   if (current > previous) return "up";
   if (current < previous) return "down";
   return "neutral";
-}
-
-function formatLocationLabel(label: string) {
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]}, ${parts.slice(1).join(", ")}`;
-}
-
-function formatLocationForTemplate(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district}, ${city}`;
-  return formatLocationLabel(label);
-}
-
-function formatLocationForProse(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district} in ${city}`;
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]} in ${parts.slice(1).join(", ")}`;
 }
 
 function Section({
@@ -126,9 +112,9 @@ function BulletList({ items }: { items: string[] }) {
   );
 }
 
-function FaqItem({ question, answer }: { question: string; answer: string }) {
+function FaqItem({ question, answer, defaultOpen = false }: { question: string; answer: string; defaultOpen?: boolean }) {
   return (
-    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0">
+    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-start justify-between gap-5 px-5 py-5 marker:hidden sm:px-6">
         <h3 className="text-base font-semibold leading-snug text-[color:var(--color-navy)] sm:text-lg">{question}</h3>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)] text-xl leading-none text-[color:var(--color-navy)] transition-transform group-open:rotate-45">
@@ -146,6 +132,14 @@ function priceForYear(rows: PriceHistoryRow[], year: number) {
   return numeric(rows.find((row) => row.year === year)?.median_preis_eur_m2);
 }
 
+function priceHistoryRowsWithValues(rows: PriceHistoryRow[]) {
+  return rows.filter((row) => hasPositiveValue(numeric(row.median_preis_eur_m2)));
+}
+
+function hasDevelopmentTableValues(rows: PriceHistoryRow[], currentPrice: number | null) {
+  return hasPositiveValue(currentPrice) || PRICE_TABLE_YEARS.some((year) => hasPositiveValue(priceForYear(rows, year)));
+}
+
 function PriceDevelopmentTable({
   rows,
   title,
@@ -155,35 +149,46 @@ function PriceDevelopmentTable({
   title: string;
   currentPrice: number | null;
 }) {
-  const tableYears = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019];
   const tableValue = (year: number) => (year === 2026 ? currentPrice : priceForYear(rows, year));
+  const availableRows = PRICE_TABLE_YEARS.map((year) => ({ year, current: tableValue(year) })).filter(({ current }) =>
+    hasPositiveValue(current),
+  );
+
+  if (availableRows.length === 0) return null;
 
   return (
     <div>
-      <h3 className="font-[family-name:var(--font-playfair)] text-[1.9rem] leading-tight text-[color:var(--color-navy)] md:text-[2.35rem]">
+      <h3 className="font-[family-name:var(--font-playfair)] text-[1.55rem] leading-tight text-[color:var(--color-navy)] sm:text-[1.9rem] md:text-[2.35rem]">
         {title}
       </h3>
-      <div className="mt-5 overflow-x-auto rounded-lg border border-[color:var(--color-brass)]/30 bg-white">
-        <table className="w-full min-w-[640px] border-collapse text-left">
-          <thead className="bg-[color:var(--color-section)] text-sm uppercase tracking-[0.08em] text-[color:var(--color-brackish)]">
+      <div className="mt-5 overflow-hidden rounded-lg border border-[color:var(--color-brass)]/30 bg-white">
+        <table className="w-full table-fixed border-collapse text-left text-[0.86rem] sm:table-auto sm:text-base">
+          <colgroup>
+            <col className="w-[28%] sm:w-auto" />
+            <col className="w-[36%] sm:w-auto" />
+            <col className="w-[36%] sm:w-auto" />
+          </colgroup>
+          <thead className="bg-[color:var(--color-section)] text-[0.68rem] uppercase tracking-[0.07em] text-[color:var(--color-brackish)] sm:text-sm sm:tracking-[0.08em]">
             <tr>
-              <th className="px-5 py-4 font-semibold">Jahr</th>
-              <th className="px-5 py-4 font-semibold">Preis</th>
-              <th className="px-5 py-4 font-semibold">Veränderung zum Vorjahr</th>
+              <th className="px-3 py-3 font-semibold sm:px-5 sm:py-4">Jahr</th>
+              <th className="px-3 py-3 font-semibold sm:px-5 sm:py-4">Preis</th>
+              <th className="px-3 py-3 font-semibold sm:px-5 sm:py-4">
+                <span className="sm:hidden">Änderung</span>
+                <span className="hidden sm:inline">Veränderung zum Vorjahr</span>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[color:var(--color-brass)]/20">
-            {tableYears.map((year) => {
-              const current = tableValue(year);
+            {availableRows.map(({ year, current }) => {
               const previous = year === 2019 ? null : tableValue(year - 1);
               const direction = changeDirection(current, previous);
               return (
                 <tr key={year}>
-                  <td className="px-5 py-4 font-semibold text-[color:var(--color-navy)]">{year}</td>
-                  <td className="px-5 py-4 text-[color:var(--color-graphite)]">{formatTablePrice(current)}</td>
-                  <td className="px-5 py-4">
+                  <td className="px-3 py-4 font-semibold text-[color:var(--color-navy)] sm:px-5 sm:py-4">{year}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-[color:var(--color-graphite)] sm:px-5 sm:py-4">{formatTablePrice(current)}</td>
+                  <td className="whitespace-nowrap px-3 py-4 sm:px-5 sm:py-4">
                     <span
-                      className={`inline-flex items-center gap-3 ${
+                      className={`inline-flex items-center gap-1.5 sm:gap-3 ${
                         direction === "up"
                           ? "font-semibold text-[#123A05]"
                           : direction === "down"
@@ -196,7 +201,7 @@ function PriceDevelopmentTable({
                         <svg
                           aria-hidden="true"
                           viewBox="0 0 24 24"
-                          className={`h-8 w-8 shrink-0 ${direction === "down" ? "rotate-90" : ""}`}
+                          className={`h-5 w-5 shrink-0 sm:h-8 sm:w-8 ${direction === "down" ? "rotate-90" : ""}`}
                           fill="none"
                         >
                           <path
@@ -226,28 +231,114 @@ function PriceDevelopmentTable({
   );
 }
 
+const aurichDecisionLinks = [
+  {
+    href: "/immobilienbewertung-aurich",
+    label: "Immobilie in Aurich bewerten lassen",
+  },
+  {
+    href: "/haus-verkaufen-aurich",
+    label: "Haus in Aurich verkaufen",
+  },
+  {
+    href: "/immobilienmakler-aurich",
+    label: "Immobilienmakler für Aurich kennenlernen",
+  },
+] as const;
+
+function AurichDecisionCta() {
+  return (
+    <section className="bg-[color:var(--color-section)] py-12 md:py-16" aria-labelledby="aurich-decision-title">
+      <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
+        <div className="rounded-[1.5rem] border border-[color:var(--color-brass)]/22 bg-white p-6 shadow-[0_18px_54px_-46px_rgba(27,48,64,0.5)] md:p-9">
+          <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+            <div>
+              <p className="text-[0.74rem] font-semibold uppercase tracking-[0.15em] text-[color:var(--color-brackish)]">
+                Nächster Schritt
+              </p>
+              <h2
+                id="aurich-decision-title"
+                className="mt-3 font-[family-name:var(--font-playfair)] text-[2.05rem] leading-[1.13] text-[color:var(--color-navy)] md:text-[2.85rem]"
+              >
+                Von Marktdaten zur richtigen Entscheidung
+              </h2>
+              <p className="mt-5 max-w-3xl text-[1rem] leading-[1.75] text-[color:var(--color-graphite)] md:text-[1.08rem]">
+                Marktdaten zeigen dir die Richtung. Für eine sichere Verkaufsentscheidung zählt danach die konkrete
+                Bewertung deiner Immobilie und eine klare Strategie für den Verkauf.
+              </p>
+            </div>
+            <div className="grid gap-3">
+              {aurichDecisionLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="rounded-xl border border-[color:var(--color-brass)]/28 bg-[color:var(--color-section)] px-5 py-4 text-[1rem] font-semibold leading-[1.45] text-[color:var(--color-navy)] transition-colors hover:border-[color:var(--color-brass)] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function PriceLocationTemplate({ data }: { data: LocationPageData }) {
-  const location = formatLocationForTemplate(data.location);
-  const proseLocation = formatLocationForProse(data.location);
+  const proseLocation = formatLocationProseName(data.location);
+  const locationPhrase = formatLocationPhrase(data.location);
   const housePriceM2 = medianPricePerM2(data.houseMarket);
   const apartmentPriceM2 = medianPricePerM2(data.apartmentMarket);
   const housePrice = numeric(data.houseMarket?.median_preis_eur);
   const apartmentPrice = numeric(data.apartmentMarket?.median_preis_eur);
   const salesCount = totalSalesCount(data.houseMarket, data.apartmentMarket);
   const marketDays = daysOnMarket(data.houseMarket, data.apartmentMarket);
-  const heroImage = "/images/immobilienbewertung/hero-background.png";
+  const heroImage = "/images/immobilienbewertung/hero-background.webp";
   const valuationHref = `/immobilienbewertung-${data.location.location_slug}`;
+  const showAurichDecisionCta = data.location.location_slug === "aurich";
+  const priceCards = [
+    { label: "Hauspreis pro m²", value: formatEuroPerM2(housePriceM2), visible: hasPositiveValue(housePriceM2) },
+    { label: "Wohnungspreis pro m²", value: formatEuroPerM2(apartmentPriceM2), visible: hasPositiveValue(apartmentPriceM2) },
+    { label: "Ø Angebotspreis Häuser", value: formatEuro(housePrice), visible: hasPositiveValue(housePrice) },
+    { label: "Ø Angebotspreis Wohnungen", value: formatEuro(apartmentPrice), visible: hasPositiveValue(apartmentPrice) },
+  ].filter((card) => card.visible);
+  const marketCards = [
+    { label: "Anzahl Verkäufe in der Region", value: formatSales(salesCount), visible: hasPositiveValue(salesCount) },
+    { label: "Ø Vermarktungsdauer", value: formatDays(marketDays), visible: hasPositiveValue(marketDays) },
+    { label: "Nachfrage", value: demandLabel(salesCount), visible: hasPositiveValue(salesCount) },
+  ].filter((card) => card.visible);
+  const houseChartRows = priceHistoryRowsWithValues(data.houseHistory);
+  const apartmentChartRows = priceHistoryRowsWithValues(data.apartmentHistory);
+  const showHouseChart = houseChartRows.length >= 3;
+  const showApartmentChart = apartmentChartRows.length >= 3;
+  const showHouseDevelopmentTable = hasDevelopmentTableValues(data.houseHistory, housePriceM2);
+  const showApartmentDevelopmentTable = hasDevelopmentTableValues(data.apartmentHistory, apartmentPriceM2);
+  const hasPriceSection = priceCards.length > 0;
+  const hasMarketSection = marketCards.length > 0;
+  const hasChartSection = showHouseChart || showApartmentChart;
+  const hasDevelopmentSection = showHouseDevelopmentTable || showApartmentDevelopmentTable;
+  const isMutedByPosition = (visibleBefore: boolean[]) => visibleBefore.filter(Boolean).length % 2 === 1;
+  const marketSectionMuted = isMutedByPosition([hasPriceSection]);
+  const chartSectionMuted = isMutedByPosition([hasPriceSection, hasMarketSection]);
+  const developmentSectionMuted = isMutedByPosition([hasPriceSection, hasMarketSection, hasChartSection]);
+  const meaningSectionMuted = isMutedByPosition([
+    hasPriceSection,
+    hasMarketSection,
+    hasChartSection,
+    hasDevelopmentSection,
+  ]);
   const faqs = [
     {
-      question: `Wie entwickeln sich die Immobilienpreise in ${proseLocation} aktuell?`,
-      answer: `Die Immobilienpreise in ${proseLocation} hängen von Angebot, Nachfrage, Zinsen, Lagequalität und Objektzustand ab. Die dargestellten Werte zeigen eine Orientierung, ersetzen aber keine individuelle Bewertung deiner Immobilie.`,
+      question: `Wie entwickeln sich die Immobilienpreise ${locationPhrase} aktuell?`,
+      answer: `Die Immobilienpreise ${locationPhrase} hängen von Angebot, Nachfrage, Zinsen, Lagequalität und Objektzustand ab. Die dargestellten Werte zeigen eine Orientierung, ersetzen aber keine individuelle Bewertung deiner Immobilie.`,
     },
     {
       question: "Sind Angebotspreise gleich Verkaufspreise?",
       answer: "Nein. Angebotspreise sind die Preise, mit denen Immobilien am Markt angeboten werden. Der tatsächliche Verkaufspreis entsteht erst durch Nachfrage, Verhandlung, Käuferprüfung und Abschluss. Deshalb kann der erzielte Preis vom Angebotspreis abweichen.",
     },
     {
-      question: `Was beeinflusst den Preis meiner Immobilie in ${proseLocation}?`,
+      question: `Was beeinflusst den Preis meiner Immobilie ${locationPhrase}?`,
       answer: "Entscheidend sind Lage, Zustand, Grundstück, Wohnfläche, Grundriss, Energieeffizienz, Modernisierung, Ausstattung und aktuelle Nachfrage. Auch die richtige Preisstrategie beeinflusst, wie stark Käufer reagieren.",
     },
     {
@@ -266,19 +357,32 @@ export default function PriceLocationTemplate({ data }: { data: LocationPageData
 
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-[color:var(--color-section)]">
+      <MobileHeroSection
+        eyebrow={`Immobilienpreise ${locationPhrase}`}
+        title={<>Immobilienpreise {locationPhrase}</>}
+        description={`Aktuelle Preise, Entwicklung und klare Einordnung für Eigentümer ${locationPhrase}.`}
+        imageSrc={heroImage}
+        imageAlt=""
+        imagePosition="right center"
+        primaryCta={{ href: valuationHref, label: "Immobilie einordnen" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Marktdaten", "Bewertung", "Verkauf"]}
+      />
+
+      <section className="relative isolate hidden overflow-hidden bg-[color:var(--color-section)] md:block">
         <Image src={heroImage} alt="" fill priority sizes="100vw" className="object-cover object-right opacity-90" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.50)_34%,rgba(255,255,255,0.18)_58%,rgba(255,255,255,0.04)_100%)]" />
         <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[1440px] gap-8 px-5 py-14 sm:px-8 md:py-16 lg:grid-cols-[1.42fr_0.58fr] lg:items-center lg:px-12">
           <div className="max-w-[62rem]">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
-              Immobilienpreise in {location}
+              Immobilienpreise {locationPhrase}
             </p>
-            <h1 className="mt-5 max-w-[22ch] break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
-              Immobilienpreise in {location}
+            <h1 className="mt-5 max-w-full break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
+              Immobilienpreise {locationPhrase}
             </h1>
+            <HeroDivider />
             <p className="mt-7 max-w-[32rem] text-[1.15rem] leading-[1.65] text-[color:var(--color-navy)] md:max-w-[34rem] md:text-[1.35rem]">
-              Aktuelle Preise, Entwicklung und klare Einordnung für Eigentümer in {proseLocation}.
+              Aktuelle Preise, Entwicklung und klare Einordnung für Eigentümer {locationPhrase}.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link href={valuationHref} className="inline-flex min-h-14 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition hover:bg-[color:var(--color-brackish)]">
@@ -306,92 +410,109 @@ export default function PriceLocationTemplate({ data }: { data: LocationPageData
               Der Markt zeigt die Richtung.
             </h2>
             <p className="mt-5 text-base leading-[1.8] text-[color:var(--color-graphite)]">
-              Die Immobilienpreise in {proseLocation} zeigen dir, wie sich der Markt entwickelt. Entscheidend ist jedoch, wo deine Immobilie heute konkret darin steht.
+              Die Immobilienpreise {locationPhrase} zeigen dir, wie sich der Markt entwickelt. Entscheidend ist jedoch, wo deine Immobilie heute konkret darin steht.
             </p>
           </div>
         </div>
       </section>
 
-      <Section title={`Aktuelle Immobilienpreise in ${proseLocation}`}>
-        <p>Die folgenden Werte geben dir eine erste Orientierung für den Immobilienmarkt in {proseLocation}.</p>
-        <dl className="grid gap-4 md:grid-cols-4">
-          <DataCard label="Hauspreis pro m²" value={formatEuroPerM2(housePriceM2)} />
-          <DataCard label="Wohnungspreis pro m²" value={formatEuroPerM2(apartmentPriceM2)} />
-          <DataCard label="Ø Angebotspreis Häuser" value={formatEuro(housePrice)} />
-          <DataCard label="Ø Angebotspreis Wohnungen" value={formatEuro(apartmentPrice)} />
-        </dl>
-        <p>Die Werte basieren auf aktuellen Angebots- und Marktdaten. Der tatsächlich erzielbare Verkaufspreis kann davon abweichen und hängt immer von Lage, Zustand, Grundstück, Energie, Modernisierung und Nachfrage ab.</p>
-        <p className="font-semibold text-[color:var(--color-navy)]">Der Markt gibt eine Richtung vor - aber nicht den genauen Wert deiner Immobilie.</p>
-      </Section>
+      <RegionalCrossLinks data={data} placement="hero" />
 
-      <Section title={`Marktdaten für ${proseLocation}`} muted>
-        <p>Neben dem Preis sind zwei Faktoren besonders wichtig: Wie aktiv ist der Markt - und wie schnell reagieren Käufer?</p>
-        <dl className="grid gap-4 md:grid-cols-3">
-          <DataCard label="Anzahl Verkäufe" value={formatSales(salesCount)} />
-          <DataCard label="Ø Vermarktungsdauer" value={formatDays(marketDays)} />
-          <DataCard label="Nachfrage" value={demandLabel(salesCount)} />
-        </dl>
-        <p>Viele Verkäufe und kurze Vermarktungszeiten sprechen für eine aktive Nachfrage. Längere Vermarktungszeiten zeigen, dass Preis, Präsentation und Verkaufsstrategie besonders sauber aufeinander abgestimmt sein müssen.</p>
-        <p className="font-semibold text-[color:var(--color-navy)]">Der Preis allein entscheidet nicht. Entscheidend ist, wie der Markt auf diesen Preis reagiert.</p>
-      </Section>
+      {hasPriceSection ? (
+        <Section title={`Aktuelle Immobilienpreise ${locationPhrase}`}>
+          <p>Die folgenden Werte geben dir eine erste Orientierung für den Immobilienmarkt {locationPhrase}.</p>
+          <dl className="grid gap-4 md:grid-cols-4">
+            {priceCards.map((card) => (
+              <DataCard key={card.label} label={card.label} value={card.value} />
+            ))}
+          </dl>
+          <p>Die Werte basieren auf aktuellen Angebots- und Marktdaten. Der tatsächlich erzielbare Verkaufspreis kann davon abweichen und hängt immer von Lage, Zustand, Grundstück, Energie, Modernisierung und Nachfrage ab.</p>
+          <p className="font-semibold text-[color:var(--color-navy)]">Der Markt gibt eine Richtung vor - aber nicht den genauen Wert deiner Immobilie.</p>
+        </Section>
+      ) : null}
 
-      <section className="bg-white py-14 md:py-20">
-        <div className="mx-auto w-full max-w-[1400px] px-5 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight text-[color:var(--color-navy)] md:text-[2.85rem]">
-              Preisentwicklung in {proseLocation}
-            </h2>
-            <p className="mt-5 text-base leading-[1.8] text-[color:var(--color-graphite)] md:text-lg">
-              So haben sich die Quadratmeterpreise für Häuser und Wohnungen in {proseLocation} in den letzten Jahren entwickelt.
+      {hasMarketSection ? (
+        <Section title={`Marktdaten für ${proseLocation}`} muted={marketSectionMuted}>
+          <p>Neben dem Preis sind zwei Faktoren besonders wichtig: Wie aktiv ist der Markt - und wie schnell reagieren Käufer?</p>
+          <dl className="grid gap-4 md:grid-cols-3">
+            {marketCards.map((card) => (
+              <DataCard key={card.label} label={card.label} value={card.value} />
+            ))}
+          </dl>
+          <p>Viele Verkäufe und kurze Vermarktungszeiten sprechen für eine aktive Nachfrage. Längere Vermarktungszeiten zeigen, dass Preis, Präsentation und Verkaufsstrategie besonders sauber aufeinander abgestimmt sein müssen.</p>
+          <p className="font-semibold text-[color:var(--color-navy)]">Der Preis allein entscheidet nicht. Entscheidend ist, wie der Markt auf diesen Preis reagiert.</p>
+        </Section>
+      ) : null}
+
+      {hasChartSection ? (
+        <section className={`${chartSectionMuted ? "bg-[color:var(--color-section)]" : "bg-white"} py-14 md:py-20`}>
+          <div className="mx-auto w-full max-w-[1400px] px-5 sm:px-8 lg:px-12">
+            <div className="mx-auto max-w-4xl text-center">
+              <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight text-[color:var(--color-navy)] md:text-[2.85rem]">
+                Preisentwicklung {locationPhrase}
+              </h2>
+              <p className="mt-5 text-base leading-[1.8] text-[color:var(--color-graphite)] md:text-lg">
+                So haben sich die Quadratmeterpreise für Häuser und Wohnungen {locationPhrase} in den letzten Jahren entwickelt.
+              </p>
+            </div>
+            <div className="mt-10 grid gap-8">
+              {showHouseChart ? (
+                <article className="rounded-lg border border-[color:var(--color-brass)]/30 bg-white p-5 shadow-[0_18px_54px_-44px_rgba(27,48,64,0.48)] md:p-8">
+                  <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Hauspreise {locationPhrase}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[color:var(--color-graphite)]">
+                    Medianpreis in Euro pro Quadratmeter. Reale Jahreswerte - keine bloßen Angebotspreise.
+                  </p>
+                  <div className="mt-5">
+                    <PriceHistoryChart title={`Hauspreise ${locationPhrase}`} rows={houseChartRows} />
+                  </div>
+                </article>
+              ) : null}
+              {showApartmentChart ? (
+                <article className="rounded-lg border border-[color:var(--color-brass)]/30 bg-white p-5 shadow-[0_18px_54px_-44px_rgba(27,48,64,0.48)] md:p-8">
+                  <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Wohnungspreise {locationPhrase}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[color:var(--color-graphite)]">
+                    Medianpreis in Euro pro Quadratmeter. Reale Jahreswerte - keine bloßen Angebotspreise.
+                  </p>
+                  <div className="mt-5">
+                    <PriceHistoryChart title={`Wohnungspreise ${locationPhrase}`} rows={apartmentChartRows} />
+                  </div>
+                </article>
+              ) : null}
+            </div>
+            <p className="mx-auto mt-9 max-w-4xl text-center text-base leading-[1.8] text-[color:var(--color-graphite)] md:text-lg">
+              Die Preisentwicklung zeigt, wie sich der Markt {locationPhrase} verändert hat. Für deinen Verkauf ist jedoch nicht der höchste Wert der letzten Jahre entscheidend, sondern der Preis, der heute realistisch erzielt werden kann.
             </p>
           </div>
-          <div className="mt-10 grid gap-8">
-            <article className="rounded-lg border border-[color:var(--color-brass)]/30 bg-white p-5 shadow-[0_18px_54px_-44px_rgba(27,48,64,0.48)] md:p-8">
-              <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Hauspreise in {proseLocation}</h3>
-              <p className="mt-2 text-sm leading-6 text-[color:var(--color-graphite)]">
-                Medianpreis in Euro pro Quadratmeter. Reale Jahreswerte - keine bloßen Angebotspreise.
-              </p>
-              <div className="mt-5">
-                <PriceHistoryChart title={`Hauspreise in ${proseLocation}`} rows={data.houseHistory} />
-              </div>
-            </article>
-            <article className="rounded-lg border border-[color:var(--color-brass)]/30 bg-white p-5 shadow-[0_18px_54px_-44px_rgba(27,48,64,0.48)] md:p-8">
-              <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Wohnungspreise in {proseLocation}</h3>
-              <p className="mt-2 text-sm leading-6 text-[color:var(--color-graphite)]">
-                Medianpreis in Euro pro Quadratmeter. Reale Jahreswerte - keine bloßen Angebotspreise.
-              </p>
-              <div className="mt-5">
-                <PriceHistoryChart title={`Wohnungspreise in ${proseLocation}`} rows={data.apartmentHistory} />
-              </div>
-            </article>
-          </div>
-          <p className="mx-auto mt-9 max-w-4xl text-center text-base leading-[1.8] text-[color:var(--color-graphite)] md:text-lg">
-            Die Preisentwicklung zeigt, wie sich der Markt in {proseLocation} verändert hat. Für deinen Verkauf ist jedoch nicht der höchste Wert der letzten Jahre entscheidend, sondern der Preis, der heute realistisch erzielt werden kann.
-          </p>
-        </div>
-      </section>
+        </section>
+      ) : null}
 
-      <Section title={`Entwicklung der Quadratmeterpreise für Häuser in ${proseLocation}`} muted>
-        <p>Die Tabelle zeigt die jährliche Entwicklung der Hauspreise in {proseLocation} und macht sichtbar, wie stark sich der Markt von Jahr zu Jahr verändern kann.</p>
-        <PriceDevelopmentTable
-          title={`Entwicklung der Quadratmeterpreise für Häuser in ${proseLocation}`}
-          rows={data.houseHistory}
-          currentPrice={housePriceM2}
-        />
-        <div className="mt-10">
-          <PriceDevelopmentTable
-            title={`Entwicklung der Quadratmeterpreise für Wohnungen in ${proseLocation}`}
-            rows={data.apartmentHistory}
-            currentPrice={apartmentPriceM2}
-          />
-        </div>
-        <p className="text-sm leading-6">Quelle: Angebots- und Marktdaten. Stand: April 2026. Der tatsächlich erzielte Verkaufspreis kann vom Angebotspreis abweichen.</p>
-        <p>Die Entwicklung zeigt eine klare Richtung. Für deinen Verkauf zählt jedoch nicht allein die Vergangenheit, sondern die aktuelle Nachfrage nach genau deiner Immobilie in {proseLocation}.</p>
-        <p className="font-semibold text-[color:var(--color-navy)]">Preisdaten erklären den Markt. Die Bewertung erklärt deine Immobilie.</p>
-      </Section>
+      {hasDevelopmentSection ? (
+        <Section title={`Entwicklung der Quadratmeterpreise ${locationPhrase}`} muted={developmentSectionMuted}>
+          <p>Die Tabelle zeigt vorhandene Jahreswerte und macht sichtbar, wie stark sich der Markt von Jahr zu Jahr verändern kann.</p>
+          {showHouseDevelopmentTable ? (
+            <PriceDevelopmentTable
+              title={`Entwicklung der Quadratmeterpreise für Häuser ${locationPhrase}`}
+              rows={data.houseHistory}
+              currentPrice={housePriceM2}
+            />
+          ) : null}
+          {showApartmentDevelopmentTable ? (
+            <div className={showHouseDevelopmentTable ? "mt-10" : undefined}>
+              <PriceDevelopmentTable
+                title={`Entwicklung der Quadratmeterpreise für Wohnungen ${locationPhrase}`}
+                rows={data.apartmentHistory}
+                currentPrice={apartmentPriceM2}
+              />
+            </div>
+          ) : null}
+          <p className="text-sm leading-6">Quelle: Angebots- und Marktdaten. Stand: April 2026. Der tatsächlich erzielte Verkaufspreis kann vom Angebotspreis abweichen.</p>
+          <p>Die Entwicklung zeigt eine klare Richtung. Für deinen Verkauf zählt jedoch nicht allein die Vergangenheit, sondern die aktuelle Nachfrage nach genau deiner Immobilie {locationPhrase}.</p>
+          <p className="font-semibold text-[color:var(--color-navy)]">Preisdaten erklären den Markt. Die Bewertung erklärt deine Immobilie.</p>
+        </Section>
+      ) : null}
 
-      <Section title="Was bedeuten diese Immobilienpreise für dich als Eigentümer?">
-        <p>Die dargestellten Immobilienpreise sind eine wichtige Orientierung. Sie beantworten aber nicht die entscheidende Frage: Welchen Preis kann deine Immobilie in {proseLocation} aktuell wirklich erzielen?</p>
+      <Section title="Was bedeuten diese Immobilienpreise für dich als Eigentümer?" muted={meaningSectionMuted}>
+        <p>Die dargestellten Immobilienpreise sind eine wichtige Orientierung. Sie beantworten aber nicht die entscheidende Frage: Welchen Preis kann deine Immobilie {locationPhrase} aktuell wirklich erzielen?</p>
         <p>Jede Immobilie ist anders:</p>
         <BulletList
           items={[
@@ -412,10 +533,10 @@ export default function PriceLocationTemplate({ data }: { data: LocationPageData
       <section id="immobilie-bewerten" className="bg-[color:var(--color-navy)] py-12 text-white md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight md:text-[2.85rem]">
-            Deine Immobilie in {proseLocation} realistisch einordnen
+            Deine Immobilie {locationPhrase} realistisch einordnen
           </h2>
           <p className="mt-5 max-w-4xl text-base leading-[1.8] text-white/86 md:text-lg">
-            Wenn du wissen möchtest, wo deine Immobilie im aktuellen Markt in {proseLocation} steht, erstellen wir für dich eine klare Einschätzung: Preisrahmen, Nachfrage und sinnvolle Vorgehensweise.
+            Wenn du wissen möchtest, wo deine Immobilie im aktuellen Markt {locationPhrase} steht, erstellen wir für dich eine klare Einschätzung: Preisrahmen, Nachfrage und sinnvolle Vorgehensweise.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link href={valuationHref} className="inline-flex min-h-14 items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-semibold text-[color:var(--color-navy)]">
@@ -429,14 +550,16 @@ export default function PriceLocationTemplate({ data }: { data: LocationPageData
         </div>
       </section>
 
+      {showAurichDecisionCta ? <AurichDecisionCta /> : null}
+
       <section className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[980px] px-5 sm:px-8">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight text-[color:var(--color-navy)] md:text-[2.85rem]">
-            Häufige Fragen zu Immobilienpreisen in {proseLocation}
+            Häufige Fragen zu Immobilienpreisen {locationPhrase}
           </h2>
           <div className="mt-6 divide-y divide-[color:var(--color-brass)]/20 rounded-xl border border-[color:var(--color-brass)]/25 bg-white shadow-[0_18px_70px_-64px_rgba(27,48,64,0.45)]">
-            {faqs.map((item) => (
-              <FaqItem key={item.question} question={item.question} answer={item.answer} />
+            {faqs.map((item, index) => (
+              <FaqItem key={item.question} question={item.question} answer={item.answer} defaultOpen={index === 0} />
             ))}
           </div>
         </div>

@@ -32,6 +32,8 @@ import LandErschliessungSection from './sections/LandErschliessung.section'
 import LandBebaubarkeitSection from './sections/LandBebaubarkeit.section'
 import LandBebauungsgebietSection from './sections/LandBebauungsgebiet.section'
 
+const FINALIZE_TIMEOUT_MS = 30000
+
 /* ============================================================
    TYPES
 ============================================================ */
@@ -67,7 +69,13 @@ type Step06Data = {
   energyClass?: string | null
   energyKnown?: 'unknown' | 'yes' | 'no'
 }
-type Step07Data = {condition?: 'unknown' | 'good' | 'normal' | 'needs_work'}
+type Step07Data = {
+  condition?:
+    | 'unknown'
+    | 'needs_work'
+    | 'new_modernized'
+    | 'well_kept'
+}
 type Step08Data = {
   qualityId?: 'simple' | 'medium' | 'high' | 'very_high' | 'unknown'
   qualityLabel?: string
@@ -100,12 +108,19 @@ type Step14PersonData = {
 }
 type Step15ResultData = {
   status?: 'idle' | 'pending' | 'ready' | 'error'
+  animationComplete?: boolean
+  emailDispatchStatus?: 'idle' | 'pending' | 'sent' | 'error'
+  manualReview?: boolean
+  manualReviewReason?: string
+  leadId?: string
+  reportId?: string
   valueMid?: number
   rangeMin?: number
   rangeMax?: number
   currency?: 'EUR'
   landingUrl?: string
   email?: string
+  emailProvider?: string
   emailSentAt?: string
   expiresAt?: string
   error?: string
@@ -655,11 +670,15 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
     if (stepKey === 'email') return step13Valid
     if (stepKey === 'person') return step14Valid
 
-    if (stepKey === 'result') return leadData.step15Result?.status === 'ready'
+    if (stepKey === 'result')
+      return leadData.step15Result?.status === 'ready' && leadData.step15Result?.animationComplete === true
     if (stepKey === 'thanks') return true
 
     return false
   }, [stepKey, selectedType, leadData, step13Valid, step14Valid])
+  const rawFinalEmailStatus = leadData.step15Result?.emailDispatchStatus
+  const finalEmailStatus = rawFinalEmailStatus ?? 'pending'
+  const canCloseFinalStep = stepKey !== 'thanks' || finalEmailStatus === 'sent' || finalEmailStatus === 'error'
 
   /* =========================
      NAVIGATION
@@ -741,6 +760,10 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
           error?: string
         }
 
+        if (data.leadId) {
+          setCrmLeadId(data.leadId)
+        }
+
         if (!response.ok || data.success !== true || !data.leadId) {
           throw new Error(data.error || 'Lead-Sync fehlgeschlagen.')
         }
@@ -761,11 +784,13 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
 
   const runFinalize = useCallback(
     async (force = false) => {
-      if (stepKey !== 'result') return
+      if (stepKey !== 'thanks') return
 
       if (finalizeValidationError) {
         setStep15Result({
-          status: 'error',
+          status: 'ready',
+          animationComplete: true,
+          emailDispatchStatus: 'error',
           error: finalizeValidationError,
         })
         return
@@ -773,7 +798,9 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
 
       if (!crmLeadId && !canBackgroundSync) {
         setStep15Result({
-          status: 'error',
+          status: 'ready',
+          animationComplete: true,
+          emailDispatchStatus: 'error',
           error: 'Die Bewertungsdaten sind noch nicht vollständig erfasst.',
         })
         return
@@ -790,18 +817,26 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
       const abortController = new AbortController()
       finalizeAbortRef.current = abortController
       lastFinalizeSignatureRef.current = finalizeSignature
+      let latestLeadId = crmLeadId ?? undefined
+      let didTimeout = false
+      const timeoutId = window.setTimeout(() => {
+        didTimeout = true
+        abortController.abort()
+      }, FINALIZE_TIMEOUT_MS)
 
       setLeadData((prev) => ({
         ...prev,
         step15Result: {
           ...(prev.step15Result ?? {}),
-          status: 'pending',
+          status: 'ready',
+          animationComplete: true,
+          emailDispatchStatus: 'pending',
           error: undefined,
         },
       }))
 
       try {
-        const response = await fetch('/api/lead/finalize', {
+        const response = await fetch('/api/lead', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -817,7 +852,11 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
         const data = (await response.json()) as {
           success?: boolean
           leadId?: string | null
+          leadRequestId?: string | null
+          reportId?: string | null
           error?: string
+          manualReview?: boolean
+          reason?: string
           value?: {
             min?: number
             mid?: number
@@ -825,38 +864,88 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
           }
           landingUrl?: string
           expiresAt?: string
+          emailProvider?: string | null
           email?: string
           emailSentAt?: string | null
         }
 
-        if (!response.ok || data.success !== true || !data.value) {
+        const finalizedLeadId = data.leadId || data.leadRequestId || latestLeadId
+
+        if (finalizedLeadId) {
+          latestLeadId = finalizedLeadId
+          setCrmLeadId(finalizedLeadId)
+        }
+
+        if (!response.ok || data.success !== true) {
           throw new Error(data.error || 'Bewertung konnte nicht erstellt werden.')
         }
 
-        if (data.leadId) {
-          setCrmLeadId(data.leadId)
+        if (data.manualReview) {
+          const emailFailed =
+            (data.emailProvider !== 'propstack' && data.emailProvider !== 'resend') ||
+            data.emailSentAt === null
+          emitLeadEvent({
+            event: 'lead_manual_review',
+            property_type: selectedType,
+            reason: data.reason || '',
+          })
+          setStep15Result({
+            status: 'ready',
+            animationComplete: true,
+            emailDispatchStatus: emailFailed ? 'error' : 'sent',
+            manualReview: true,
+            manualReviewReason:
+              data.reason ||
+              'Für diese Immobilie ist eine persönliche Prüfung sinnvoll, damit keine ungenaue automatische Einordnung ausgegeben wird.',
+            leadId: finalizedLeadId,
+            reportId: data.reportId ?? undefined,
+            email: data.email ?? syncPayload.email,
+            emailProvider: data.emailProvider ?? undefined,
+            emailSentAt: data.emailSentAt ?? undefined,
+            error: emailFailed ? 'Die E-Mail konnte nicht versendet werden.' : undefined,
+          })
+          return
         }
 
+        const emailFailed =
+          (data.emailProvider !== 'propstack' && data.emailProvider !== 'resend') ||
+          data.emailSentAt === null
+        emitLeadEvent({
+          event: 'lead_valuation_ready',
+          property_type: selectedType,
+        })
         setStep15Result({
           status: 'ready',
-          valueMid: Number(data.value.mid ?? 0),
-          rangeMin: Number(data.value.min ?? 0),
-          rangeMax: Number(data.value.max ?? 0),
+          animationComplete: true,
+          emailDispatchStatus: emailFailed ? 'error' : 'sent',
+          manualReview: false,
+          leadId: finalizedLeadId,
+          reportId: data.reportId ?? undefined,
           currency: 'EUR',
-          landingUrl: data.landingUrl,
-          email: data.email,
-          emailSentAt: data.emailSentAt ?? new Date().toISOString(),
+          email: data.email ?? syncPayload.email,
+          emailProvider: data.emailProvider ?? undefined,
+          emailSentAt: data.emailSentAt ?? undefined,
           expiresAt: data.expiresAt,
+          error: emailFailed ? 'Die E-Mail konnte nicht versendet werden.' : undefined,
         })
       } catch (error) {
-        if (abortController.signal.aborted) return
+        if (abortController.signal.aborted && !didTimeout) return
 
         lastFinalizeSignatureRef.current = ''
         setStep15Result({
-          status: 'error',
-          error: error instanceof Error ? error.message : 'Bewertung konnte nicht erstellt werden.',
+          status: 'ready',
+          animationComplete: true,
+          emailDispatchStatus: 'error',
+          leadId: latestLeadId,
+          email: syncPayload.email,
+          error: didTimeout
+            ? 'Der Versand dauert länger als erwartet. Bitte versuche es erneut.'
+            : error instanceof Error
+              ? error.message
+              : 'Bewertung konnte nicht erstellt werden.',
         })
       } finally {
+        window.clearTimeout(timeoutId)
         if (finalizeAbortRef.current === abortController) {
           finalizeAbortRef.current = null
         }
@@ -868,6 +957,7 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
       finalizeCaptchaToken,
       finalizeSignature,
       finalizeValidationError,
+      selectedType,
       setStep15Result,
       stepKey,
       syncPayload,
@@ -875,16 +965,24 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
   )
 
   useEffect(() => {
-    if (stepKey !== 'result') return
+    if (stepKey !== 'thanks') return
+    if (rawFinalEmailStatus === 'pending') {
+      if (!finalizeAbortRef.current) void runFinalize(true)
+      return
+    }
+    if (rawFinalEmailStatus === 'sent' || rawFinalEmailStatus === 'error') return
     void runFinalize()
+  }, [rawFinalEmailStatus, runFinalize, stepKey])
 
+  useEffect(() => {
+    if (stepKey !== 'thanks') return
     return () => {
       if (finalizeAbortRef.current) {
         finalizeAbortRef.current.abort()
         finalizeAbortRef.current = null
       }
     }
-  }, [runFinalize, stepKey])
+  }, [stepKey])
 
   const context = useMemo(
     () => ({
@@ -1015,11 +1113,11 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
       )
     if (stepKey === 'result')
       return (
-        <ResultSection
-          value={leadData.step15Result}
-          onChange={setStep15Result}
-          onNext={goNext}
-          onRetry={() => {
+          <ResultSection
+            value={leadData.step15Result}
+            onChange={setStep15Result}
+            onNext={goNext}
+            onRetry={() => {
             lastFinalizeSignatureRef.current = ''
             void runFinalize(true)
           }}
@@ -1031,6 +1129,10 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
       <ThanksSection
         value={leadData.step16Thanks}
         onChange={setStep16Thanks}
+        onRetry={() => {
+          lastFinalizeSignatureRef.current = ''
+          void runFinalize(true)
+        }}
         onNext={goNext}
         context={context}
       />
@@ -1078,7 +1180,7 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
               <aside className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <div className="relative h-[420px] sm:h-[520px] lg:h-full lg:min-h-[680px]">
                   <Image
-                    src="/images/immobilienbewertung/immobilienbewertung-beratung-aurich.png"
+                    src="/images/kontakt-beratung.webp"
                     alt="Persönliche Beratung zur Immobilienbewertung"
                     fill
                     sizes="(max-width: 1024px) 100vw, 50vw"
@@ -1134,16 +1236,22 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
                   </div>
                 ) : null}
 
-                <div className="-mx-6 mt-6 border-t border-slate-200/90 bg-white/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-white/85 sticky bottom-0 z-10 flex items-center justify-between gap-3">
+                <div className="-mx-6 mt-6 border-t border-slate-200/90 bg-white/95 px-6 py-4 flex items-center justify-between gap-3">
                   {stepKey === 'thanks' ? (
                     <div className="flex w-full justify-center">
                       <button
                         type="button"
-                        onClick={closeWizard}
+                        onClick={canCloseFinalStep ? closeWizard : undefined}
+                        disabled={!canCloseFinalStep}
                         aria-label={closeAriaLabel}
-                        className="inline-flex items-center gap-2 rounded-xl bg-[color:var(--color-navy)] px-5 py-2 text-sm font-semibold text-white transition hover:bg-[color:var(--color-brackish)]"
+                        className={[
+                          'inline-flex items-center gap-2 rounded-xl px-5 py-2 text-sm font-semibold transition',
+                          canCloseFinalStep
+                            ? 'bg-[color:var(--color-navy)] text-white hover:bg-[color:var(--color-brackish)]'
+                            : 'cursor-not-allowed bg-slate-300 text-white opacity-70',
+                        ].join(' ')}
                       >
-                        <span>{closeLabel}</span>
+                        <span>{canCloseFinalStep ? closeLabel : 'E-Mail wird gesendet'}</span>
                       </button>
                     </div>
                   ) : (
@@ -1171,31 +1279,33 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
                         <span className="text-2xl leading-none -translate-x-[1px]">‹</span>
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={goNext}
-                        disabled={!canGoNext}
-                        className={[
-                          'ml-auto inline-flex min-w-[148px] shrink-0 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition',
-                          'h-11',
-                          canGoNext
-                            ? 'bg-[color:var(--color-navy)] text-white hover:bg-[color:var(--color-brackish)]'
-                            : 'bg-slate-300 text-white opacity-60 cursor-not-allowed',
-                        ].join(' ')}
-                      >
-                        <span>
-                          {stepKey === 'result'
-                            ? 'Fertig'
-                            : stepKey === 'type'
-                              ? 'Weiter zur Bewertung'
-                              : 'Weiter'}
-                        </span>
-                        {stepKey !== 'type' && stepKey !== 'result' ? (
-                          <span aria-hidden className="text-base leading-none">
-                            ›
+                      {stepKey === 'result' && !canGoNext ? null : (
+                        <button
+                          type="button"
+                          onClick={goNext}
+                          disabled={!canGoNext}
+                          className={[
+                            'ml-auto inline-flex min-w-[148px] shrink-0 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition',
+                            'h-11',
+                            canGoNext
+                              ? 'bg-[color:var(--color-navy)] text-white hover:bg-[color:var(--color-brackish)]'
+                              : 'bg-slate-300 text-white opacity-60 cursor-not-allowed',
+                          ].join(' ')}
+                        >
+                          <span>
+                            {stepKey === 'result'
+                              ? 'Fertig'
+                              : stepKey === 'type'
+                                ? 'Weiter zur Bewertung'
+                                : 'Weiter'}
                           </span>
-                        ) : null}
-                      </button>
+                          {stepKey !== 'type' && stepKey !== 'result' ? (
+                            <span aria-hidden className="text-base leading-none">
+                              ›
+                            </span>
+                          ) : null}
+                        </button>
+                      )}
                     </>
                   )}
                 </div>

@@ -22,9 +22,13 @@ function mapObjectType(value: LeadSyncPayload["propertyType"]): LeadPayload["obj
 }
 
 function mapCondition(value: unknown) {
-  if (value === "good") return "gut";
-  if (value === "normal") return "normal";
+  if (value === "new_modernized" || value === "good") return "modernisiert";
+  if (value === "well_kept" || value === "normal") return "gepflegt";
+  if (value === "light_renovation") return "leicht_renovierungsbeduerftig";
+  if (value === "renovation") return "renovierungsbeduerftig";
   if (value === "needs_work") return "sanierungsbeduerftig";
+  if (value === "heavy_needs_work") return "stark_sanierungsbeduerftig";
+  if (value === "demolition") return "abriss";
   if (value === "unknown") return "unbekannt";
   return null;
 }
@@ -107,6 +111,8 @@ export function mapLeadSyncPayloadToLeadPayload(payload: LeadSyncPayload): LeadP
     garden: hasExtra(payload, "garden"),
     garage: hasExtra(payload, "garage") || hasExtra(payload, "parking"),
     basement: hasExtra(payload, "basement"),
+    other_extras: text(payload.facts?.otherExtras),
+    other_extras_value_eur: number(payload.facts?.otherExtrasValueEur),
     renovation_status: mapCondition(payload.facts?.condition),
     heating_type: null,
     consent_given: payload.consent === true,

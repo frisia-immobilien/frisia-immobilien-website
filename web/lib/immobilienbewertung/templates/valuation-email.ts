@@ -1,4 +1,4 @@
-import { BRAND_NAME, DIRECT_CONTACT, LEGAL_NAME, SITE_URL } from "@/lib/site";
+import { BRAND_NAME, DIRECT_CONTACT, PHONE_DISPLAY } from "@/lib/site";
 import type { LeadValuationRow } from "@/lib/immobilienbewertung/lead-records";
 
 function escapeHtml(value: string) {
@@ -10,101 +10,120 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#039;");
 }
 
-function greeting(lead: LeadValuationRow) {
-  if (lead.salutation === "mrs" && lead.last_name) return `Sehr geehrte Frau ${lead.last_name},`;
-  if (lead.salutation === "mr" && lead.last_name) return `Sehr geehrter Herr ${lead.last_name},`;
-  if (lead.first_name) return `Guten Tag ${lead.first_name},`;
-  return "Guten Tag,";
+function greetingName(lead: LeadValuationRow) {
+  const firstName = String(lead.first_name ?? "").trim();
+  if (firstName) return firstName;
+
+  const lastName = String(lead.last_name ?? "").trim();
+  if (lastName) return lastName;
+
+  const name = String(lead.name ?? "").trim();
+  return name || null;
+}
+
+function greetingLine(lead: LeadValuationRow) {
+  const name = greetingName(lead);
+  return name ? `Hallo ${name},` : "Hallo,";
 }
 
 export function renderLeadValuationEmail(input: {
   lead: LeadValuationRow;
   landingUrl: string;
+  contactImageUrl?: string | null;
 }) {
-  const { lead, landingUrl } = input;
-  const title = "Ihre marktbasierte Einordnung von Frisia Immobilien";
-  const preheader = `Ihre marktbasierte Einordnung ist bereit: ${lead.value_mid.toLocaleString("de-DE")} €`;
+  const { landingUrl } = input;
+  const contactImageUrl = input.contactImageUrl || DIRECT_CONTACT.imagePath;
+  const title = "Deine erste Werteinschätzung ist vorbereitet";
+  const preheader = "Deine persönliche Ergebnisseite ist jetzt abrufbar.";
+  const greeting = greetingLine(input.lead);
   const body = `
-  <div style="background:#f4f6f9;padding:28px 16px;font-family:Arial,Helvetica,sans-serif;color:#243746;">
-    <div style="max-width:720px;margin:0 auto;background:#ffffff;border:1px solid #e3e8ef;border-radius:28px;overflow:hidden;">
-      <div style="padding:26px 32px;border-bottom:1px solid #edf1f5;background:#fbfcfd;">
-        <div style="font-size:13px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;color:#50616e;">${escapeHtml(
-          BRAND_NAME,
+  <div style="background:#f4f6f9;padding:28px 16px;font-family:Arial,Helvetica,sans-serif;color:#1b3040;">
+    <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e3e8ef;border-radius:18px;overflow:hidden;">
+      <div style="padding:30px 34px 10px 34px;">
+        <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;color:#3f535d;">${escapeHtml(
+          BRAND_NAME.toUpperCase(),
         )}</div>
-        <div style="margin-top:10px;font-size:28px;line-height:1.2;color:#1b3040;font-family:Georgia,'Times New Roman',serif;">Ihre marktbasierte Einordnung ist bereit</div>
-        <div style="margin-top:8px;font-size:16px;line-height:1.55;color:#5a6a76;">Öffnen Sie Ihre persönliche Bewertungsseite im Browser. Dort finden Sie Preis, Spanne und die nächsten sinnvollen Schritte kompakt aufbereitet.</div>
+        <h1 style="margin:18px 0 0 0;font-size:30px;line-height:1.18;color:#1b3040;font-family:Georgia,'Times New Roman',serif;font-weight:700;">Deine erste Werteinschätzung ist vorbereitet.</h1>
       </div>
 
-      <div style="padding:36px 32px;">
-        <p style="margin:0 0 20px 0;font-size:18px;line-height:1.6;">${escapeHtml(greeting(lead))}</p>
-        <p style="margin:0 0 24px 0;font-size:17px;line-height:1.7;color:#465762;">
-          vielen Dank für Ihre Anfrage. Ihre erste marktbasierte Einordnung ist jetzt online verfügbar.
-        </p>
+      <div style="padding:22px 34px 34px 34px;font-size:16px;line-height:1.72;color:#465762;">
+        <p style="margin:0 0 18px 0;color:#1b3040;">${escapeHtml(greeting)}</p>
+        <p style="margin:0 0 18px 0;">vielen Dank für deine Angaben.</p>
+        <p style="margin:0 0 22px 0;">Deine persönliche Ergebnisseite ist jetzt abrufbar. Dort siehst du die aktuelle Wertspanne deiner Immobilie – übersichtlich und nachvollziehbar dargestellt.</p>
 
-        <div style="border:1px solid #e3e8ef;border-radius:24px;padding:28px 24px;background:#fbfcfd;text-align:center;">
-          <div style="font-size:16px;color:#5a6a76;">Marktbasierte Einordnung</div>
-          <div style="margin-top:12px;font-size:42px;line-height:1.08;color:#1b3040;font-weight:700;">${lead.value_mid.toLocaleString(
-            "de-DE",
-          )} €</div>
-          <div style="margin-top:14px;font-size:18px;color:#334853;">Realistische Verkaufsspanne: ${lead.value_min.toLocaleString(
-            "de-DE",
-          )} € – ${lead.value_max.toLocaleString("de-DE")} €</div>
-          <div style="margin-top:10px;font-size:14px;color:#6a7883;">Erste marktbasierte Einordnung auf Basis regionaler Vergleichsdaten.</div>
-        </div>
-
-        <div style="margin-top:28px;text-align:center;">
+        <p style="margin:28px 0 30px 0;">
           <a href="${escapeHtml(
             landingUrl,
-          )}" style="display:inline-block;background:#1b3040;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:15px 26px;border-radius:16px;">
-            Jetzt Bewertung ansehen
+          )}" style="display:inline-block;background:#1b3040;color:#ffffff;text-decoration:none;font-weight:700;font-size:16px;padding:14px 22px;border-radius:6px;">
+            Wertspanne jetzt ansehen
           </a>
-        </div>
-
-        <p style="margin:28px 0 0 0;font-size:17px;line-height:1.7;color:#465762;">
-          Den genauen Verkaufspreis legen wir gemeinsam strukturiert fest. Wenn Sie möchten, besprechen wir die Einordnung telefonisch oder bei einem Vor-Ort-Termin.
         </p>
 
-        <div style="margin-top:26px;padding-top:26px;border-top:1px solid #edf1f5;">
-          <div style="font-size:15px;line-height:1.7;color:#5f6d79;">
-            <strong style="color:#1b3040;">${escapeHtml(DIRECT_CONTACT.name)}</strong><br/>
-            ${escapeHtml(DIRECT_CONTACT.role)}<br/>
-            Telefon: ${escapeHtml(DIRECT_CONTACT.phoneDisplay)}<br/>
-            Mobil: ${escapeHtml(DIRECT_CONTACT.mobileDisplay)}<br/>
-            E-Mail: ${escapeHtml(DIRECT_CONTACT.email)}
-          </div>
-        </div>
-      </div>
+        <p style="margin:0 0 18px 0;">Die angezeigte Spanne gibt dir eine erste Orientierung.</p>
+        <p style="margin:0 0 16px 0;">Der entscheidende Schritt ist jetzt die persönliche Einordnung:<br/>Wir prüfen die Einschätzung im Detail und sagen dir klar, welcher Verkaufspreis realistisch und am Markt durchsetzbar ist.</p>
+        <p style="margin:0 0 10px 0;">So vermeidest du typische Fehler wie:</p>
+        <p style="margin:0 0 22px 0;">
+          – zu niedriger Verkaufspreis<br/>
+          – lange Vermarktungsdauer<br/>
+          – unnötige Unsicherheit
+        </p>
+        <p style="margin:0 0 28px 0;">Gerne übernehme ich diese Prüfung direkt für dich.</p>
 
-      <div style="padding:22px 32px;border-top:1px solid #edf1f5;background:#fbfcfd;">
-        <div style="font-size:13px;line-height:1.7;color:#6a7883;">
-          Diese Einwertung stellt eine erste automatisierte Orientierung dar. Der tatsächliche Marktpreis hängt unter anderem von Zustand, Mikrolage und aktueller Nachfrage ab und wird im Rahmen einer persönlichen Bewertung präzise ermittelt.
-        </div>
-        <div style="margin-top:12px;font-size:12px;line-height:1.7;color:#7a8792;">
-          ${escapeHtml(LEGAL_NAME)} · ${escapeHtml(SITE_URL)}
-        </div>
+        <p style="margin:0 0 18px 0;color:#1b3040;">Viele Grüße</p>
+        <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;margin:0;">
+          <tr>
+            <td style="width:116px;vertical-align:top;padding:0 22px 0 6px;">
+              <img src="${escapeHtml(
+                contactImageUrl,
+              )}" width="116" alt="${escapeHtml(DIRECT_CONTACT.name)}" style="display:block;width:116px;height:auto;border:0;outline:none;border-radius:8px;">
+            </td>
+            <td style="vertical-align:top;color:#1b3040;font-size:16px;line-height:1.55;">
+              <strong>${escapeHtml(DIRECT_CONTACT.name)}</strong><br/>
+              Immobilienmakler (IHK)<br/>
+              DEKRA-zertifizierter Sachverständiger für Immobilienbewertung D1<br/><br/>
+              <strong>Frisia Immobilien</strong><br/>
+              Telefon: ${escapeHtml(PHONE_DISPLAY)}
+            </td>
+          </tr>
+        </table>
       </div>
     </div>
   </div>`;
 
   const text = [
-    title,
+    BRAND_NAME.toUpperCase(),
     "",
-    greeting(lead),
+    "Deine erste Werteinschätzung ist vorbereitet.",
     "",
-    "Ihre marktbasierte Einordnung ist jetzt online verfügbar.",
+    greeting,
     "",
-    `Marktbasierte Einordnung: ${lead.value_mid.toLocaleString("de-DE")} €`,
-    `Realistische Verkaufsspanne: ${lead.value_min.toLocaleString("de-DE")} € – ${lead.value_max.toLocaleString("de-DE")} €`,
-    "Erste marktbasierte Einordnung auf Basis regionaler Vergleichsdaten.",
+    "vielen Dank für deine Angaben.",
     "",
-    `Bewertung ansehen: ${landingUrl}`,
+    "Deine persönliche Ergebnisseite ist jetzt abrufbar. Dort siehst du die aktuelle Wertspanne deiner Immobilie – übersichtlich und nachvollziehbar dargestellt.",
     "",
-    "Den genauen Verkaufspreis legen wir gemeinsam strukturiert fest.",
+    "Wertspanne jetzt ansehen",
+    landingUrl,
     "",
-    `${DIRECT_CONTACT.name}`,
-    `${DIRECT_CONTACT.role}`,
-    `${DIRECT_CONTACT.phoneDisplay}`,
-    `${DIRECT_CONTACT.email}`,
+    "Die angezeigte Spanne gibt dir eine erste Orientierung.",
+    "",
+    "Der entscheidende Schritt ist jetzt die persönliche Einordnung:",
+    "Wir prüfen die Einschätzung im Detail und sagen dir klar, welcher Verkaufspreis realistisch und am Markt durchsetzbar ist.",
+    "",
+    "So vermeidest du typische Fehler wie:",
+    "– zu niedriger Verkaufspreis",
+    "– lange Vermarktungsdauer",
+    "– unnötige Unsicherheit",
+    "",
+    "Gerne übernehme ich diese Prüfung direkt für dich.",
+    "",
+    "Viele Grüße",
+    "",
+    DIRECT_CONTACT.name,
+    "Immobilienmakler (IHK)",
+    "DEKRA-zertifizierter Sachverständiger für Immobilienbewertung D1",
+    "",
+    "Frisia Immobilien",
+    `Telefon: ${PHONE_DISPLAY}`,
   ].join("\n");
 
   return {

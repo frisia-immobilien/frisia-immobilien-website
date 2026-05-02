@@ -2,6 +2,7 @@
 
 import Script from 'next/script'
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react'
+import {shouldBypassTurnstileForLocalDev} from '@/lib/turnstile'
 
 type EmailConsentValue = {email?: string; consent?: boolean; captchaToken?: string; __valid?: boolean}
 
@@ -48,7 +49,8 @@ function isEmail(v: string) {
 
 export default function Step13EmailConsentSection({value, onChange, idPrefix = 'leadgen'}: Props) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ''
-  const captchaEnabled = Boolean(siteKey)
+  const captchaBypassed = shouldBypassTurnstileForLocalDev(siteKey)
+  const captchaEnabled = Boolean(siteKey) && !captchaBypassed
   const [email, setEmail] = useState<string>(String(value?.email ?? ''))
   const [consent, setConsent] = useState<boolean>(Boolean(value?.consent ?? false))
   const [captchaToken, setCaptchaToken] = useState<string>(String(value?.captchaToken ?? ''))
@@ -61,7 +63,7 @@ export default function Step13EmailConsentSection({value, onChange, idPrefix = '
   const turnstileWidgetId = `${idPrefix}-turnstile-widget`
 
   const emailOk = useMemo(() => isEmail(email), [email])
-  const captchaOk = !captchaEnabled || Boolean(captchaToken)
+  const captchaOk = captchaBypassed || !captchaEnabled || Boolean(captchaToken)
   const canProceed = useMemo(() => emailOk && consent === true && captchaOk, [emailOk, consent, captchaOk])
 
   const initTurnstile = useCallback(() => {

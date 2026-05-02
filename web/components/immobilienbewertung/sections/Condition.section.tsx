@@ -3,7 +3,11 @@
 import Image from 'next/image'
 import {useEffect, useRef, useState} from 'react'
 
-type Condition = 'unknown' | 'good' | 'normal' | 'needs_work'
+type Condition =
+  | 'unknown'
+  | 'needs_work'
+  | 'new_modernized'
+  | 'well_kept'
 type ConditionValue = {condition?: Condition}
 
 type Props = {
@@ -52,30 +56,30 @@ export default function Step06ConditionSection({value, onChange}: Props) {
       </p>
 
       {/* Frisia-Grid: 2 pro Zeile ab sm, Box-Style wie Step08 (Border + Ring + Check) */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card
           title="Renovierungsbedürftig"
-          desc="Deutlicher Renovierungsaufwand"
+          desc="Renovierung oder Sanierung erforderlich"
           imgSrc="/immobilienbewertung/icons/zustand-renovierungsbeduerftig.webp"
           imgAlt="Zustand der Immobilie renovierungsbedürftig"
           active={condition === 'needs_work'}
           onClick={() => setCondition('needs_work')}
         />
         <Card
-          title="Durchschnitt"
-          desc="Solider, altersüblicher Zustand"
+          title="Gepflegt"
+          desc="Solider, laufend gepflegter Zustand"
           imgSrc="/immobilienbewertung/icons/zustand-durchschnitt.webp"
-          imgAlt="Zustand der Immobilie durchschnittlich"
-          active={condition === 'normal'}
-          onClick={() => setCondition('normal')}
+          imgAlt="Zustand der Immobilie gepflegt"
+          active={condition === 'well_kept'}
+          onClick={() => setCondition('well_kept')}
         />
         <Card
-          title="Neuwertig"
+          title="Neubau Modernisiert"
           desc="Modernisiert oder sehr gepflegt"
           imgSrc="/immobilienbewertung/icons/zustand-neuwertig.webp"
-          imgAlt="Zustand der Immobilie neuwertig"
-          active={condition === 'good'}
-          onClick={() => setCondition('good')}
+          imgAlt="Zustand der Immobilie neuwertig oder modernisiert"
+          active={condition === 'new_modernized'}
+          onClick={() => setCondition('new_modernized')}
         />
         <Card
           title="Unbekannt"

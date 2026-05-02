@@ -40,7 +40,7 @@ export default function BodenrichtwertAurichPage() {
       ]}
       internalLinks={[
         { href: "/grundstueckspreise-aurich", label: "Grundstückspreise Aurich" },
-        { href: "/immobilienmarkt-aurich", label: "Immobilienmarkt Aurich" },
+        { href: "/immobilienpreise-aurich", label: "Immobilienpreise Aurich" },
         { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung Aurich" },
       ]}
     />

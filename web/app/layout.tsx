@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import HomeHeader from "@/components/home/HomeHeader";
-import SiteFooter from "@/components/site/SiteFooter";
+import HeaderScrollBehavior from "@/components/home/HeaderScrollBehavior.client";
+import DeferredSiteFooter from "@/components/site/DeferredSiteFooter.client";
 import CookieBarShell from "@/components/CookieBarShell.client";
 import JsonLd from "@/components/seo/JsonLd";
 import {
@@ -16,13 +17,44 @@ import {
   createWebSiteJsonLd,
 } from "@/lib/site";
 
+const FAVICON_BASE_PATH = "/favicons";
+const APPLE_TOUCH_ICON_SIZES = [
+  "57x57",
+  "60x60",
+  "72x72",
+  "76x76",
+  "114x114",
+  "120x120",
+  "144x144",
+  "152x152",
+  "180x180",
+] as const;
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: BRAND_NAME,
     template: `%s | ${BRAND_NAME}`,
   },
+  applicationName: BRAND_NAME,
   description: DEFAULT_SITE_DESCRIPTION,
+  manifest: `${FAVICON_BASE_PATH}/site.webmanifest`,
+  icons: {
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: `${FAVICON_BASE_PATH}/favicon-16x16.png`, sizes: "16x16", type: "image/png" },
+      { url: `${FAVICON_BASE_PATH}/favicon-32x32.png`, sizes: "32x32", type: "image/png" },
+      { url: `${FAVICON_BASE_PATH}/favicon-96x96.png`, sizes: "96x96", type: "image/png" },
+      { url: `${FAVICON_BASE_PATH}/android-icon-192x192.png`, sizes: "192x192", type: "image/png" },
+      { url: `${FAVICON_BASE_PATH}/favicon-256x256.png`, sizes: "256x256", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: APPLE_TOUCH_ICON_SIZES.map((size) => ({
+      url: `${FAVICON_BASE_PATH}/apple-icon-${size}.png`,
+      sizes: size,
+      type: "image/png",
+    })),
+  },
   openGraph: {
     type: "website",
     url: SITE_URL,
@@ -54,11 +86,17 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+  other: {
+    "msapplication-TileColor": "#ffffff",
+    "msapplication-TileImage": `${FAVICON_BASE_PATH}/ms-icon-144x144.png`,
+    "msapplication-config": `${FAVICON_BASE_PATH}/browserconfig.xml`,
+  },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#1b3040",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -77,8 +115,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd data={createLocalBusinessJsonLd()} />
         <JsonLd data={createRealEstateAgentJsonLd()} />
         <HomeHeader />
+        <HeaderScrollBehavior />
         {children}
-        <SiteFooter />
+        <DeferredSiteFooter />
         <CookieBarShell />
         <script
           dangerouslySetInnerHTML={{

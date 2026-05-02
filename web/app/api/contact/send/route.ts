@@ -4,6 +4,7 @@ import {
   syncContactFormToPropstack,
   type PropstackContactFormInput,
 } from "@/lib/propstack-contact-form";
+import { isTurnstileTestKey, shouldBypassTurnstileForLocalDev } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,7 @@ type ContactBody = {
   originUrl?: string;
   captchaToken?: string;
   website?: string; // honeypot
+  context?: string;
 };
 
 function sanitize(v: unknown) {
@@ -60,19 +62,20 @@ async function sendContactNotification(input: PropstackContactFormInput) {
   const resend = new Resend(process.env.RESEND_API_KEY);
   const recipient = "info@frisia-immobilien.de";
   const fullName = `${input.firstName} ${input.lastName}`.trim();
+  const context = input.context || "Kontaktanfrage Website";
 
   await resend.emails.send({
     from: process.env.LEAD_FROM_EMAIL!,
     to: recipient,
-    subject: `Kontaktanfrage Website – ${fullName}`,
+    subject: `${context} – ${fullName}`,
     replyTo: input.email,
     html: `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.6;color:#1f2937;">
-        <h2 style="margin:0 0 12px 0;color:#1B3040;">Neue Kontaktanfrage</h2>
+        <h2 style="margin:0 0 12px 0;color:#1B3040;">${htmlEscape(context)}</h2>
         <p><strong>Name:</strong> ${htmlEscape(fullName)}</p>
         <p><strong>E-Mail:</strong> ${htmlEscape(input.email)}</p>
         <p><strong>Telefon:</strong> ${htmlEscape(input.phone || "—")}</p>
-        <p><strong>Quelle:</strong> Website Kontaktformular</p>
+        <p><strong>Quelle:</strong> ${htmlEscape(context)}</p>
         <p><strong>Herkunfts-URL:</strong> ${htmlEscape(input.originUrl || "—")}</p>
         <p><strong>Nachricht:</strong></p>
         <p style="white-space:pre-wrap;border:1px solid #d1d5db;border-radius:10px;padding:12px;">${htmlEscape(input.message)}</p>
@@ -99,6 +102,9 @@ export async function POST(req: Request) {
     const originUrl = sanitize(body.originUrl) || sanitize(req.headers.get("referer"));
     const captchaToken = sanitize(body.captchaToken);
     const website = sanitize(body.website);
+    const context = sanitize(body.context) || "Kontaktanfrage Website";
+    const turnstileSecret = process.env.TURNSTILE_SECRET_KEY ?? "";
+    const captchaBypassed = shouldBypassTurnstileForLocalDev(turnstileSecret);
 
     if (website) {
       return NextResponse.json({ success: true });
@@ -110,15 +116,23 @@ export async function POST(req: Request) {
     if (!isEmail(email)) {
       return NextResponse.json({ success: false, error: "Bitte eine gültige E-Mail-Adresse eingeben." }, { status: 400 });
     }
-    if (!captchaToken) {
+    if (!turnstileSecret) {
+      return NextResponse.json({ success: false, error: "Captcha ist nicht konfiguriert." }, { status: 500 });
+    }
+    if (!captchaBypassed && isTurnstileTestKey(turnstileSecret)) {
+      return NextResponse.json({ success: false, error: "Captcha ist nicht korrekt konfiguriert." }, { status: 500 });
+    }
+    if (!captchaBypassed && !captchaToken) {
       return NextResponse.json({ success: false, error: "Bitte Captcha bestätigen." }, { status: 400 });
     }
 
-    const forwardedFor = req.headers.get("x-forwarded-for");
-    const remoteIp = forwardedFor?.split(",")[0]?.trim();
-    const captchaOk = await verifyTurnstile(captchaToken, remoteIp);
-    if (!captchaOk) {
-      return NextResponse.json({ success: false, error: "Captcha konnte nicht bestätigt werden." }, { status: 400 });
+    if (!captchaBypassed) {
+      const forwardedFor = req.headers.get("x-forwarded-for");
+      const remoteIp = forwardedFor?.split(",")[0]?.trim();
+      const captchaOk = await verifyTurnstile(captchaToken, remoteIp);
+      if (!captchaOk) {
+        return NextResponse.json({ success: false, error: "Captcha konnte nicht bestätigt werden." }, { status: 400 });
+      }
     }
 
     const contactInput: PropstackContactFormInput = {
@@ -128,6 +142,7 @@ export async function POST(req: Request) {
       phone,
       message,
       originUrl,
+      context,
     };
 
     await Promise.all([

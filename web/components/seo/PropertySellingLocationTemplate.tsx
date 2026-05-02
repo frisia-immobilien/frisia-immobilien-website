@@ -1,8 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
+import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
+import { formatLocationPhrase } from "@/lib/seo/locationDisplay";
 import { daysOnMarket, medianPricePerM2, totalSalesCount } from "@/lib/seo/valuationLanding";
-import type { SeoLocationRow } from "@/lib/types/leadgen";
 import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/site";
 
 function numeric(value: number | string | null | undefined) {
@@ -31,30 +34,6 @@ function demandLabel(salesCount: number | null) {
   if (salesCount >= 80) return "hoch";
   if (salesCount >= 25) return "mittel";
   return "gering";
-}
-
-function formatLocationLabel(label: string) {
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]}, ${parts.slice(1).join(", ")}`;
-}
-
-function formatLocationForTemplate(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district}, ${city}`;
-  return formatLocationLabel(label);
-}
-
-function formatLocationForProse(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district} in ${city}`;
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]} in ${parts.slice(1).join(", ")}`;
 }
 
 function Section({
@@ -100,9 +79,9 @@ function DataCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-function FaqItem({ question, answer }: { question: string; answer: string }) {
+function FaqItem({ question, answer, defaultOpen = false }: { question: string; answer: string; defaultOpen?: boolean }) {
   return (
-    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0">
+    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-start justify-between gap-5 px-5 py-5 marker:hidden sm:px-6">
         <h3 className="text-base font-semibold leading-snug text-[color:var(--color-navy)] sm:text-lg">{question}</h3>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)] text-xl leading-none text-[color:var(--color-navy)] transition-transform group-open:rotate-45">
@@ -117,19 +96,20 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function PropertySellingLocationTemplate({ data }: { data: LocationPageData }) {
-  const location = formatLocationForTemplate(data.location);
-  const proseLocation = formatLocationForProse(data.location);
+  const locationPhrase = formatLocationPhrase(data.location);
   const housePriceM2 = medianPricePerM2(data.houseMarket);
   const apartmentPriceM2 = medianPricePerM2(data.apartmentMarket);
   const priceM2 = housePriceM2 ?? apartmentPriceM2;
   const offerPrice = numeric(data.houseMarket?.median_preis_eur) ?? numeric(data.apartmentMarket?.median_preis_eur);
   const marketDays = daysOnMarket(data.houseMarket, data.apartmentMarket);
   const salesCount = totalSalesCount(data.houseMarket, data.apartmentMarket);
-  const heroImage = "/images/immobilienbewertung/hero-background.png";
+  const heroImage = "/images/immobilienbewertung/hero-background.webp";
+  const headline = data.content.h1;
+  const intro = data.content.intro;
 
   const faqs = [
     {
-      question: `Wann sollte ich meine Immobilie in ${proseLocation} verkaufen?`,
+      question: `Wann sollte ich meine Immobilie ${locationPhrase} verkaufen?`,
       answer: "Ein Verkauf ist sinnvoll, wenn deine persönliche Situation und der Markt zusammenpassen. Dabei spielen Lebensphase, Zielsetzung und aktuelle Nachfrage eine wichtige Rolle.",
     },
     {
@@ -141,30 +121,43 @@ export default function PropertySellingLocationTemplate({ data }: { data: Locati
       answer: "Der richtige Preis entsteht aus Marktanalyse, Vergleichsobjekten und individueller Bewertung. Er sollte so gewählt sein, dass Nachfrage entsteht und gleichzeitig Verhandlungsspielraum bleibt.",
     },
     {
-      question: `Wie lange dauert ein Immobilienverkauf in ${proseLocation}?`,
+      question: `Wie lange dauert ein Immobilienverkauf ${locationPhrase}?`,
       answer: "Das hängt von Lage, Zustand, Preisstrategie und Nachfrage ab. Ein strukturierter Verkauf mit realistischer Einpreisung verläuft in der Regel deutlich klarer und planbarer.",
     },
     {
       question: "Was bringt mir ein erstes Gespräch mit Frisia Immobilien?",
-      answer: `Du erhältst eine klare Einschätzung deiner Situation, eine Einordnung des Marktes in ${proseLocation} und eine Orientierung, wie ein sinnvoller nächster Schritt aussehen kann - ohne Verpflichtung.`,
+      answer: `Du erhältst eine klare Einschätzung deiner Situation, eine Einordnung des Marktes ${locationPhrase} und eine Orientierung, wie ein sinnvoller nächster Schritt aussehen kann - ohne Verpflichtung.`,
     },
   ];
 
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-[color:var(--color-section)]">
+      <MobileHeroSection
+        eyebrow={headline}
+        title={headline}
+        description={intro}
+        imageSrc={heroImage}
+        imageAlt=""
+        imagePosition="right center"
+        primaryCta={{ href: "#orientierung-starten", label: "Orientierung starten" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Klare Bewertung", "Strukturierter Verkauf", "Geprüfte Käufer"]}
+      />
+
+      <section className="relative isolate hidden overflow-hidden bg-[color:var(--color-section)] md:block">
         <Image src={heroImage} alt="" fill priority sizes="100vw" className="object-cover object-right opacity-90" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.50)_34%,rgba(255,255,255,0.18)_58%,rgba(255,255,255,0.04)_100%)]" />
         <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[1440px] gap-10 px-5 py-14 sm:px-8 md:py-16 lg:grid-cols-[1.12fr_0.88fr] lg:items-center lg:px-12">
           <div className="max-w-[47rem]">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
-              Immobilie verkaufen in {location}
+              {headline}
             </p>
-            <h1 className="mt-5 max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)]">
-              Immobilie verkaufen in {location}
+            <h1 className="mt-5 max-w-full break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
+              {headline}
             </h1>
+            <HeroDivider />
             <p className="mt-7 max-w-3xl text-[1.15rem] leading-[1.65] text-[color:var(--color-navy)] md:text-[1.35rem]">
-              Der richtige Einstieg, um deine Situation klar einzuordnen und eine fundierte Entscheidung zu treffen.
+              {intro}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link href="#orientierung-starten" className="inline-flex min-h-14 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition hover:bg-[color:var(--color-brackish)]">
@@ -198,7 +191,9 @@ export default function PropertySellingLocationTemplate({ data }: { data: Locati
         </div>
       </section>
 
-      <Section title={`Wann ist ein Immobilienverkauf in ${proseLocation} sinnvoll?`}>
+      <RegionalCrossLinks data={data} placement="hero" />
+
+      <Section title={`Wann ist ein Immobilienverkauf ${locationPhrase} sinnvoll?`}>
         <p>Ob ein Verkauf sinnvoll ist, hängt nicht nur vom Markt ab, sondern vor allem von deiner persönlichen Situation.</p>
         <div className="grid gap-4 md:grid-cols-2">
           <InfoCard title="Veränderte Wohnsituation" text="Zu groß, zu klein oder eine neue Lebensphase: Die Immobilie passt nicht mehr zur aktuellen Situation." />
@@ -206,7 +201,7 @@ export default function PropertySellingLocationTemplate({ data }: { data: Locati
           <InfoCard title="Kapital freisetzen" text="Ein Verkauf kann neue Investitionspläne, Entlastung oder finanzielle Spielräume ermöglichen." />
           <InfoCard title="Standortwechsel" text="Berufliche oder private Veränderungen können den Verkauf sinnvoll machen." />
         </div>
-        <p>Der Markt in {proseLocation} beeinflusst vor allem Preis und Vermarktungsdauer. Eine hohe Nachfrage kann den Verkauf erleichtern, eine schwächere Nachfrage erfordert mehr Struktur und eine präzisere Einpreisung.</p>
+        <p>Der Markt {locationPhrase} beeinflusst vor allem Preis und Vermarktungsdauer. Eine hohe Nachfrage kann den Verkauf erleichtern, eine schwächere Nachfrage erfordert mehr Struktur und eine präzisere Einpreisung.</p>
         <p className="font-semibold text-[color:var(--color-navy)]">Es gibt keinen perfekten Zeitpunkt. Es gibt nur eine Entscheidung, die zu deiner Situation und zum aktuellen Markt passt.</p>
       </Section>
 
@@ -227,11 +222,11 @@ export default function PropertySellingLocationTemplate({ data }: { data: Locati
           <InfoCard title="Schneller Verkauf" text="Kürzere Vermarktungsdauer, höhere Nachfrage und oft geringerer Verhandlungsspielraum." />
           <InfoCard title="Maximaler Preis" text="Längere Vermarktungszeit möglich, gezielte Käuferansprache und stärkere Verhandlungsführung." />
         </div>
-        <p className="font-semibold text-[color:var(--color-navy)]">Die richtige Strategie hängt davon ab, welches Ziel du verfolgst - und wie der Markt in {proseLocation} aktuell reagiert.</p>
+        <p className="font-semibold text-[color:var(--color-navy)]">Die richtige Strategie hängt davon ab, welches Ziel du verfolgst - und wie der Markt {locationPhrase} aktuell reagiert.</p>
       </Section>
 
-      <Section title={`Der Immobilienmarkt in ${proseLocation} im Überblick`} muted>
-        <p>Der Markt in {proseLocation} gibt den Rahmen vor, in dem dein Verkauf stattfindet.</p>
+      <Section title={`Der Immobilienmarkt ${locationPhrase} im Überblick`} muted>
+        <p>Der Markt {locationPhrase} gibt den Rahmen vor, in dem dein Verkauf stattfindet.</p>
         <dl className="grid gap-4 md:grid-cols-4">
           <DataCard label="Ø Preis pro m²" value={formatEuroPerM2(priceM2)} />
           <DataCard label="Ø Angebotspreise" value={formatEuro(offerPrice)} />
@@ -256,10 +251,10 @@ export default function PropertySellingLocationTemplate({ data }: { data: Locati
       <section id="orientierung-starten" className="bg-[color:var(--color-navy)] py-12 text-white md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight md:text-[2.85rem]">
-            Deine Immobilie in {proseLocation} richtig einordnen
+            Deine Immobilie {locationPhrase} richtig einordnen
           </h2>
           <p className="mt-5 max-w-4xl text-base leading-[1.8] text-white/86 md:text-lg">
-            Wenn du darüber nachdenkst, deine Immobilie in {proseLocation} zu verkaufen, beginnen wir mit einer klaren Orientierung: Markt, Preisrahmen und passende Vorgehensweise.
+            Wenn du darüber nachdenkst, deine Immobilie {locationPhrase} zu verkaufen, beginnen wir mit einer klaren Orientierung: Markt, Preisrahmen und passende Vorgehensweise.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link href="/kontakt" className="inline-flex min-h-14 items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-semibold text-[color:var(--color-navy)]">
@@ -276,11 +271,11 @@ export default function PropertySellingLocationTemplate({ data }: { data: Locati
       <section className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[980px] px-5 sm:px-8">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight text-[color:var(--color-navy)] md:text-[2.85rem]">
-            Häufige Fragen zum Immobilienverkauf in {proseLocation}
+            Häufige Fragen zum Immobilienverkauf {locationPhrase}
           </h2>
           <div className="mt-6 divide-y divide-[color:var(--color-brass)]/20 rounded-xl border border-[color:var(--color-brass)]/25 bg-white shadow-[0_18px_70px_-64px_rgba(27,48,64,0.45)]">
-            {faqs.map((item) => (
-              <FaqItem key={item.question} question={item.question} answer={item.answer} />
+            {faqs.map((item, index) => (
+              <FaqItem key={item.question} question={item.question} answer={item.answer} defaultOpen={index === 0} />
             ))}
           </div>
         </div>

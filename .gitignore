@@ -21,6 +21,7 @@
 # Misc
 .DS_Store
 *.pem
+.codex-backups/
 
 # Typescript
 *.tsbuildinfo

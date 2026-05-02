@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
-import Link from 'next/link'
-import {useEffect, useMemo, useRef, useState} from 'react'
+import {type FormEvent, useEffect, useMemo, useRef, useState} from 'react'
+
+import {PHONE_DISPLAY, PHONE_HREF} from '@/lib/site'
 
 type Props = {
   value?: LocationValue
@@ -11,13 +11,15 @@ type Props = {
   context?: LocationContext
 }
 
+type RegionHint = 'aurich' | 'ostfriesland' | 'other'
+
 type LocationValue = {
   postalCode?: string
   city?: string
   district?: string
   street?: string
   houseNumber?: string
-  regionHint?: 'aurich' | 'ostfriesland' | 'other'
+  regionHint?: RegionHint
   lat?: number
   lon?: number
   canProceed?: boolean
@@ -26,6 +28,14 @@ type LocationValue = {
 type LocationContext = {
   selectedType?: string
   setCanProceed?: (value: boolean) => void
+}
+
+type MarketCoverageState = {
+  status: 'idle' | 'loading' | 'ready' | 'error'
+  key?: string
+  covered?: boolean
+  regionHint?: RegionHint
+  locationLabel?: string | null
 }
 
 const EAST_FRISIA_CITIES = [
@@ -38,6 +48,26 @@ const EAST_FRISIA_CITIES = [
   'Jever',
   'Weener',
   'Papenburg',
+  'Ihlow',
+  'Südbrookmerland',
+  'Wiesmoor',
+  'Großefehn',
+  'Großheide',
+  'Krummhörn',
+  'Hinte',
+  'Dornum',
+  'Hage',
+  'Brookmerland',
+  'Marienhafe',
+  'Moormerland',
+  'Uplengen',
+  'Hesel',
+  'Bunde',
+  'Jemgum',
+  'Rhauderfehn',
+  'Ostrhauderfehn',
+  'Westoverledingen',
+  'Friedeburg',
 ]
 
 // Zentrale Ausgangsposition für die Regionskarte (ohne Objektmarkierung)
@@ -46,6 +76,9 @@ const REGION_MAP_CENTER = {
   lon: 7.48,
   zoom: 4,
 }
+const MAP_TILE_SIZE = 256
+const MAP_VIEW_WIDTH = 620
+const MAP_VIEW_HEIGHT = 320
 
 function normalize(v: unknown) {
   return String(v ?? '').trim()
@@ -56,14 +89,24 @@ function isGermanPlz(plz: string) {
 }
 
 function isLikelyAurichCity(city: string) {
-  return normalize(city).toLowerCase() === 'aurich'
+  return normalizeCityKey(city) === 'aurich'
 }
 
 function isLikelyEastFrisia(city: string) {
   const c = normalize(city)
   if (!c) return false
-  const low = c.toLowerCase()
-  return EAST_FRISIA_CITIES.some((x) => x.toLowerCase() === low)
+  const low = normalizeCityKey(c)
+  return EAST_FRISIA_CITIES.some((x) => normalizeCityKey(x) === low)
+}
+
+function normalizeCityKey(value: string) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/ß/g, 'ss')
 }
 
 function normalizePlaceName(v: string) {
@@ -82,89 +125,47 @@ function isSamePlace(inputCity: string, geoCity?: string) {
   return a === b || a.includes(b) || b.includes(a)
 }
 
-// Detailkarte: Adresse bekannt, Markierung aktiv
-function makeProxyMapUrl(lat: number, lon: number, zoom: number) {
-  const p = new URLSearchParams({
-    lat: String(lat),
-    lon: String(lon),
-    zoom: String(zoom),
-    w: '620',
-    h: '350',
-  })
-  return `/api/staticmap?${p.toString()}`
+function clampLatitude(lat: number) {
+  return Math.max(-85.05112878, Math.min(85.05112878, lat))
 }
 
-// Erstansicht: regionale Übersicht ohne Markierung
-function makeProxyRegionMapUrl(lat: number, lon: number, zoom: number) {
-  const p = new URLSearchParams({
-    lat: String(lat),
-    lon: String(lon),
-    zoom: String(zoom),
-    w: '620',
-    h: '350',
-    nomarker: '1', // Markierung bewusst deaktiviert
-  })
-  return `/api/staticmap?${p.toString()}`
-}
+function makeOsmTiles(lat: number, lon: number, zoom: number) {
+  const z = Math.max(1, Math.min(18, Math.round(zoom)))
+  const scale = 2 ** z
+  const safeLat = clampLatitude(lat)
+  const xFloat = ((lon + 180) / 360) * scale
+  const latRad = (safeLat * Math.PI) / 180
+  const yFloat =
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * scale
+  const centerPxX = xFloat * MAP_TILE_SIZE
+  const centerPxY = yFloat * MAP_TILE_SIZE
+  const leftPx = centerPxX - MAP_VIEW_WIDTH / 2
+  const topPx = centerPxY - MAP_VIEW_HEIGHT / 2
+  const startX = Math.floor(leftPx / MAP_TILE_SIZE)
+  const endX = Math.floor((leftPx + MAP_VIEW_WIDTH) / MAP_TILE_SIZE)
+  const startY = Math.floor(topPx / MAP_TILE_SIZE)
+  const endY = Math.floor((topPx + MAP_VIEW_HEIGHT) / MAP_TILE_SIZE)
+  const tiles: Array<{
+    key: string
+    src: string
+    left: number
+    top: number
+  }> = []
 
-// Fallback (Einbettung) nur für den Fall, dass das Bild nicht geladen werden kann
-function makeOsmEmbedUrl(lat: number, lon: number, zoom = 16, withMarker = true) {
-  // Bounding-Box abhängig vom Zoom – gleichmäßig abgestuft
-  // Bounding-Box abhängig vom Zoom – fein abgestuft, damit jede Stufe sichtbar anders wirkt
-  // Bounding-Box abhängig vom Zoom
-  // Oben fein (Detail), unten bewusst grob (Orientierung)
-  const d =
-    zoom >= 18
-      ? 0.0025
-      : zoom >= 17
-        ? 0.0035
-        : zoom >= 16
-          ? 0.005
-          : zoom >= 15
-            ? 0.0075
-            : zoom >= 14
-              ? 0.011
-              : zoom >= 13
-                ? 0.015
-                : zoom >= 12
-                  ? 0.02
-                  : zoom >= 11
-                    ? 0.026
-                    : zoom >= 10
-                      ? 0.033
-                      : zoom >= 9
-                        ? 0.042
-                        : zoom >= 8
-                          ? 0.055
-                          : zoom >= 7
-                            ? 0.075
-                            : zoom >= 6
-                              ? 0.105
-                              : zoom >= 5
-                                ? 0.15
-                                : zoom >= 4
-                                  ? 0.21
-                                  : zoom >= 3
-                                    ? 0.3
-                                    : zoom >= 2
-                                      ? 0.42
-                                      : 0.55
-
-  const left = lon - d
-  const right = lon + d
-  const top = lat + d
-  const bottom = lat - d
-
-  const u = new URL('https://www.openstreetmap.org/export/embed.html')
-  u.searchParams.set('bbox', `${left},${bottom},${right},${top}`)
-  u.searchParams.set('layer', 'mapnik')
-
-  // Marker nur dann setzen, wenn eine konkrete Adresse vorliegt
-  if (withMarker) {
-    u.searchParams.set('marker', `${lat},${lon}`)
+  for (let x = startX; x <= endX; x += 1) {
+    const wrappedX = ((x % scale) + scale) % scale
+    for (let y = startY; y <= endY; y += 1) {
+      if (y < 0 || y >= scale) continue
+      tiles.push({
+        key: `${z}-${wrappedX}-${y}`,
+        src: `https://tile.openstreetmap.org/${z}/${wrappedX}/${y}.png`,
+        left: Math.round(x * MAP_TILE_SIZE - leftPx),
+        top: Math.round(y * MAP_TILE_SIZE - topPx),
+      })
+    }
   }
 
-  return u.toString()
+  return tiles
 }
 
 // Fallback: Ortsteil aus Label ableiten, falls API keinen district liefert
@@ -238,11 +239,6 @@ export default function Step09LocationSection({value, onChange, context}: Props)
 
   // Karte / Feedback
   const [mapLoading, setMapLoading] = useState(false)
-  const [mapImgError, setMapImgError] = useState(false)
-
-  // Steuert den visuellen Übergang zwischen Regions- und Detailkarte
-  const [mapVisible, setMapVisible] = useState(true)
-
   const abortRef = useRef<AbortController | null>(null)
   const debounceRef = useRef<number | null>(null)
   const closeTimerRef = useRef<number | null>(null)
@@ -255,10 +251,12 @@ export default function Step09LocationSection({value, onChange, context}: Props)
 
   const addrAbortRef = useRef<AbortController | null>(null)
   const addrDebounceRef = useRef<number | null>(null)
+  const coverageAbortRef = useRef<AbortController | null>(null)
 
   const lastGeocodedKeyRef = useRef<string>('')
+  const [marketCoverage, setMarketCoverage] = useState<MarketCoverageState>({status: 'idle'})
 
-  const regionHint = useMemo<'aurich' | 'ostfriesland' | 'other'>(() => {
+  const localRegionHint = useMemo<RegionHint>(() => {
     const c = normalize(city)
     if (isLikelyAurichCity(c)) return 'aurich'
     if (isLikelyEastFrisia(c)) return 'ostfriesland'
@@ -273,8 +271,35 @@ export default function Step09LocationSection({value, onChange, context}: Props)
   // Adresse vollständig erfasst: erst dann Ortsteilhinweis und Detailkarte nutzen
   const hasCapturedAddress = plzOk && cityOk && streetOk && nrOk
 
-  // Weiter nur innerhalb der Kernregion
-  const canProceed = hasCapturedAddress && regionHint !== 'other'
+  const coverageKey = useMemo(() => {
+    if (!hasCapturedAddress) return ''
+    return [
+      normalize(postalCode),
+      normalize(city).toLowerCase(),
+      normalize(district).toLowerCase(),
+      normalize(street).toLowerCase(),
+      normalize(houseNumber).toLowerCase(),
+      normalize(context?.selectedType).toLowerCase(),
+    ].join('|')
+  }, [city, context?.selectedType, district, hasCapturedAddress, houseNumber, postalCode, street])
+
+  const coverageMatches = marketCoverage.key === coverageKey
+  const coverageStatus = hasCapturedAddress
+    ? coverageMatches
+      ? marketCoverage.status
+      : 'loading'
+    : 'idle'
+  const regionHint =
+    coverageMatches && marketCoverage.status === 'ready' && marketCoverage.regionHint
+      ? marketCoverage.regionHint
+      : localRegionHint
+
+  // Weiter nur, wenn die Adresse in der Marktdatenbank abgedeckt ist.
+  const canProceed =
+    hasCapturedAddress &&
+    coverageMatches &&
+    marketCoverage.status === 'ready' &&
+    marketCoverage.covered === true
 
   // Wizard-Integration: wenn eine API angeboten wird, den Status "Weiter" darüber steuern
   useEffect(() => {
@@ -296,6 +321,71 @@ export default function Step09LocationSection({value, onChange, context}: Props)
       canProceed,
     })
   }, [postalCode, city, district, street, houseNumber, regionHint, lat, lon, canProceed, onChange])
+
+  useEffect(() => {
+    if (!hasCapturedAddress || !coverageKey) {
+      if (coverageAbortRef.current) coverageAbortRef.current.abort()
+      setMarketCoverage({status: 'idle'})
+      return
+    }
+
+    if (coverageAbortRef.current) coverageAbortRef.current.abort()
+    const ac = new AbortController()
+    coverageAbortRef.current = ac
+
+    setMarketCoverage((current) =>
+      current.key === coverageKey && current.status === 'ready'
+        ? current
+        : {status: 'loading', key: coverageKey},
+    )
+
+    async function runCoverageCheck() {
+      try {
+        const params = new URLSearchParams({
+          city: normalize(city),
+          district: normalize(district),
+          postalCode: normalize(postalCode),
+          propertyType: normalize(context?.selectedType),
+        })
+        const response = await fetch(`/api/market/coverage?${params.toString()}`, {
+          signal: ac.signal,
+        })
+        const data = (await response.json().catch(() => ({}))) as {
+          success?: boolean
+          covered?: boolean
+          regionHint?: RegionHint
+          locationLabel?: string | null
+        }
+
+        if (!response.ok || data.success !== true) {
+          throw new Error('Kerngebiet konnte nicht geprüft werden.')
+        }
+
+        setMarketCoverage({
+          status: 'ready',
+          key: coverageKey,
+          covered: data.covered === true,
+          regionHint: data.regionHint ?? 'other',
+          locationLabel: data.locationLabel ?? null,
+        })
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') return
+        setMarketCoverage({
+          status: 'error',
+          key: coverageKey,
+          covered: false,
+          regionHint: 'other',
+          locationLabel: null,
+        })
+      }
+    }
+
+    void runCoverageCheck()
+
+    return () => {
+      ac.abort()
+    }
+  }, [city, context?.selectedType, coverageKey, district, hasCapturedAddress, postalCode])
 
   function selectItem(it: Suggestion) {
     suppressNextOpenRef.current = true
@@ -455,6 +545,8 @@ export default function Step09LocationSection({value, onChange, context}: Props)
 
         const params = new URLSearchParams({
           q,
+          street: normalize(street),
+          houseNumber: normalize(houseNumber),
           postalCode: normalize(postalCode),
           city: normalize(city),
           limit: '1',
@@ -493,53 +585,23 @@ export default function Step09LocationSection({value, onChange, context}: Props)
   }, [hasCapturedAddress, postalCode, city, street, houseNumber, lat, lon])
 
   // Kartendarstellung:
-  // - Initial: regionale Übersicht ohne Marker (solange keine Koordinaten vorhanden sind)
-  // - Nach Adressauflösung: Detailansicht mit Marker
-  // - Hausnummer vorhanden: stärkerer Detail-Zoom
-  const mapUrl = useMemo(() => {
-    // Regionsansicht: keine Koordinaten → Übersicht ohne Marker
-    if (typeof lat !== 'number' || typeof lon !== 'number') {
-      return makeProxyRegionMapUrl(
-        REGION_MAP_CENTER.lat,
-        REGION_MAP_CENTER.lon,
-        REGION_MAP_CENTER.zoom,
-      )
-    }
-
-    // Detailansicht: Koordinaten vorhanden → Zoom abhängig von Hausnummer
-    const zoom = normalize(houseNumber) ? 20 : 15
-    return makeProxyMapUrl(lat, lon, zoom)
-  }, [lat, lon, houseNumber])
-
-  // Fallback (Einbettung), falls das Bild nicht geladen werden kann:
   // - Regionsansicht ohne Marker
   // - Detailansicht mit Marker + gleichem Zoom-Verhalten wie beim Bild
-  const mapEmbedUrl = useMemo(() => {
+  const mapPreview = useMemo(() => {
     // Regionsansicht: keine Koordinaten → ohne Markierung
     if (typeof lat !== 'number' || typeof lon !== 'number') {
-      return makeOsmEmbedUrl(
-        REGION_MAP_CENTER.lat,
-        REGION_MAP_CENTER.lon,
-        REGION_MAP_CENTER.zoom,
-        false,
-      )
+      return {
+        lat: REGION_MAP_CENTER.lat,
+        lon: REGION_MAP_CENTER.lon,
+        zoom: REGION_MAP_CENTER.zoom,
+        marker: false,
+      }
     }
 
     // Detailansicht: Koordinaten vorhanden → Zoom abhängig von Hausnummer
     const zoom = normalize(houseNumber) ? 17 : 15
-    return makeOsmEmbedUrl(lat, lon, zoom, true)
+    return {lat, lon, zoom, marker: true}
   }, [lat, lon, houseNumber])
-
-  useEffect(() => {
-    if (mapUrl) setMapImgError(false)
-  }, [mapUrl])
-
-  // Weicher Übergang bei Kartenwechsel (Region → Objekt)
-  useEffect(() => {
-    setMapVisible(false)
-    const t = window.setTimeout(() => setMapVisible(true), 120)
-    return () => window.clearTimeout(t)
-  }, [mapUrl])
 
   const showPlzError = touched.plz && !!normalize(postalCode) && !plzOk
   const showCityError = touched.city && !!normalize(city) && !cityOk
@@ -549,6 +611,12 @@ export default function Step09LocationSection({value, onChange, context}: Props)
   const isLand = context?.selectedType === 'land'
   const headline = isLand ? 'Die Lage des Grundstücks' : 'Die Lage der Immobilie'
   const subline = isLand ? 'Wo befindet sich das Grundstück?' : 'Wo befindet sich die Immobilie?'
+  const addressLabel = [
+    [normalize(street), normalize(houseNumber)].filter(Boolean).join(' '),
+    [normalize(postalCode), normalize(city)].filter(Boolean).join(' '),
+  ]
+    .filter(Boolean)
+    .join(', ')
 
   return (
     <div>
@@ -746,55 +814,30 @@ export default function Step09LocationSection({value, onChange, context}: Props)
 
           {/* Badge erst nach erfasster Adresse */}
           {hasCapturedAddress ? (
-            <RegionHintBadge regionHint={regionHint} district={district} />
+            <RegionHintBadge
+              regionHint={regionHint}
+              coverageStatus={coverageStatus}
+              district={district}
+              address={addressLabel}
+              city={city}
+              marketLocationLabel={
+                coverageMatches && marketCoverage.status === 'ready'
+                  ? marketCoverage.locationLabel
+                  : null
+              }
+            />
           ) : null}
         </div>
 
         {/* RIGHT – Karte */}
         <div className="flex flex-col gap-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            {mapUrl ? (
-              mapImgError ? (
-                <div className="h-[320px] w-full">
-                  {mapEmbedUrl ? (
-                    <iframe
-                      title="Kartenvorschau"
-                      src={mapEmbedUrl}
-                      className="h-[320px] w-full"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <div className="flex h-[320px] items-center justify-center bg-slate-50 px-6 text-center">
-                      <div className="text-sm text-slate-500">
-                        Kartenvorschau konnte nicht geladen werden.
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Image
-                  key={mapUrl}
-                  src={mapUrl}
-                  alt="Kartenvorschau"
-                  width={620}
-                  height={350}
-                  unoptimized
-                  className={[
-                    'h-[320px] w-full object-cover transition-opacity duration-300',
-                    mapVisible ? 'opacity-100' : 'opacity-0',
-                  ].join(' ')}
-                  onError={() => setMapImgError(true)}
-                />
-              )
-            ) : (
-              <div className="flex h-[320px] items-center justify-center bg-slate-50 px-6 text-center">
-                <div className="text-sm text-slate-500">
-                  {mapLoading ? 'Karte wird geladen…' : 'Adresse eingeben, um die Karte zu sehen.'}
-                </div>
-              </div>
-            )}
-          </div>
+          <OsmTilePreview
+            lat={mapPreview.lat}
+            lon={mapPreview.lon}
+            zoom={mapPreview.zoom}
+            marker={mapPreview.marker}
+            loading={mapLoading}
+          />
 
           {/* Hinweis nur, solange noch keine vollständige Adresse erfasst wurde */}
           {!hasCapturedAddress ? (
@@ -808,14 +851,123 @@ export default function Step09LocationSection({value, onChange, context}: Props)
   )
 }
 
+function OsmTilePreview({
+  lat,
+  lon,
+  zoom,
+  marker,
+  loading,
+}: {
+  lat: number
+  lon: number
+  zoom: number
+  marker: boolean
+  loading: boolean
+}) {
+  const tiles = useMemo(() => makeOsmTiles(lat, lon, zoom), [lat, lon, zoom])
+
+  return (
+    <div className="relative h-[320px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div
+        className="absolute left-1/2 top-1/2 h-[320px] w-[620px] -translate-x-1/2 -translate-y-1/2 bg-[#dce7ef]"
+        aria-label="Kartenvorschau"
+        role="img"
+      >
+        {tiles.map((tile) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={tile.key}
+            src={tile.src}
+            alt=""
+            draggable={false}
+            className="absolute h-[256px] w-[256px] select-none"
+            style={{left: tile.left, top: tile.top}}
+          />
+        ))}
+      </div>
+
+      {marker ? (
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-full"
+          aria-hidden="true"
+        >
+          <div className="absolute left-1/2 top-1 h-8 w-8 -translate-x-1/2 rotate-45 rounded-full rounded-br-sm border border-[#5c8e2f] bg-[#76b943] shadow-[0_3px_10px_rgba(15,23,42,0.35)]" />
+          <div className="absolute left-1/2 top-3 h-3 w-3 -translate-x-1/2 rounded-full border border-[#5c8e2f] bg-white" />
+        </div>
+      ) : null}
+
+      <a
+        href="https://www.openstreetmap.org/copyright"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="absolute bottom-2 right-2 rounded bg-white/90 px-2 py-1 text-[11px] leading-none text-slate-700 shadow-sm hover:text-slate-950"
+      >
+        © OpenStreetMap
+      </a>
+
+      {loading ? (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center bg-white/65 backdrop-blur-[1px]">
+          <div className="rounded-full bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm">
+            Karte wird geladen…
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function RegionHintBadge({
   regionHint,
+  coverageStatus,
   district,
+  address,
+  city,
+  marketLocationLabel,
 }: {
-  regionHint: 'aurich' | 'ostfriesland' | 'other'
+  regionHint: RegionHint
+  coverageStatus: MarketCoverageState['status']
   district?: string
+  address: string
+  city?: string
+  marketLocationLabel?: string | null
 }) {
   const d = normalize(district)
+  const locationLabel =
+    normalize(marketLocationLabel) ||
+    [d, normalize(city)].filter(Boolean).join(', ') ||
+    'Immobilienbewertung'
+
+  if (coverageStatus === 'loading') {
+    return (
+      <div className="mt-8 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-brand-graphite">
+        Marktgebiet wird anhand der Marktdaten geprüft…
+      </div>
+    )
+  }
+
+  if (coverageStatus === 'error') {
+    return (
+      <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-sm font-semibold text-slate-900">
+              Das Marktgebiet konnte nicht automatisch geprüft werden.
+            </div>
+            <div className="mt-1 max-w-xl text-sm text-slate-600">
+              Wir prüfen die Lage persönlich und melden uns mit einer klaren Einschätzung.
+            </div>
+          </div>
+
+          <LocationCorrectionContactButton
+            address={address}
+            locationLabel={locationLabel}
+            label="Kontakt aufnehmen"
+            className="inline-flex items-center justify-center rounded-xl bg-brand-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-brackish"
+          />
+        </div>
+      </div>
+    )
+  }
 
   if (regionHint === 'aurich') {
     return (
@@ -828,20 +980,20 @@ function RegionHintBadge({
         ) : (
           <span className="text-slate-500">Ortsteil wird automatisch ermittelt.</span>
         )}
-        <Link
-          href="/kontakt#kontaktformular"
-          className="ml-1 underline text-slate-600 hover:text-slate-900"
-        >
-          Ortsteil stimmt nicht?
-        </Link>
+        <LocationCorrectionContactButton address={address} locationLabel={locationLabel} />
       </div>
     )
   }
 
   if (regionHint === 'ostfriesland') {
     return (
-      <div className="mt-8 inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-brand-graphite">
-        Erfasst als Ostfriesland (Region).
+      <div className="mt-8 inline-flex flex-wrap items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-brand-graphite">
+        <span>Erfasst als Ostfriesland (Kerngebiet).</span>
+        {normalize(marketLocationLabel) ? (
+          <span className="text-slate-600">
+            Marktdaten: <span className="font-semibold text-slate-800">{marketLocationLabel}</span>
+          </span>
+        ) : null}
       </div>
     )
   }
@@ -859,17 +1011,211 @@ function RegionHintBadge({
           </div>
         </div>
 
-        <Link
-          href="/kontakt#kontaktformular"
-          className="inline-flex items-center justify-right rounded-xl bg-brand-navy px-4 py-2 text-sm font-semibold text-white hover:bg-brand-brackish transition"
-        >
-          Kontakt aufnehmen
-        </Link>
+        <LocationCorrectionContactButton
+          address={address}
+          locationLabel={locationLabel}
+          label="Kontakt aufnehmen"
+          className="inline-flex items-center justify-center rounded-xl bg-brand-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-brackish"
+        />
       </div>
 
       <div className="mt-3 text-xs text-slate-500">
         Es folgt eine klare Einschätzung – ohne Umwege.
       </div>
     </div>
+  )
+}
+
+function LocationCorrectionContactButton({
+  address,
+  locationLabel,
+  label = 'Ortsteil stimmt nicht?',
+  className = 'ml-1 underline text-slate-600 hover:text-slate-900',
+}: {
+  address: string
+  locationLabel: string
+  label?: string
+  className?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'done' | 'error'>('idle')
+  const [error, setError] = useState<string | null>(null)
+  const [pending, setPending] = useState(false)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setPending(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/lead/appointment', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          requestType: 'valuation_check',
+          address,
+          locationLabel,
+          name: `${firstName.trim()} ${lastName.trim()}`.trim(),
+          phone,
+          email,
+          originUrl: window.location.href,
+        }),
+      })
+      const result = (await response.json().catch(() => ({}))) as {
+        success?: boolean
+        error?: string
+      }
+
+      if (!response.ok || result.success !== true) {
+        throw new Error(result.error || 'Die Anfrage konnte gerade nicht gesendet werden.')
+      }
+
+      setStatus('done')
+    } catch (requestError) {
+      setStatus('error')
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Die Anfrage konnte gerade nicht gesendet werden.',
+      )
+    } finally {
+      setPending(false)
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className={className}
+      >
+        {label}
+      </button>
+
+      {open ? (
+        <div className="fixed inset-0 z-[140] grid place-items-center bg-[color:var(--color-navy)]/70 px-4 py-6">
+          <div className="w-full max-w-[620px] rounded-md bg-white p-5 text-[color:var(--color-navy)] shadow-[0_35px_110px_-50px_rgba(0,0,0,0.55)] sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="text-2xl font-semibold">Stimmen die Angaben nicht ganz?</h3>
+                <p className="mt-3 text-sm leading-7 text-[color:var(--color-graphite)]">
+                  Wenn bei der Online-Bewertung etwas nicht passt, klären wir das persönlich – ruhig,
+                  nachvollziehbar und verbindlich.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="rounded-full px-3 py-1 text-2xl leading-none text-[color:var(--color-graphite)] hover:bg-[#f1f4f7]"
+                aria-label="Formular schließen"
+              >
+                ×
+              </button>
+            </div>
+
+            {status === 'done' ? (
+              <div className="mt-6 rounded-md bg-[#eef3f8] p-5">
+                <div className="text-base font-semibold text-[color:var(--color-navy)]">
+                  Danke, deine Anfrage ist eingegangen.
+                </div>
+                <p className="mt-2 text-sm leading-7 text-[color:var(--color-graphite)]">
+                  Wir melden uns zeitnah bei dir und gehen die Bewertung gemeinsam durch.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="mt-5 rounded-md bg-[color:var(--color-navy)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--color-brackish)]"
+                >
+                  Schließen
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="mt-5 grid gap-4">
+                <p className="text-sm leading-7 text-[color:var(--color-graphite)]">
+                  Gib einfach deine Kontaktdaten an. Wir melden uns zeitnah bei dir und gehen die
+                  Bewertung gemeinsam durch.
+                </p>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Vorname*
+                    <input
+                      value={firstName}
+                      onChange={(event) => setFirstName(event.target.value)}
+                      className="rounded-md border border-[color:var(--color-sand)] px-4 py-3 font-normal text-[color:var(--color-navy)] outline-none focus:border-[color:var(--color-brackish)]"
+                      autoComplete="given-name"
+                      required
+                      maxLength={80}
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Nachname*
+                    <input
+                      value={lastName}
+                      onChange={(event) => setLastName(event.target.value)}
+                      className="rounded-md border border-[color:var(--color-sand)] px-4 py-3 font-normal text-[color:var(--color-navy)] outline-none focus:border-[color:var(--color-brackish)]"
+                      autoComplete="family-name"
+                      required
+                      maxLength={80}
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-semibold">
+                    Telefonnummer*
+                    <input
+                      value={phone}
+                      onChange={(event) => setPhone(event.target.value)}
+                      className="rounded-md border border-[color:var(--color-sand)] px-4 py-3 font-normal text-[color:var(--color-navy)] outline-none focus:border-[color:var(--color-brackish)]"
+                      autoComplete="tel"
+                      required
+                      maxLength={80}
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-semibold">
+                    E-Mail-Adresse*
+                    <input
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      className="rounded-md border border-[color:var(--color-sand)] px-4 py-3 font-normal text-[color:var(--color-navy)] outline-none focus:border-[color:var(--color-brackish)]"
+                      autoComplete="email"
+                      type="email"
+                      required
+                      maxLength={180}
+                    />
+                  </label>
+                </div>
+
+                {error ? <p className="text-sm text-red-700">{error}</p> : null}
+
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="rounded-md bg-[color:var(--color-navy)] px-5 py-4 text-sm font-semibold text-white transition hover:bg-[color:var(--color-brackish)] disabled:opacity-70"
+                >
+                  {pending ? 'Wird gesendet ...' : 'Bewertung persönlich prüfen lassen'}
+                </button>
+
+                <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-[color:var(--color-graphite)]">
+                  <span>✓ Unverbindlich</span>
+                  <span>✓ Keine Verpflichtung</span>
+                  <span>✓ Direkter Kontakt zu uns</span>
+                </div>
+
+                <div className="text-xs text-[color:var(--color-graphite)]">
+                  Oder direkt anrufen:{' '}
+                  <a href={PHONE_HREF} className="font-semibold text-[color:var(--color-navy)] underline">
+                    {PHONE_DISPLAY}
+                  </a>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </>
   )
 }

@@ -1,16 +1,22 @@
 'use client'
 
-import Link from 'next/link'
-import {useEffect} from 'react'
+import {useEffect, useRef} from 'react'
 
 type ResultValue = {
   status?: 'idle' | 'pending' | 'ready' | 'error'
+  animationComplete?: boolean
+  emailDispatchStatus?: 'idle' | 'pending' | 'sent' | 'error'
+  manualReview?: boolean
+  manualReviewReason?: string
+  leadId?: string
+  reportId?: string
   valueMid?: number
   rangeMin?: number
   rangeMax?: number
   currency?: 'EUR'
   landingUrl?: string
   email?: string
+  emailProvider?: string
   emailSentAt?: string
   expiresAt?: string
   error?: string
@@ -24,37 +30,78 @@ type Props = {
   context?: unknown
 }
 
-function euro(value: number | undefined) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return '—'
-  return `${value.toLocaleString('de-DE')} €`
-}
-
 export default function Step15ResultSection({value, onChange, onRetry}: Props) {
+  const latestValueRef = useRef<ResultValue | undefined>(value)
+  const hasError = value?.status === 'error'
+  const animationComplete = value?.animationComplete === true
+  const showLoadingState = !hasError && !animationComplete
+  const showReadyState = value?.status === 'ready' && animationComplete
+
+  useEffect(() => {
+    latestValueRef.current = value
+  }, [value])
+
   useEffect(() => {
     onChange({
       status: value?.status ?? 'idle',
+      animationComplete: value?.animationComplete ?? false,
+      emailDispatchStatus: value?.emailDispatchStatus,
+      manualReview: value?.manualReview,
+      manualReviewReason: value?.manualReviewReason,
+      leadId: value?.leadId,
+      reportId: value?.reportId,
       valueMid: value?.valueMid,
       rangeMin: value?.rangeMin,
       rangeMax: value?.rangeMax,
       currency: 'EUR',
       landingUrl: value?.landingUrl,
       email: value?.email,
+      emailProvider: value?.emailProvider,
       emailSentAt: value?.emailSentAt,
       expiresAt: value?.expiresAt,
       error: value?.error,
     })
   }, [
     value?.status,
+    value?.animationComplete,
+    value?.emailDispatchStatus,
+    value?.manualReview,
+    value?.manualReviewReason,
+    value?.leadId,
+    value?.reportId,
     value?.valueMid,
     value?.rangeMin,
     value?.rangeMax,
     value?.landingUrl,
     value?.email,
+    value?.emailProvider,
     value?.emailSentAt,
     value?.expiresAt,
     value?.error,
     onChange,
   ])
+
+  useEffect(() => {
+    if (hasError || animationComplete) {
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      const latestValue = latestValueRef.current ?? {}
+      if (latestValue.status === 'error') return
+
+      onChange({
+        ...latestValue,
+        status: 'ready',
+        animationComplete: true,
+        currency: 'EUR',
+      })
+    }, 5000)
+
+    return () => {
+      window.clearTimeout(timer)
+    }
+  }, [animationComplete, hasError, onChange])
 
   return (
     <div>
@@ -67,20 +114,33 @@ export default function Step15ResultSection({value, onChange, onRetry}: Props) {
       </h2>
 
       <p className="mt-2 mb-5 text-base leading-relaxed text-brand-graphite" itemProp="description">
-        Wir bereiten jetzt Ihre persönliche Bewertungsseite vor und versenden den Link direkt per
+        Wir bereiten jetzt deine persönliche Bewertungsseite vor und versenden den Link direkt per
         E-Mail.
       </p>
 
       <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5">
-        {value?.status === 'pending' || value?.status === 'idle' ? (
+        {showLoadingState ? (
           <div className="rounded-2xl bg-[#EEF3F8] p-6">
             <div className="text-sm text-neutral-600">Bewertung wird erstellt</div>
             <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/80">
-              <div className="h-full w-2/3 animate-pulse rounded-full bg-brand-navy" />
+              <div
+                className="h-full rounded-full bg-brand-navy"
+                style={{
+                  transform: 'scaleX(0)',
+                  transformOrigin: 'left center',
+                  animation: 'leadgen-result-progress 5000ms linear forwards',
+                }}
+              />
             </div>
+            <style>
+              {`@keyframes leadgen-result-progress {
+                from { transform: scaleX(0); }
+                to { transform: scaleX(1); }
+              }`}
+            </style>
             <p className="mt-5 text-sm leading-relaxed text-neutral-600">
               Lage, Marktumfeld und Objektdetails werden gerade zusammengeführt. Anschließend
-              erhalten Sie Ihre persönliche Bewertungsseite per E-Mail.
+              erhältst du deine persönliche Bewertungsseite per E-Mail.
             </p>
           </div>
         ) : null}
@@ -105,53 +165,16 @@ export default function Step15ResultSection({value, onChange, onRetry}: Props) {
           </div>
         ) : null}
 
-        {value?.status === 'ready' ? (
-          <>
-            <div className="text-sm text-neutral-600">Marktbasierte Einordnung</div>
-            <div className="mt-4 rounded-2xl bg-[#EEF3F8] p-6 text-center">
-              <div className="text-4xl font-semibold tracking-tight text-brand-navy sm:text-5xl">
-                {euro(value.valueMid)}
-              </div>
-              <div className="mt-4 text-sm font-medium text-neutral-700">
-                Realistische Verkaufsspanne:
-              </div>
-              <div className="mt-1 text-xl font-medium text-brand-graphite sm:text-2xl">
-                {euro(value.rangeMin)} – {euro(value.rangeMax)}
-              </div>
-              <div className="mt-3 text-xs text-neutral-600">
-                Erste marktbasierte Einordnung auf Basis regionaler Vergleichsdaten.
-              </div>
+        {showReadyState ? (
+          <div className="rounded-2xl bg-[#EEF3F8] p-6">
+            <div className="text-sm text-neutral-600">Bewertung fertig</div>
+            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-white/80">
+              <div className="h-full w-full rounded-full bg-brand-navy" />
             </div>
-
-            <div className="mt-5 rounded-2xl border border-[color:var(--color-sand)]/70 bg-[color:var(--color-cream)]/55 p-5 text-sm leading-relaxed text-brand-graphite">
-              Den genauen Verkaufspreis legen wir gemeinsam strukturiert fest.
-            </div>
-
-            <div className="mt-5 space-y-2 text-sm text-neutral-600">
-              {value.email ? (
-                <p>
-                  Ihre Bewertungsseite wurde an <span className="font-semibold text-brand-navy">{value.email}</span>{' '}
-                  gesendet.
-                </p>
-              ) : null}
-
-              {value.landingUrl ? (
-                <Link href={value.landingUrl} className="inline-flex items-center font-semibold text-brand-navy underline underline-offset-4">
-                  Bewertungsseite im Browser öffnen
-                </Link>
-              ) : null}
-
-              {value.expiresAt ? (
-                <p>Link gültig bis {new Date(value.expiresAt).toLocaleDateString('de-DE')}.</p>
-              ) : null}
-            </div>
-
-            <p className="mt-5 text-sm text-neutral-600">
-              Diese Einwertung stellt eine erste automatisierte Orientierung dar. Der tatsächliche
-              Marktpreis hängt unter anderem von Zustand, Mikrolage und aktueller Nachfrage ab und
-              wird im Rahmen einer persönlichen Bewertung präzise ermittelt.
+            <p className="mt-5 text-sm leading-relaxed text-neutral-600">
+              Deine Werteinschätzung ist fertig vorbereitet. Klicke auf Fertig, um abzuschließen.
             </p>
-          </>
+          </div>
         ) : null}
       </div>
     </div>

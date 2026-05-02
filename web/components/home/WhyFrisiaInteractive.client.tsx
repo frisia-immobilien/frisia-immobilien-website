@@ -23,7 +23,7 @@ const ITEMS: readonly DifferentiationItem[] = [
   {
     key: "werte",
     title: "Das Frisia Prinzip",
-    imageSrc: "/images/why/frisia_alte-werte.png",
+    imageSrc: "/images/why/frisia_alte-werte.webp",
     imageAlt: "Das Frisia Prinzip mit klassischen Werten und persönlicher Verantwortung",
     teaser: "Klassische Werte, klare Abläufe und persönliche Verantwortung.",
     heading: "Das Frisia Prinzip",
@@ -41,8 +41,8 @@ const ITEMS: readonly DifferentiationItem[] = [
   {
     key: "reichweite",
     title: "Reichweite",
-    imageSrc: "/images/why/reichweite.png",
-    imageAlt: "Reichweite über Immobilienportale und regionale Netzwerke",
+    imageSrc: "/images/why/reichweite-scout24.webp",
+    imageAlt: "Immobilienangebote von Frisia Immobilien auf ImmobilienScout24",
     teaser: "Sichtbarkeit über führende Portale und regionale Kanäle.",
     heading: "Reichweite",
     copy: "Damit eine Immobilie den passenden Käufer findet, ist Reichweite entscheidend. Frisia Immobilien nutzt – neben eigenen Suchkunden-Datenbanken – die führenden Immobilienportale und digitale Vermarktungskanäle in Deutschland.",
@@ -59,8 +59,8 @@ const ITEMS: readonly DifferentiationItem[] = [
   {
     key: "technik",
     title: "Vermarktung",
-    imageSrc: "/images/why/vermarktung.png",
-    imageAlt: "Vermarktung einer Immobilie mit moderner Technik",
+    imageSrc: "/images/why/vermarktung-expose.webp",
+    imageAlt: "Digitale Expose-Erstellung mit Drohne, Kamera und Grundriss",
     teaser: "Moderne Technologie und professionelle Aufbereitung für starke Marktpräsenz.",
     heading: "Vermarktung",
     copy: "Für eine erfolgreiche Vermarktung nutzen wir moderne Technologien und professionelle Aufbereitung der Immobilie.",
@@ -79,8 +79,8 @@ const ITEMS: readonly DifferentiationItem[] = [
   {
     key: "verkaufen",
     title: "Verkaufen",
-    imageSrc: "/images/why/verkaufen.png",
-    imageAlt: "Immobilie verkaufen mit Frisia Immobilien in Aurich und Ostfriesland",
+    imageSrc: "/images/why/verkaufen.webp",
+    imageAlt: "Haus verkaufen mit Frisia Immobilien in Aurich und Ostfriesland",
     teaser: "Fundierte Bewertung und klare Strategie für einen geordneten Verkaufsprozess.",
     heading: "Verkaufen",
     copy: "Der Verkauf einer Immobilie beginnt mit einer fundierten Bewertung und einer klaren Strategie. Frisia Immobilien begleitet Eigentümer strukturiert durch den gesamten Verkaufsprozess – von der Marktanalyse bis zum Notartermin.",
@@ -98,7 +98,7 @@ const ITEMS: readonly DifferentiationItem[] = [
   {
     key: "kaufen",
     title: "Kaufen",
-    imageSrc: "/images/why/kaufen.png",
+    imageSrc: "/images/why/kaufen.webp",
     imageAlt: "Immobilie kaufen mit Frisia Immobilien in Aurich und Ostfriesland",
     teaser: "Strukturierte Begleitung bei Suche, Auswahl und Kaufentscheidung.",
     heading: "Kaufen",

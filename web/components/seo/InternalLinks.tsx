@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
+import { formatLocationLabel, formatLocationPhrase, isIslandLocation } from "@/lib/seo/locationDisplay";
 import { LANDING_TEMPLATES } from "@/lib/seo/templates";
 
 const ORDERED_PAGE_TYPES = [
@@ -16,9 +17,12 @@ export default function InternalLinks({ data }: { data: LocationPageData }) {
   const sortedTemplates = [...LANDING_TEMPLATES].sort(
     (a, b) => ORDERED_PAGE_TYPES.indexOf(a.pageType) - ORDERED_PAGE_TYPES.indexOf(b.pageType),
   );
+  const locationSuffix = isIslandLocation(data.location)
+    ? formatLocationPhrase(data.location)
+    : formatLocationLabel(data.location.location_label);
   const primaryLinks = sortedTemplates.map((template) => ({
     href: `/${template.prefix}-${data.location.location_slug}`,
-    label: `${template.label} ${data.location.location_label}`,
+    label: `${template.label} ${locationSuffix}`,
   }));
 
   return (
@@ -50,7 +54,7 @@ export default function InternalLinks({ data }: { data: LocationPageData }) {
                   href={`/${data.template.prefix}-${location.location_slug}`}
                   className="rounded-full border border-[color:var(--color-brass)]/45 bg-white px-5 py-2.5 text-base text-[color:var(--color-graphite)] transition hover:border-[color:var(--color-brass)] hover:text-[color:var(--color-navy)] md:text-lg"
                 >
-                  {location.location_label}
+                  {formatLocationLabel(location.location_label)}
                 </Link>
               ))}
             </div>

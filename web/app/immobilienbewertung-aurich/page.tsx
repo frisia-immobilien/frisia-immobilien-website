@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import JsonLd from "@/components/seo/JsonLd";
+import RegionalCrossLinks, { RegionalInlineLinks, RegionalLocalFAQ } from "@/components/seo/RegionalCrossLinks";
 import LeadGenWizard from "@/components/immobilienbewertung/LeadGenWizard.client";
+import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
 import {
   AREA_SERVED,
+  PHONE_DISPLAY,
+  PHONE_HREF,
   SITE_URL,
   absoluteUrl,
   createBreadcrumbListJsonLd,
@@ -16,8 +22,8 @@ import {
 } from "@/lib/site";
 
 const PATH = "/immobilienbewertung-aurich";
-const HERO_IMAGE = "/images/immobilienbewertung/immobilienbewertung-aurich-hero.png";
-const HERO_MOBILE_IMAGE = "/images/immobilienbewertung/immobilienbewertung-aurich-hero-mobile.png";
+const HERO_IMAGE = "/images/immobilienbewertung/immobilienbewertung-aurich-hero-bewertung.webp";
+const HERO_MOBILE_IMAGE = "/images/immobilienbewertung/immobilienbewertung-aurich-hero-bewertung.webp";
 
 const faqItems = [
   {
@@ -60,20 +66,20 @@ const faqItems = [
 const trustItems = [
   {
     text: "Basiert auf echten Verkaufsdaten aus Aurich und ganz Ostfriesland.",
-    icon: "/images/immobilienbewertung/locator_pin.png",
+    icon: "/images/immobilienbewertung/locator_pin.webp",
   },
   {
     text: "Zeigt dir eine realistische Preisspanne statt unrealistischer Lockwerte.",
-    icon: "/images/immobilienbewertung/euro_small.png",
+    icon: "/images/immobilienbewertung/euro_small.webp",
   },
   {
     text: "Gibt dir die Möglichkeit, den Wert anschließend persönlich einordnen zu lassen",
-    icon: "/images/immobilienbewertung/persoenlich.png",
+    icon: "/images/immobilienbewertung/persoenlich.webp",
   },
 ] as const;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Immobilienbewertung Aurich – realistische Preise vom Experten",
+  title: "Immobilienbewertung Aurich: realistischer Wert",
   description:
     "Ermitteln Sie den realistischen Wert Ihrer Immobilie in Aurich. Fundierte Bewertung auf Basis aktueller Marktdaten. Jetzt unverbindlich starten.",
   path: PATH,
@@ -245,7 +251,19 @@ export default function ImmobilienbewertungAurichPage() {
       <JsonLd data={faqJsonLd} />
       <JsonLd data={howToJsonLd} />
 
-      <section className="relative min-h-[calc(100svh-4rem)] overflow-hidden bg-[#f4f6f8]">
+      <MobileHeroSection
+        eyebrow="Immobilienbewertung Aurich & Ostfriesland"
+        title="Dein Immobilienwert fundiert und nachvollziehbar ermittelt."
+        description="Kostenlos, unverbindlich und regional eingeordnet. In zwei Minuten starten und danach persönlich besprechen."
+        imageSrc={HERO_MOBILE_IMAGE}
+        imageAlt="Laptop mit Immobilienbewertung auf Terrasse vor einem Wohnhaus"
+        imagePosition="68% center"
+        primaryCta={{ href: "#bewertung", label: "Immobilienwert ermitteln" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Kostenfrei", "Unverbindlich", "Marktdaten"]}
+      />
+
+      <section className="relative hidden min-h-[calc(100svh-4rem)] overflow-hidden bg-[#f4f6f8] md:block">
         <Image
           src={HERO_IMAGE}
           alt=""
@@ -277,12 +295,12 @@ export default function ImmobilienbewertungAurichPage() {
               <p className="text-[0.78rem] font-semibold uppercase tracking-[0.19em] text-[color:var(--color-navy)]">
                 Immobilienbewertung Aurich & Ostfriesland
               </p>
-              <div className="mt-4 h-px w-16 bg-[color:var(--color-brass)]" aria-hidden="true" />
             </div>
 
             <h1 className="mt-7 max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)]">
               Dein Immobilienwert – fundiert und nachvollziehbar ermittelt.
             </h1>
+            <HeroDivider />
 
             <p className="mt-7 text-[1.2rem] leading-[1.6] text-[color:var(--color-graphite)] md:text-[1.35rem]">
               Kostenlos. Unverbindlich. <span className="font-semibold text-[color:var(--color-brackish)]">In 2 Minuten.</span>
@@ -298,15 +316,15 @@ export default function ImmobilienbewertungAurichPage() {
 
             <div className="mt-9 grid max-w-[44rem] gap-4 text-[1.02rem] leading-[1.45] text-[color:var(--color-navy)] sm:grid-cols-3">
               <div className="flex items-center gap-3">
-                <Image src="/immobilienbewertung/icons/hero/check.png" alt="" width={28} height={28} className="h-7 w-7 shrink-0 object-contain" />
+                <Image src="/immobilienbewertung/icons/hero/check.webp" alt="" width={28} height={28} className="h-7 w-7 shrink-0 object-contain" />
                 <span>Kostenfrei</span>
               </div>
               <div className="flex items-center gap-3">
-                <Image src="/immobilienbewertung/icons/hero/schild_trust.png" alt="" width={28} height={28} className="h-7 w-7 shrink-0 object-contain" />
+                <Image src="/immobilienbewertung/icons/hero/schild_trust.webp" alt="" width={28} height={28} className="h-7 w-7 shrink-0 object-contain" />
                 <span>Unverbindlich</span>
               </div>
               <div className="flex items-start gap-3 sm:col-span-1">
-                <Image src="/immobilienbewertung/icons/hero/statistik.png" alt="" width={28} height={28} className="mt-0.5 h-7 w-7 shrink-0 object-contain" />
+                <Image src="/immobilienbewertung/icons/hero/statistik.webp" alt="" width={28} height={28} className="mt-0.5 h-7 w-7 shrink-0 object-contain" />
                 <span>Basierend auf echten Verkaufsdaten</span>
               </div>
             </div>
@@ -315,7 +333,7 @@ export default function ImmobilienbewertungAurichPage() {
           <aside className="mt-12 max-w-[34rem] rounded-2xl border border-[color:var(--color-brass)]/18 bg-white/94 p-6 shadow-[0_22px_70px_rgba(15,23,42,0.10)] backdrop-blur-sm">
             <div className="flex items-center gap-5">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-navy)]">
-                <Image src="/immobilienbewertung/icons/hero/trust.png" alt="" width={42} height={42} className="h-10 w-10 object-contain" />
+                <Image src="/immobilienbewertung/icons/hero/trust.webp" alt="" width={42} height={42} className="h-10 w-10 object-contain" />
               </div>
               <div>
                 <p className="text-[1.08rem] font-semibold leading-[1.35] text-[color:var(--color-navy)]">
@@ -329,6 +347,8 @@ export default function ImmobilienbewertungAurichPage() {
           </aside>
         </div>
       </section>
+
+      <RegionalCrossLinks locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienbewertung" placement="hero" />
 
       <section id="bewertung" className="scroll-mt-16 bg-white pt-12 pb-8 md:pt-16 md:pb-10" aria-label="Immobilienbewertung starten">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
@@ -373,7 +393,9 @@ export default function ImmobilienbewertungAurichPage() {
         </div>
       </section>
 
-      <section className="bg-white pt-14 pb-16 md:pt-20 md:pb-22">
+      <AurichMarketTeaser tone="white" />
+
+      <section className="bg-[color:var(--color-section)] pt-14 pb-16 md:pt-20 md:pb-22">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
           <div className="max-w-3xl">
             <p className="text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--color-brackish)]">
@@ -384,10 +406,10 @@ export default function ImmobilienbewertungAurichPage() {
             </h2>
           </div>
           <div className="mt-10 space-y-4 border-t border-[color:var(--color-brass)]/30 pt-5">
-            {faqItems.map((item) => (
+            {faqItems.map((item, index) => (
               <details
                 key={item.question}
-                open={item.question === "Ersetzt eine Online-Bewertung den Besuch eines Maklers?"}
+                open={index === 0}
                 className="group rounded-2xl border border-[color:var(--color-brass)]/35 bg-white p-5 open:shadow-sm md:p-6"
               >
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-[1.12rem] font-semibold leading-[1.45] text-[color:var(--color-navy)] md:text-[1.2rem]">
@@ -407,6 +429,10 @@ export default function ImmobilienbewertungAurichPage() {
           </div>
         </div>
       </section>
+
+      <RegionalInlineLinks locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienbewertung" pageType="immobilienbewertung" />
+      <RegionalLocalFAQ locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienbewertung" pageType="immobilienbewertung" />
+      <RegionalCrossLinks locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienbewertung" placement="bottom" />
     </main>
   );
 }

@@ -127,12 +127,15 @@ export default function Process9plus1MobileCarousel({
           className="flex max-w-full items-stretch snap-x snap-mandatory overflow-x-auto scroll-smooth [overscroll-behavior-x:contain] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label="9 plus 1 Schritte Carousel mobil"
         >
-          {slides.map((slide) => (
-            <article key={slide.key} className="flex w-full min-w-0 shrink-0 snap-start [scroll-snap-stop:always] p-4">
+          {slides.map((slide) => {
+            const isEndpoint = slide.kind === "step" && (slide.badge.endsWith(" 1") || slide.badge.endsWith(" 9"));
+
+            return (
+              <article key={slide.key} className="flex w-full min-w-0 shrink-0 snap-start [scroll-snap-stop:always] p-4">
               {slide.kind === "intro" ? (
-                <div className="flex h-full min-h-[320px] w-full min-w-0 flex-col rounded-[24px] bg-white p-5">
+                <div className="flex h-full min-h-[320px] w-full min-w-0 flex-col rounded-[24px] border border-[color:var(--color-brass)]/24 bg-white p-5">
                   <div className="flex items-start gap-4">
-                    <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-navy)] text-[1.15rem] font-semibold text-white shadow-sm">
+                    <div className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-brass)] text-[1.15rem] font-semibold text-white shadow-[0_10px_22px_rgba(139,111,61,0.22)]">
                       {slide.badge}
                     </div>
                     <div className="min-w-0">
@@ -163,9 +166,28 @@ export default function Process9plus1MobileCarousel({
                   </div>
                 </div>
               ) : (
-                <div className="flex h-full min-h-[320px] w-full min-w-0 flex-col rounded-[24px] bg-white p-5">
-                  <div className="inline-flex self-start rounded-full bg-[color:var(--color-section)] px-4 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[color:var(--color-navy)] shadow-sm ring-1 ring-[color:var(--color-brass)]/20">
-                    {slide.badge}
+                <div
+                  className={`flex h-full min-h-[320px] w-full min-w-0 flex-col rounded-[24px] border p-5 ${
+                    isEndpoint
+                      ? "border-[color:var(--color-brass)]/34 bg-white shadow-[0_12px_26px_rgba(27,48,64,0.08)]"
+                      : "border-transparent bg-white"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div
+                      className={`inline-flex self-start rounded-full px-4 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] shadow-sm ring-1 ${
+                        isEndpoint
+                          ? "bg-[color:var(--color-navy)] text-white ring-[color:var(--color-navy)]/15"
+                          : "bg-white text-[color:var(--color-navy)] ring-[color:var(--color-brass)]/22"
+                      }`}
+                    >
+                      {slide.badge}
+                    </div>
+                    {isEndpoint ? (
+                      <span className="rounded-full border border-[color:var(--color-brass)]/28 bg-white/80 px-3 py-1 text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--color-brackish)]">
+                        {slide.badge.endsWith(" 1") ? "Start" : "Ziel"}
+                      </span>
+                    ) : null}
                   </div>
                   <div className="mt-5 flex items-start gap-4">
                     <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] bg-[color:var(--color-section)]/72 ring-1 ring-[color:var(--color-brass)]/16">
@@ -189,7 +211,8 @@ export default function Process9plus1MobileCarousel({
                 </div>
               )}
             </article>
-          ))}
+            );
+          })}
         </div>
 
         <div className="flex items-center justify-between gap-3 px-4 pb-4 pt-1">

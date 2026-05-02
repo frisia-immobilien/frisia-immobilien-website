@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import ExpandableTextBlock from "@/components/site/ExpandableTextBlock.client";
+import HeroDivider from "@/components/site/HeroDivider";
 import MapLocationOverlay from "@/components/site/MapLocationOverlay.client";
+import OsmTileMap from "@/components/site/OsmTileMap.client";
 import PropertyGallery from "@/components/site/PropertyGallery.client";
 import { getGermanConditionLabel, getGermanPropertyTypeLabel } from "@/lib/property-labels";
 import type { PropertyDetail } from "@/lib/propstack";
@@ -163,9 +165,9 @@ function InfoRow({ label, value }: { label: string; value: string | null }) {
   if (!value) return null;
 
   return (
-    <div className="flex items-start justify-between gap-6 border-b border-[color:var(--color-brass)]/12 py-3 last:border-b-0">
+    <div className="grid grid-cols-[minmax(0,1fr)_minmax(8rem,0.9fr)] gap-6 border-b border-[color:var(--color-brass)]/12 py-3 last:border-b-0">
       <dt className="text-sm text-[color:var(--color-graphite)]">{label}</dt>
-      <dd className="text-right text-sm font-medium text-[color:var(--color-navy)]">{value}</dd>
+      <dd className="text-left text-sm font-medium text-[color:var(--color-navy)]">{value}</dd>
     </div>
   );
 }
@@ -246,17 +248,6 @@ function formatPublicLocation(zipCode: string | null, city: string) {
   return [zipCode, city].filter(Boolean).join(" ");
 }
 
-function createMapBounds(latitude: number, longitude: number, latRadiusMeters = 250, lonRadiusMeters = 250) {
-  const latDelta = latRadiusMeters / 111320;
-  const lonDelta = lonRadiusMeters / (111320 * Math.cos((latitude * Math.PI) / 180));
-  const minLat = latitude - latDelta;
-  const maxLat = latitude + latDelta;
-  const minLon = longitude - lonDelta;
-  const maxLon = longitude + lonDelta;
-
-  return { minLat, maxLat, minLon, maxLon };
-}
-
 function EnergyScale({ energyClass }: { energyClass: string | null }) {
   const classes = ["A+", "A", "B", "C", "D", "E", "F", "G", "H"];
   const normalized = energyClass?.toUpperCase() ?? null;
@@ -292,8 +283,7 @@ export default function PropertyDetailTemplate({
 }: PropertyDetailTemplateProps) {
   const contactPerson = {
     name: DIRECT_CONTACT.name,
-    role: DIRECT_CONTACT.role,
-    title: property.contactTitle ?? DIRECT_CONTACT.title,
+    title: property.contactTitle,
     email: DIRECT_CONTACT.email,
     phoneDisplay: DIRECT_CONTACT.phoneDisplay,
     phoneHref: DIRECT_CONTACT.phoneHref,
@@ -314,13 +304,6 @@ export default function PropertyDetailTemplate({
   const mapCoordinates =
     property.latitude !== null && property.longitude !== null
       ? offsetCoordinates(property.latitude, property.longitude, String(property.id))
-      : null;
-  const mapBounds = mapCoordinates ? createMapBounds(mapCoordinates.latitude, mapCoordinates.longitude) : null;
-  const mapEmbedUrl =
-    mapCoordinates && mapBounds
-      ? `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
-          `${mapBounds.minLon},${mapBounds.minLat},${mapBounds.maxLon},${mapBounds.maxLat}`,
-        )}&layer=mapnik`
       : null;
   const sectionLinks = [
     { id: "objektbeschreibung", label: "Beschreibung" },
@@ -364,17 +347,21 @@ export default function PropertyDetailTemplate({
     { label: "Ort", value: property.city },
     ...rentRows,
     { label: "Baujahr", value: property.constructionYear ? String(property.constructionYear) : null },
+    { label: "Denkmalschutz", value: property.monumentProtection ? "Ja" : null },
     { label: "Schlafzimmer", value: property.numberOfBedrooms ? String(property.numberOfBedrooms) : null },
     { label: "Bäder", value: property.numberOfBathrooms ? String(property.numberOfBathrooms) : null },
     { label: "Nutzfläche", value: formatNumber(property.usableFloorSpace, "m²") },
     { label: "Etagen", value: property.numberOfFloors ? String(property.numberOfFloors) : null },
     { label: "Zustand", value: getGermanConditionLabel(property.condition) },
-    { label: "Energieklasse", value: property.energyEfficiencyClass },
+    { label: "Energieklasse", value: property.monumentProtection ? null : property.energyEfficiencyClass },
     {
       label: "Energiekennwert",
-      value: property.energyEfficiencyValue !== null ? formatNumber(property.energyEfficiencyValue, "kWh/(m²*a)") : null,
+      value:
+        !property.monumentProtection && property.energyEfficiencyValue !== null
+          ? formatNumber(property.energyEfficiencyValue, "kWh/(m²*a)")
+          : null,
     },
-    { label: "Wesentliche Energieträger", value: property.thermalCharacteristic },
+    { label: "Wesentliche Energieträger", value: property.monumentProtection ? null : property.energyCarrier },
     { label: "Provision", value: property.courtage },
   ];
 
@@ -386,9 +373,10 @@ export default function PropertyDetailTemplate({
     property.kitchenComplete ? "Einbauküche" : null,
   ].filter(Boolean) as string[];
   const hasEnergySection =
-    property.energyEfficiencyClass !== null ||
-    property.energyEfficiencyValue !== null ||
-    property.thermalCharacteristic !== null ||
+    (!property.monumentProtection && property.energyEfficiencyClass !== null) ||
+    (!property.monumentProtection && property.energyEfficiencyValue !== null) ||
+    (!property.monumentProtection && property.energyCarrier !== null) ||
+    property.monumentProtection ||
     property.constructionYear !== null;
 
   return (
@@ -400,6 +388,7 @@ export default function PropertyDetailTemplate({
         <h1 className="mt-2 max-w-5xl font-[family-name:var(--font-playfair)] text-[2.5rem] leading-[1.06] tracking-[-0.02em] text-[color:var(--color-navy)] sm:text-[3.45rem]">
           {property.title}
         </h1>
+        <HeroDivider />
         <div className="mt-5 flex flex-wrap items-center gap-3 text-[0.98rem] text-[color:var(--color-graphite)]">
           <span className="inline-flex items-center gap-2">
             <PinIcon className="h-4 w-4 text-[color:var(--color-brackish)]" />
@@ -470,38 +459,59 @@ export default function PropertyDetailTemplate({
               <DetailSection title="Energieinformationen">
                 <div className="grid gap-6 lg:grid-cols-3">
                   <div className="space-y-4 lg:col-span-3">
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
-                      Skala
-                    </p>
-                    <EnergyScale energyClass={property.energyEfficiencyClass} />
+                    {property.monumentProtection ? (
+                      <div className="max-w-4xl space-y-2 border-l-2 border-[color:var(--color-brass)]/45 pl-4 text-[0.98rem] leading-[1.7] text-[color:var(--color-graphite)]">
+                        <p className="font-semibold text-[color:var(--color-navy)]">
+                          Diese Immobilie steht unter Denkmalschutz.
+                        </p>
+                        <p>
+                          Gemäß den gesetzlichen Regelungen des Gebäudeenergiegesetzes (GEG) besteht für
+                          denkmalgeschützte Gebäude keine Verpflichtung zur Erstellung und Vorlage eines Energieausweises.
+                        </p>
+                      </div>
+                    ) : null}
+                    {!property.monumentProtection ? (
+                      <>
+                        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
+                          Skala
+                        </p>
+                        <EnergyScale energyClass={property.energyEfficiencyClass} />
+                      </>
+                    ) : null}
                   </div>
 
-                  <div className="border-t border-[color:var(--color-brass)]/16 pt-4">
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
-                      Energieeffizienzklasse
-                    </p>
-                    <p className="mt-2 text-[1.2rem] font-semibold text-[color:var(--color-navy)]">
-                      {property.energyEfficiencyClass ?? "k. A."}
-                    </p>
-                  </div>
+                  {!property.monumentProtection ? (
+                    <>
+                      <div className="border-t border-[color:var(--color-brass)]/16 pt-4">
+                        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
+                          Energieeffizienzklasse
+                        </p>
+                        <p className="mt-2 text-[1.2rem] font-semibold text-[color:var(--color-navy)]">
+                          {property.energyEfficiencyClass ?? "k. A."}
+                        </p>
+                      </div>
 
-                  <div className="border-t border-[color:var(--color-brass)]/16 pt-4">
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
-                      Endenergiebedarf
-                    </p>
-                    <p className="mt-2 text-[1.2rem] font-semibold text-[color:var(--color-navy)]">
-                      {property.energyEfficiencyValue !== null ? formatNumber(property.energyEfficiencyValue, "kWh/m²a") : "k. A."}
-                    </p>
-                  </div>
+                      <div className="border-t border-[color:var(--color-brass)]/16 pt-4">
+                        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
+                          Endenergiebedarf
+                        </p>
+                        <p className="mt-2 text-[1.2rem] font-semibold text-[color:var(--color-navy)]">
+                          {property.energyEfficiencyValue !== null ? formatNumber(property.energyEfficiencyValue, "kWh/m²a") : "k. A."}
+                        </p>
+                      </div>
+                    </>
+                  ) : null}
 
-                  <div className="border-t border-[color:var(--color-brass)]/16 pt-4">
-                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
-                      Energieträger
-                    </p>
-                    <p className="mt-2 text-[1.2rem] font-semibold text-[color:var(--color-navy)]">
-                      {property.thermalCharacteristic ?? "k. A."}
-                    </p>
-                  </div>
+                  {!property.monumentProtection ? (
+                    <div className="border-t border-[color:var(--color-brass)]/16 pt-4">
+                      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
+                        Energieträger
+                      </p>
+                      <p className="mt-2 text-[1.2rem] font-semibold text-[color:var(--color-navy)]">
+                        {property.energyCarrier ?? "k. A."}
+                      </p>
+                    </div>
+                  ) : null}
 
                   <div className="border-t border-[color:var(--color-brass)]/16 pt-4">
                     <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
@@ -511,6 +521,17 @@ export default function PropertyDetailTemplate({
                       {property.constructionYear ? String(property.constructionYear) : "k. A."}
                     </p>
                   </div>
+
+                  {property.monumentProtection ? (
+                    <div className="border-t border-[color:var(--color-brass)]/16 pt-4">
+                      <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
+                        Denkmalschutz
+                      </p>
+                      <p className="mt-2 text-[1.2rem] font-semibold text-[color:var(--color-navy)]">
+                        Ja
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               </DetailSection>
             ) : null}
@@ -543,17 +564,20 @@ export default function PropertyDetailTemplate({
               </DetailSection>
             ) : null}
 
-            {mapEmbedUrl ? (
+            {mapCoordinates ? (
               <DetailSection title="Lage im Umfeld">
                 <div className="space-y-5">
                   <div className="overflow-hidden rounded-[1.65rem] border border-[color:var(--color-brass)]/16 bg-[color:var(--color-section)]/45">
                     <div className="relative aspect-[16/8]">
-                      <iframe
-                        src={mapEmbedUrl}
-                        title={`Lagekarte im Umfeld von ${publicLocation}`}
+                      <OsmTileMap
+                        latitude={mapCoordinates.latitude}
+                        longitude={mapCoordinates.longitude}
+                        zoom={15}
+                        minZoom={12}
+                        maxZoom={18}
+                        showControls
+                        ariaLabel={`Lagekarte im Umfeld von ${publicLocation}`}
                         className="absolute inset-0 h-full w-full border-0"
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
                       />
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(10,23,37,0.18)] to-transparent" />
                       <MapLocationOverlay publicLocation={publicLocation} />
@@ -571,7 +595,7 @@ export default function PropertyDetailTemplate({
                     alt={contactPerson.name}
                     fill
                     sizes="128px"
-                    className="object-cover"
+                    className="object-cover object-[50%_24%]"
                   />
                 </div>
 
@@ -579,12 +603,11 @@ export default function PropertyDetailTemplate({
                   <p className="font-[family-name:var(--font-playfair)] text-[1.8rem] leading-[1.1] text-[color:var(--color-navy)]">
                     {contactPerson.name}
                   </p>
-                  <p className="mt-2 text-[0.95rem] font-semibold uppercase tracking-[0.08em] text-[color:var(--color-brackish)]">
-                    {contactPerson.role}
-                  </p>
-                  <p className="mt-4 max-w-[42rem] text-[1rem] leading-[1.8] text-[color:var(--color-graphite)]">
-                    {contactPerson.title}
-                  </p>
+                  {contactPerson.title ? (
+                    <p className="mt-4 max-w-[42rem] whitespace-pre-line text-[0.92rem] leading-[1.75] text-[color:var(--color-graphite)] md:whitespace-pre">
+                      {contactPerson.title}
+                    </p>
+                  ) : null}
 
                   <div className="mt-5 space-y-3 text-[0.98rem] text-[color:var(--color-navy)]">
                     <a href={`mailto:${contactPerson.email}`} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
@@ -670,7 +693,7 @@ export default function PropertyDetailTemplate({
               </dl>
             </div>
 
-            <div className="rounded-[1.5rem] border border-[color:var(--color-brass)]/16 bg-[linear-gradient(180deg,rgba(247,243,236,0.52),rgba(255,255,255,0.96))] px-5 py-5">
+            <div className="rounded-[1.5rem] border border-[color:var(--color-brass)]/16 bg-white px-5 py-5">
               <SectionEyebrow>Frisia Immobilien</SectionEyebrow>
               <p className="mt-2 font-[family-name:var(--font-playfair)] text-[1.4rem] leading-[1.28] text-[color:var(--color-navy)]">
                 Persönliche Rückmeldung und klare Einordnung zu diesem Objekt.

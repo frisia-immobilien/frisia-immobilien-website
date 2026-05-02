@@ -3,7 +3,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import LeadGenWizard from "@/components/immobilienbewertung/LeadGenWizard.client";
 import HeroAppointmentForm from "@/components/seo/HeroAppointmentForm.client";
+import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
+import { formatLocationPhrase, formatLocationProseName } from "@/lib/seo/locationDisplay";
+import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/site";
 import {
   averageDeltaPercent,
   daysOnMarket,
@@ -11,7 +16,6 @@ import {
   totalSalesCount,
   valuationMarketSentence,
 } from "@/lib/seo/valuationLanding";
-import type { SeoLocationRow } from "@/lib/types/leadgen";
 
 function formatEuroPerM2(value: number | null) {
   return value ? `ca. ${Math.round(value).toLocaleString("de-DE")} €/m²` : "nicht verfügbar";
@@ -25,44 +29,8 @@ function formatSales(value: number | null) {
   return value ? `${value.toLocaleString("de-DE")} Verkäufe` : "nicht verfügbar";
 }
 
-function formatLocationLabel(label: string) {
-  const parts = label
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  if (parts.length < 2) return label;
-  return `${parts[0]}, ${parts.slice(1).join(", ")}`;
-}
-
-function formatLocationForTemplate(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-
-  if (location.location_type === "ortsteil" && city && district && district !== city) {
-    return `${district}, ${city}`;
-  }
-
-  return formatLocationLabel(label);
-}
-
-function formatLocationForProse(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-
-  if (location.location_type === "ortsteil" && city && district && district !== city) {
-    return `${district} in ${city}`;
-  }
-
-  const parts = label
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  if (parts.length < 2) return label;
-  return `${parts[0]} in ${parts.slice(1).join(", ")}`;
+function hasPositiveValue(value: number | null) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
 function Section({
@@ -263,6 +231,13 @@ function HeroMetric({ icon, label, value, note }: { icon: "home" | "building" | 
   );
 }
 
+function metricGridClass(count: number) {
+  if (count <= 1) return "grid";
+  if (count === 2) return "grid sm:grid-cols-2";
+  if (count === 3) return "grid sm:grid-cols-2 md:grid-cols-3";
+  return "grid sm:grid-cols-2 md:grid-cols-4";
+}
+
 function HeroTrustItem({ icon, title, text }: { icon: "target" | "search" | "check" | "handshake"; title: string; text: string }) {
   return (
     <div className="flex items-start gap-4 px-4 py-4">
@@ -297,39 +272,13 @@ function HeroTrustItem({ icon, title, text }: { icon: "target" | "search" | "che
   );
 }
 
-function RecommendedLinks({ data }: { data: LocationPageData }) {
-  const location = formatLocationForTemplate(data.location);
-  const slug = data.location.location_slug;
-  const links = [
-    { href: `/haus-verkaufen-${slug}`, label: `Haus verkaufen ${location}` },
-    { href: `/immobilienpreise-${slug}`, label: `Immobilienpreise ${location}` },
-    { href: `/immobilienmakler-${slug}`, label: `Immobilienmakler ${location}` },
-  ];
-
-  return (
-    <div className="mt-8 flex flex-wrap gap-3">
-      {links.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className="rounded-lg border border-[color:var(--color-brass)]/25 bg-white px-4 py-3 text-sm font-semibold text-[color:var(--color-navy)] hover:border-[color:var(--color-brackish)]"
-        >
-          {link.label}
-        </Link>
-      ))}
-    </div>
-  );
-}
-
 function LeadGeneratorBlock({
   id,
-  location,
-  headlineLocation = location,
+  locationPhrase,
   secondary = false,
 }: {
   id?: string;
-  location: string;
-  headlineLocation?: string;
+  locationPhrase: string;
   secondary?: boolean;
 }) {
   const idPrefix = secondary ? "valuation-secondary-leadgen" : "valuation-primary-leadgen";
@@ -338,15 +287,15 @@ function LeadGeneratorBlock({
     <section
       id={id}
       className={secondary ? "bg-[color:var(--color-section)] py-12 md:py-16" : "bg-white py-10 md:py-14"}
-      aria-label={`Immobilienbewertung in ${headlineLocation} starten`}
+      aria-label={`Immobilienbewertung ${locationPhrase} starten`}
     >
       <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
         <div className="mb-8 max-w-3xl">
           <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">
-            Immobilienbewertung {headlineLocation} starten
+            Immobilienbewertung {locationPhrase} starten
           </h2>
           <p className="mt-4 text-base leading-[1.75] text-[color:var(--color-graphite)]">
-            Erhalte eine realistische Einschätzung für deine Immobilie in {location}.
+            Erhalte eine realistische Einschätzung für deine Immobilie {locationPhrase}.
           </p>
           <p className="mt-3 text-sm font-medium text-[color:var(--color-graphite)]">
             Unverbindlich · Persönlich eingeordnet · Ohne Verkaufsdruck
@@ -360,23 +309,87 @@ function LeadGeneratorBlock({
 
 export default function ValuationLocationTemplate({ data }: { data: LocationPageData }) {
   const rawLocation = data.location.location_label;
-  const location = formatLocationForTemplate(data.location);
-  const proseLocation = formatLocationForProse(data.location);
+  const proseLocation = formatLocationProseName(data.location);
+  const locationPhrase = formatLocationPhrase(data.location);
   const houseMedianPrice = medianPricePerM2(data.houseMarket);
   const apartmentMedianPrice = medianPricePerM2(data.apartmentMarket);
   const marketDays = daysOnMarket(data.houseMarket, data.apartmentMarket);
   const salesCount = totalSalesCount(data.houseMarket, data.apartmentMarket);
   const deltaPercent = averageDeltaPercent(data.houseMarket, data.apartmentMarket);
   const marketSentence = valuationMarketSentence({
-    location: { ...data.location, location_label: proseLocation },
+    location: data.location,
     salesCount,
     deltaPercent,
   });
-  const heroImage = "/images/immobilienbewertung/hero-background.png";
+  const heroImage = "/images/immobilienbewertung/hero-background.webp";
+  const heroMetrics: Array<{
+    icon: "home" | "building" | "calendar" | "chart";
+    label: string;
+    value: string;
+    note: string;
+    visible: boolean;
+  }> = [
+    { icon: "home", label: "Ø Hauspreis", value: formatEuroPerM2(houseMedianPrice), note: "Medianpreis", visible: hasPositiveValue(houseMedianPrice) },
+    { icon: "building", label: "Ø Wohnungspreis", value: formatEuroPerM2(apartmentMedianPrice), note: "Medianpreis", visible: hasPositiveValue(apartmentMedianPrice) },
+    { icon: "calendar", label: "Ø Vermarktungsdauer", value: formatDays(marketDays), note: "durchschnittlich", visible: hasPositiveValue(marketDays) },
+    { icon: "chart", label: "Datenbasis", value: formatSales(salesCount), note: "ausgewertete Verkäufe", visible: hasPositiveValue(salesCount) },
+  ];
+  const visibleHeroMetrics = heroMetrics.filter((metric) => metric.visible);
+  const marketCards = [
+    { label: "Ø Hauspreis", value: formatEuroPerM2(houseMedianPrice), note: "Medianpreis", visible: hasPositiveValue(houseMedianPrice) },
+    { label: "Ø Wohnungspreis", value: formatEuroPerM2(apartmentMedianPrice), note: "Medianpreis", visible: hasPositiveValue(apartmentMedianPrice) },
+    { label: "Vermarktungsdauer", value: formatDays(marketDays), visible: hasPositiveValue(marketDays) },
+    { label: "Datenbasis", value: formatSales(salesCount), visible: hasPositiveValue(salesCount) },
+  ].filter((card) => card.visible);
+  const faqs = [
+    {
+      question: `Was kostet eine Immobilienbewertung ${locationPhrase}?`,
+      answer: `Die erste Einschätzung deiner Immobilie ${locationPhrase} ist unverbindlich. Ziel ist eine realistische Orientierung, bevor du über weitere Schritte entscheidest.`,
+    },
+    {
+      question: "Wie genau ist eine Immobilienbewertung online?",
+      answer:
+        "Eine Online-Bewertung kann eine erste Richtung zeigen. Für eine belastbare Einschätzung müssen Lage, Zustand, Ausstattung, Modernisierungen und Nachfrage vor Ort berücksichtigt werden.",
+    },
+    {
+      question: "Warum reicht der durchschnittliche Quadratmeterpreis nicht aus?",
+      answer: `Der durchschnittliche Quadratmeterpreis ist nur ein Orientierungswert. Zwei Immobilien ${locationPhrase} können trotz ähnlicher Größe deutlich unterschiedliche Marktwerte haben.`,
+    },
+    {
+      question: "Wann ist der beste Zeitpunkt für eine Bewertung?",
+      answer:
+        "Sinnvoll ist eine Bewertung immer dann, wenn ein Verkauf geplant wird, eine Erbschaft geklärt werden muss oder du wissen möchtest, welchen Wert deine Immobilie aktuell hat.",
+    },
+    {
+      question: "Welche Unterlagen sind sinnvoll?",
+      answer:
+        "Hilfreich sind Grundbuchauszug, Energieausweis, Wohnflächenangaben, Grundrisse und Informationen zu Modernisierungen. Für eine erste Einschätzung reichen zunächst die wichtigsten Objektdaten.",
+    },
+  ];
 
   return (
     <>
-      <section className="relative isolate overflow-x-hidden bg-white">
+      <MobileHeroSection
+        eyebrow={`Immobilienbewertung ${locationPhrase}`}
+        title={
+          <>
+            Immobilienbewertung {locationPhrase}
+          </>
+        }
+        description={
+          <>
+            Erhalte eine realistische Preisspanne - basierend auf echten Verkaufsdaten aus {proseLocation}.
+          </>
+        }
+        imageSrc={heroImage}
+        imageAlt=""
+        imagePosition="right center"
+        primaryCta={{ href: "#bewertung-starten", label: "Bewertung erhalten" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Unverbindlich", "Regional", "Kein Verkaufsdruck"]}
+      />
+
+      <section className="relative isolate hidden overflow-x-hidden bg-white md:block">
         <div className="relative w-full overflow-hidden bg-[color:var(--color-section)] lg:min-h-[calc(100svh-4rem)]">
           <Image
             src={heroImage}
@@ -392,16 +405,16 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
 
           <div className="relative z-10 mx-auto grid w-full max-w-[1440px] gap-8 px-5 pb-10 pt-14 sm:px-8 md:pb-12 md:pt-16 lg:min-h-[calc(100svh-4rem)] lg:grid-cols-[minmax(0,1fr)_366px] lg:items-center lg:px-12 lg:pb-44 lg:pt-20">
             <div className="min-w-0 max-w-[64rem]">
-              <p className="mb-4 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)] sm:mb-5 sm:text-sm sm:tracking-[0.16em]">
-                Immobilienbewertung {location}
+            <p className="mb-4 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)] sm:mb-5 sm:text-sm sm:tracking-[0.16em]">
+                Immobilienbewertung {locationPhrase}
               </p>
               <h1 className="max-w-full break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.55rem,4.8vw,4.8rem)] leading-[1.01] tracking-normal text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
                 Immobilienbewertung
-                <span className="block">{location}</span>
+                <span className="block">{locationPhrase}</span>
               </h1>
-              <div className="mt-6 h-1 w-24 bg-[color:var(--color-brass)] sm:mt-8 sm:w-28" />
+              <HeroDivider />
               <p className="mt-6 max-w-[36rem] text-[1.02rem] leading-[1.6] text-[color:var(--color-navy)] sm:text-[1.15rem] md:text-[1.28rem]">
-                Was ist deine Immobilie in {proseLocation} aktuell wirklich wert?
+                Was ist deine Immobilie {locationPhrase} aktuell wirklich wert?
               </p>
               <p className="mt-5 max-w-[36rem] text-[0.98rem] leading-[1.7] text-[color:var(--color-graphite)] sm:text-base md:text-lg">
                 Erhalte eine realistische Preisspanne – basierend auf echten Verkaufsdaten aus {proseLocation}.
@@ -425,18 +438,20 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
             <HeroAppointmentForm
               locationLabel={rawLocation}
               displayLocationLabel={proseLocation}
+              displayLocationPhrase={locationPhrase}
               locationSlug={data.location.location_slug}
             />
           </div>
 
-          <div className="relative z-10 mx-5 mb-6 rounded-[1.25rem] border border-[color:var(--color-brass)]/20 bg-white/96 shadow-[0_22px_70px_-60px_rgba(27,48,64,0.55)] backdrop-blur sm:mx-8 lg:absolute lg:inset-x-12 lg:bottom-0 lg:mx-auto lg:mb-8 lg:max-w-[1328px]">
-            <dl className="grid md:grid-cols-4">
-              <HeroMetric icon="home" label="Ø Hauspreis" value={formatEuroPerM2(houseMedianPrice)} note="Medianpreis" />
-              <HeroMetric icon="building" label="Ø Wohnungspreis" value={formatEuroPerM2(apartmentMedianPrice)} note="Medianpreis" />
-              <HeroMetric icon="calendar" label="Ø Vermarktungsdauer" value={formatDays(marketDays)} note="durchschnittlich" />
-              <HeroMetric icon="chart" label="Datenbasis" value={formatSales(salesCount)} note="ausgewertete Verkäufe" />
-            </dl>
-          </div>
+          {visibleHeroMetrics.length > 0 ? (
+            <div className="relative z-10 mx-5 mb-6 rounded-[1.25rem] border border-[color:var(--color-brass)]/20 bg-white/96 shadow-[0_22px_70px_-60px_rgba(27,48,64,0.55)] backdrop-blur sm:mx-8 lg:absolute lg:inset-x-12 lg:bottom-0 lg:mx-auto lg:mb-8 lg:max-w-[1328px]">
+              <dl className={metricGridClass(visibleHeroMetrics.length)}>
+                {visibleHeroMetrics.map((metric) => (
+                  <HeroMetric key={metric.label} icon={metric.icon} label={metric.label} value={metric.value} note={metric.note} />
+                ))}
+              </dl>
+            </div>
+          ) : null}
         </div>
 
         <div className="bg-white/94 shadow-[0_-18px_60px_rgba(15,23,42,0.08)] backdrop-blur-sm">
@@ -449,7 +464,9 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
         </div>
       </section>
 
-      <LeadGeneratorBlock id="bewertung-starten" location={proseLocation} headlineLocation={location} secondary />
+      <RegionalCrossLinks data={data} placement="hero" />
+
+      <LeadGeneratorBlock id="bewertung-starten" locationPhrase={locationPhrase} secondary />
 
       <Section title="Warum viele Immobilien falsch eingeschätzt werden">
         <p className="max-w-4xl text-[color:var(--color-navy)]">
@@ -467,22 +484,23 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
           </p>
         </div>
         <p className="max-w-4xl text-[color:var(--color-navy)]">
-          Eine fundierte Immobilienbewertung in {proseLocation} schafft Klarheit, bevor eine Entscheidung getroffen wird.
+          Eine fundierte Immobilienbewertung {locationPhrase} schafft Klarheit, bevor eine Entscheidung getroffen wird.
         </p>
       </Section>
 
-      <Section title={`Immobilienmarkt in ${proseLocation}`} muted>
-        <p>Der Immobilienmarkt in {proseLocation} zeigt aktuell ein differenziertes Bild.</p>
-        <dl className="grid gap-4 sm:grid-cols-2">
-          <MarketCard label="Ø Hauspreis" value={formatEuroPerM2(houseMedianPrice)} note="Medianpreis" />
-          <MarketCard label="Ø Wohnungspreis" value={formatEuroPerM2(apartmentMedianPrice)} note="Medianpreis" />
-          <MarketCard label="Vermarktungsdauer" value={formatDays(marketDays)} />
-          <MarketCard label="Datenbasis" value={formatSales(salesCount)} />
-        </dl>
+      <Section title={`Immobilienmarkt ${locationPhrase}`} muted>
+        <p>Der Immobilienmarkt {locationPhrase} zeigt aktuell ein differenziertes Bild.</p>
+        {marketCards.length > 0 ? (
+          <dl className="grid gap-4 sm:grid-cols-2">
+            {marketCards.map((card) => (
+              <MarketCard key={card.label} label={card.label} value={card.value} note={card.note} />
+            ))}
+          </dl>
+        ) : null}
         <p>{marketSentence}</p>
         <div className="rounded-xl border border-[color:var(--color-brass)]/25 bg-white p-5 text-base leading-[1.8] text-[color:var(--color-graphite)] md:p-6">
           <h3 className="text-xl font-semibold leading-snug text-[color:var(--color-navy)]">
-            Was ist der Unterschied zwischen Medianpreis und Durchschnittspreis in {proseLocation}?
+            Was ist der Unterschied zwischen Medianpreis und Durchschnittspreis {locationPhrase}?
           </h3>
           <p className="mt-4">
             Viele Eigentümer orientieren sich am Durchschnittspreis – und verlieren dadurch oft Geld, ohne es zu
@@ -494,7 +512,7 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
             Immobilien können diesen Wert deutlich verzerren.
           </p>
           <p>
-            Der Medianpreis zeigt dagegen den typischen Preis am Immobilienmarkt in {proseLocation}. Er liegt genau
+            Der Medianpreis zeigt dagegen den typischen Preis am Immobilienmarkt {locationPhrase}. Er liegt genau
             in der Mitte aller Verkäufe – die eine Hälfte wurde zu einem höheren Preis verkauft, die andere zu einem
             niedrigeren.
           </p>
@@ -504,7 +522,7 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
             für Ausreißer ist.
           </p>
           <h3 className="pt-3 text-xl font-semibold leading-snug text-[color:var(--color-navy)]">
-            Warum der Medianpreis in {proseLocation} für dich entscheidend ist
+            Warum der Medianpreis {locationPhrase} für dich entscheidend ist
           </h3>
           <p>
             Für deinen Verkauf zählt nicht der rechnerische Durchschnitt – sondern der Preis, der am Markt tatsächlich
@@ -515,7 +533,7 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
             Medianpreis die reale Marktsituation deutlich genauer ab.
           </p>
           <p>
-            Wenn du wissen möchtest, welchen Preis deine Immobilie in {proseLocation} aktuell wirklich erreichen
+            Wenn du wissen möchtest, welchen Preis deine Immobilie {locationPhrase} aktuell wirklich erreichen
             kann, brauchst du keinen allgemeinen Durchschnittswert – sondern eine klare, realistische Einordnung auf
             Basis echter Verkäufe.
           </p>
@@ -553,7 +571,7 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
         />
       </Section>
 
-      <Section title={`Frisia Immobilien in ${proseLocation}`}>
+      <Section title={`Frisia Immobilien ${locationPhrase}`}>
         <p>
           Frisia Immobilien arbeitet nicht mit pauschalen Schätzungen, sondern mit realen Verkaufsdaten aus {proseLocation}{" "}
           und der Region.
@@ -565,10 +583,10 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
       <section className="bg-[color:var(--color-section)] py-12 md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
           <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">
-            Häufige Fragen zur Immobilienbewertung in {proseLocation}
+            Häufige Fragen zur Immobilienbewertung {locationPhrase}
           </h2>
           <div className="mt-6 divide-y divide-[color:var(--color-brass)]/20 rounded-xl border border-[color:var(--color-brass)]/25 bg-white shadow-[0_18px_70px_-64px_rgba(27,48,64,0.45)]">
-            {data.template.faq(proseLocation).map((item, index) => (
+            {faqs.map((item, index) => (
               <details key={item.question} className="group" open={index === 0}>
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-5 px-5 py-5 marker:hidden sm:px-6">
                   <h3 className="text-base font-semibold leading-snug text-[color:var(--color-navy)] sm:text-lg">
@@ -587,17 +605,6 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
         </div>
       </section>
 
-      <section className="bg-white py-12 md:py-16">
-        <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
-          <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-tight text-[color:var(--color-navy)] md:text-4xl">
-            Weiterführende Seiten für {proseLocation}
-          </h2>
-          <p className="mt-4 max-w-2xl text-base leading-[1.75] text-[color:var(--color-graphite)]">
-            Je nach Entscheidung helfen diese regionalen Seiten beim nächsten Schritt.
-          </p>
-          <RecommendedLinks data={data} />
-        </div>
-      </section>
     </>
   );
 }

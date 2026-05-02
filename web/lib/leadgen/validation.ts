@@ -66,6 +66,8 @@ export const leadPayloadSchema = z.object({
   garden: optionalBoolean,
   garage: optionalBoolean,
   basement: optionalBoolean,
+  other_extras: optionalText,
+  other_extras_value_eur: optionalNumber,
   renovation_status: optionalText,
   heating_type: optionalText,
   consent_given: z.boolean().optional().default(false),

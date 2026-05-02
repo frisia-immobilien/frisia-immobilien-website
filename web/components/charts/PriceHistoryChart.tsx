@@ -6,15 +6,10 @@ type Props = {
 };
 
 export default function PriceHistoryChart({ title, rows }: Props) {
-  if (rows.length < 3) {
-    return (
-      <p className="text-sm leading-6 text-[color:var(--color-graphite)]">
-        Für eine belastbare Preisentwicklung liegen derzeit weniger als drei Jahreswerte vor.
-      </p>
-    );
-  }
+  const rowsWithValues = rows.filter((row) => Number(row.median_preis_eur_m2 ?? 0) > 0);
+  if (rowsWithValues.length < 3) return null;
 
-  const values = rows.map((row) => Number(row.median_preis_eur_m2 ?? 0)).filter((value) => value > 0);
+  const values = rowsWithValues.map((row) => Number(row.median_preis_eur_m2));
   const max = Math.max(...values);
   const min = Math.min(...values);
   const width = 1180;
@@ -25,8 +20,8 @@ export default function PriceHistoryChart({ title, rows }: Props) {
   const innerWidth = width - padding * 2;
   const innerHeight = height - padding * 2;
   const span = Math.max(1, max - min);
-  const step = rows.length > 1 ? innerWidth / (rows.length - 1) : innerWidth;
-  const points = rows.map((row, index) => {
+  const step = rowsWithValues.length > 1 ? innerWidth / (rowsWithValues.length - 1) : innerWidth;
+  const points = rowsWithValues.map((row, index) => {
     const value = Number(row.median_preis_eur_m2 ?? min);
     const x = padding + index * step;
     const y = padding + innerHeight - ((value - min) / span) * innerHeight;
@@ -48,7 +43,7 @@ export default function PriceHistoryChart({ title, rows }: Props) {
               {point.year}
             </text>
             <text x={point.x} y={Math.max(24, point.y - 18)} textAnchor="middle" fontSize="15" fill={chartColor}>
-              {Math.round(point.value).toLocaleString("de-DE")}
+              {Math.round(point.value).toLocaleString("de-DE")} €
             </text>
           </g>
         ))}

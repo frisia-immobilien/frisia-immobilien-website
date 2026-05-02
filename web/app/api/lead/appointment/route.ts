@@ -23,8 +23,11 @@ const appointmentSchema = z.object({
   locationLabel: z.string().trim().min(2).max(180),
   locationSlug: z.string().trim().min(2).max(180).optional().nullable(),
   originUrl: z.string().trim().max(500).optional().nullable(),
+  requestType: z.enum(["appointment", "valuation_check"]).optional().default("appointment"),
   website: z.string().trim().max(200).optional().nullable(),
 });
+
+type AppointmentInput = z.infer<typeof appointmentSchema>;
 
 function splitName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean);
@@ -74,7 +77,30 @@ function parseAddress(address: string, fallbackLocation: string) {
   };
 }
 
-function buildAppointmentBody(input: z.infer<typeof appointmentSchema>) {
+function isValuationCheck(input: AppointmentInput) {
+  return input.requestType === "valuation_check";
+}
+
+function buildAppointmentBody(input: AppointmentInput) {
+  if (isValuationCheck(input)) {
+    return [
+      "Neue Anfrage zur persönlichen Prüfung der Online-Bewertung",
+      "",
+      `Adresse der Immobilie: ${input.address}`,
+      `Ort/Ortsteil: ${input.locationLabel}`,
+      "",
+      `Name: ${input.name}`,
+      `E-Mail: ${input.email}`,
+      `Telefon: ${input.phone}`,
+      input.originUrl ? `Herkunfts-URL: ${input.originUrl}` : "",
+      "",
+      "Gewünschter nächster Schritt:",
+      "Online-Bewertung persönlich prüfen, abweichende Angaben klären und Eigentümer zeitnah zurückrufen.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+  }
+
   return [
     "Neue Terminanfrage aus der Immobilienbewertung-Landingpage",
     "",
@@ -120,9 +146,9 @@ export async function POST(request: Request) {
       firstname: name.firstname,
       lastname: name.lastname,
       phone: input.phone,
-      sub_type: "Bewertungstermin",
-      reason: "bewertungstermin",
-      selling_intent: "termin_anfragen",
+      sub_type: isValuationCheck(input) ? "Persönliche Bewertungsprüfung" : "Bewertungstermin",
+      reason: isValuationCheck(input) ? "bewertung_pruefen" : "bewertungstermin",
+      selling_intent: isValuationCheck(input) ? "bewertung_pruefen" : "termin_anfragen",
       timeline: "kurzfristig",
       street: address.street,
       house_number: address.house_number,
@@ -153,17 +179,25 @@ export async function POST(request: Request) {
       insertLeadEvent({
         leadRequestId: lead.id,
         eventName: "form_started",
-        payload: { source: "valuation_hero_appointment", location: input.locationLabel },
+        payload: {
+          source: isValuationCheck(input) ? "valuation_location_correction" : "valuation_hero_appointment",
+          location: input.locationLabel,
+        },
       }),
       insertLeadEvent({
         leadRequestId: lead.id,
         eventName: "email_entered",
-        payload: { source: "valuation_hero_appointment" },
+        payload: {
+          source: isValuationCheck(input) ? "valuation_location_correction" : "valuation_hero_appointment",
+        },
       }),
       insertLeadEvent({
         leadRequestId: lead.id,
         eventName: "address_entered",
-        payload: { source: "valuation_hero_appointment", rawAddress: input.address },
+        payload: {
+          source: isValuationCheck(input) ? "valuation_location_correction" : "valuation_hero_appointment",
+          rawAddress: input.address,
+        },
       }),
     ]);
 
@@ -178,7 +212,9 @@ export async function POST(request: Request) {
         lastname: name.lastname,
         phone: input.phone,
         consent: true,
-        sourceNote: `Website Immobilienbewertung\nStatus: Bewertungstermin angefragt\nOrt: ${input.locationLabel}`,
+        sourceNote: isValuationCheck(input)
+          ? `Website Immobilienbewertung\nStatus: Persönliche Prüfung der Online-Bewertung angefragt\nOrt: ${input.locationLabel}`
+          : `Website Immobilienbewertung\nStatus: Bewertungstermin angefragt\nOrt: ${input.locationLabel}`,
       });
 
       if (contactId) {
@@ -207,13 +243,17 @@ export async function POST(request: Request) {
       const body = buildAppointmentBody(input);
       const [noteId, taskId] = await Promise.all([
         createNote({
-          title: `Bewertungstermin angefragt: ${input.locationLabel}`,
+          title: isValuationCheck(input)
+            ? `Online-Bewertung prüfen: ${input.locationLabel}`
+            : `Bewertungstermin angefragt: ${input.locationLabel}`,
           body,
           contactId: lead.propstack_contact_id,
           propertyId: lead.propstack_property_id,
         }),
         createTask({
-          title: `Bewertungstermin vereinbaren: ${input.name}`,
+          title: isValuationCheck(input)
+            ? `Online-Bewertung persönlich prüfen: ${input.name}`
+            : `Bewertungstermin vereinbaren: ${input.name}`,
           body,
           contactId: lead.propstack_contact_id,
           propertyId: lead.propstack_property_id,
@@ -255,7 +295,9 @@ export async function POST(request: Request) {
       leadId: lead.id,
       propstackSynced,
       message:
-        "Wir haben deine Anfrage erhalten und melden uns zeitnah bei dir, um einen passenden Termin zu vereinbaren.",
+        isValuationCheck(input)
+          ? "Wir haben deine Anfrage erhalten und melden uns zeitnah bei dir, um die Bewertung gemeinsam durchzugehen."
+          : "Wir haben deine Anfrage erhalten und melden uns zeitnah bei dir, um einen passenden Termin zu vereinbaren.",
     });
   } catch (error: unknown) {
     const retryAfter = (error as Error & { retryAfterSeconds?: number }).retryAfterSeconds;

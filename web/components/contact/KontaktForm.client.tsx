@@ -1,8 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import { shouldBypassTurnstileForLocalDev } from "@/lib/turnstile";
 
 declare global {
   interface Window {
@@ -42,9 +44,34 @@ const INITIAL: FormState = {
   website: "",
 };
 
-export default function KontaktForm() {
+type KontaktFormProps = {
+  id?: string;
+  heading?: string;
+  intro?: string;
+  messageLabel?: string;
+  messagePlaceholder?: string;
+  submitLabel?: string;
+  successTitle?: string;
+  successMessage?: string;
+  trustItems?: readonly string[];
+  context?: string;
+};
+
+export default function KontaktForm({
+  id = "kontaktformular",
+  heading = "Persönlich anfragen",
+  intro = "Beschreib kurz dein Anliegen. Zwei Sätze reichen – wir melden uns persönlich bei dir.",
+  messageLabel = "Nachricht *",
+  messagePlaceholder = "z.B.: Ich überlege, meine Immobilie zu verkaufen und möchte wissen, was sie aktuell wert ist.",
+  submitLabel = "Nachricht senden – wir melden uns persönlich",
+  successTitle = "Nachricht eingegangen",
+  successMessage = "Vielen Dank. Deine Nachricht ist bei uns eingegangen. Wir melden uns zeitnah persönlich bei dir.",
+  trustItems = ["Persönliche Rückmeldung", "Vertraulich", "Unverbindlich"],
+  context = "Kontaktanfrage Website",
+}: KontaktFormProps) {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
-  const captchaEnabled = Boolean(siteKey);
+  const captchaBypassed = shouldBypassTurnstileForLocalDev(siteKey);
+  const captchaEnabled = Boolean(siteKey) && !captchaBypassed;
 
   const [form, setForm] = useState<FormState>(INITIAL);
   const [captchaToken, setCaptchaToken] = useState("");
@@ -55,14 +82,18 @@ export default function KontaktForm() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const widgetRef = useRef<HTMLDivElement | null>(null);
+  const introParagraphs = useMemo(
+    () => intro.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean),
+    [intro],
+  );
 
   const canSubmit = useMemo(() => {
     if (status === "sending") return false;
     if (!form.firstName || !form.lastName || !form.email || !form.message) return false;
-    if (!captchaEnabled) return false;
+    if (!captchaEnabled && !captchaBypassed) return false;
     if (captchaEnabled && !captchaToken) return false;
     return true;
-  }, [captchaEnabled, captchaToken, form, status]);
+  }, [captchaBypassed, captchaEnabled, captchaToken, form, status]);
 
   const initTurnstile = useCallback(() => {
     if (!captchaEnabled || widgetId || !widgetRef.current) return;
@@ -126,6 +157,7 @@ export default function KontaktForm() {
         ...form,
         captchaToken,
         originUrl: window.location.href,
+        context,
       }),
     });
 
@@ -173,10 +205,10 @@ export default function KontaktForm() {
               id="kontakt-success-title"
               className="mt-5 font-[family-name:var(--font-playfair)] text-[1.9rem] leading-tight text-[color:var(--color-navy)] sm:text-[2.3rem]"
             >
-              Nachricht eingegangen
+              {successTitle}
             </h2>
             <p className="mt-4 text-[1.02rem] leading-[1.65] text-[color:var(--color-graphite)]">
-              Vielen Dank. Deine Nachricht ist bei uns eingegangen. Wir melden uns zeitnah persönlich bei dir.
+              {successMessage}
             </p>
             <button
               type="button"
@@ -189,7 +221,7 @@ export default function KontaktForm() {
         </div>
       ) : null}
 
-      <section className="mt-8 rounded-[1.75rem] border border-[color:var(--color-brass)]/20 bg-[#F5F6F7] p-7 shadow-[0_24px_70px_rgba(15,23,42,0.08)] md:p-10">
+      <section id={id} className="scroll-mt-24 rounded-[1.75rem] border border-[color:var(--color-brass)]/32 bg-[#EEF1F3] p-7 shadow-[0_28px_80px_rgba(15,23,42,0.13)] md:p-10">
       {captchaEnabled ? (
         <Script
           src="https://challenges.cloudflare.com/turnstile/v0/api.js"
@@ -199,18 +231,29 @@ export default function KontaktForm() {
         />
       ) : null}
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
-        <div>
+      <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
+        <div className="relative overflow-hidden lg:min-h-[18rem]">
           <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-[1.15] text-[color:var(--color-navy)] md:text-4xl">
-            Persönlich anfragen
+            {heading}
           </h2>
-          <p className="mt-4 max-w-[46ch] text-base leading-[1.8] text-[color:var(--color-graphite)]">
-            Beschreib kurz dein Anliegen. Zwei Sätze reichen – wir melden uns persönlich bei dir.
-          </p>
+          <div className="mt-4 max-w-[46ch] space-y-4 text-base leading-[1.8] text-[color:var(--color-navy)]/82">
+            {introParagraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+          <Image
+            src="/images/frisia/frisia_f.webp"
+            alt=""
+            width={520}
+            height={520}
+            sizes="(max-width: 1024px) 0px, 360px"
+            className="pointer-events-none absolute bottom-0 left-0 hidden h-auto w-[27.5rem] -translate-x-[30%] opacity-20 lg:block"
+            aria-hidden="true"
+          />
         </div>
 
-        <form onSubmit={onSubmit} className="grid gap-5 rounded-[1.4rem] bg-white p-5 shadow-[0_16px_45px_rgba(15,23,42,0.06)] sm:p-6">
-          <p className="text-xs font-medium text-[color:var(--color-graphite)]/75">* Pflichtfeld</p>
+        <form onSubmit={onSubmit} className="grid gap-5 rounded-[1.4rem] border border-[color:var(--color-navy)]/10 bg-white p-5 shadow-[0_24px_65px_rgba(15,23,42,0.12)] sm:p-6">
+          <p className="text-xs font-semibold text-[color:var(--color-graphite)]/90">* Pflichtfeld</p>
           <input
             type="text"
             name="website"
@@ -223,26 +266,26 @@ export default function KontaktForm() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid gap-2">
-              <span className="text-sm font-medium text-[color:var(--color-navy)]">Vorname *</span>
+              <span className="text-sm font-semibold text-[color:var(--color-navy)]">Vorname *</span>
               <input
                 type="text"
                 name="firstName"
                 required
                 value={form.firstName}
                 onChange={(e) => setForm((prev) => ({ ...prev, firstName: e.target.value }))}
-                className="h-11 border-0 border-b border-[color:var(--color-navy)]/45 bg-transparent px-0 text-base text-[color:var(--color-graphite)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/55 focus:border-[color:var(--color-navy)]"
+                className="h-11 border-0 border-b-2 border-[color:var(--color-navy)]/55 bg-transparent px-0 text-base text-[color:var(--color-navy)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/72 focus:border-[color:var(--color-navy)]"
                 placeholder="Max"
               />
             </label>
             <label className="grid gap-2">
-              <span className="text-sm font-medium text-[color:var(--color-navy)]">Nachname *</span>
+              <span className="text-sm font-semibold text-[color:var(--color-navy)]">Nachname *</span>
               <input
                 type="text"
                 name="lastName"
                 required
                 value={form.lastName}
                 onChange={(e) => setForm((prev) => ({ ...prev, lastName: e.target.value }))}
-                className="h-11 border-0 border-b border-[color:var(--color-navy)]/45 bg-transparent px-0 text-base text-[color:var(--color-graphite)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/55 focus:border-[color:var(--color-navy)]"
+                className="h-11 border-0 border-b-2 border-[color:var(--color-navy)]/55 bg-transparent px-0 text-base text-[color:var(--color-navy)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/72 focus:border-[color:var(--color-navy)]"
                 placeholder="Mustermann"
               />
             </label>
@@ -250,40 +293,40 @@ export default function KontaktForm() {
 
           <div className="grid gap-5 sm:grid-cols-2">
             <label className="grid gap-2">
-              <span className="text-sm font-medium text-[color:var(--color-navy)]">E-Mail *</span>
+              <span className="text-sm font-semibold text-[color:var(--color-navy)]">E-Mail *</span>
               <input
                 type="email"
                 name="email"
                 required
                 value={form.email}
                 onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))}
-                className="h-11 border-0 border-b border-[color:var(--color-navy)]/45 bg-transparent px-0 text-base text-[color:var(--color-graphite)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/55 focus:border-[color:var(--color-navy)]"
+                className="h-11 border-0 border-b-2 border-[color:var(--color-navy)]/55 bg-transparent px-0 text-base text-[color:var(--color-navy)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/72 focus:border-[color:var(--color-navy)]"
                 placeholder="name@beispiel.de"
               />
             </label>
             <label className="grid gap-2">
-              <span className="text-sm font-medium text-[color:var(--color-navy)]">Telefon (optional)</span>
+              <span className="text-sm font-semibold text-[color:var(--color-navy)]">Telefon (optional)</span>
               <input
                 type="tel"
                 name="phone"
                 value={form.phone}
                 onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))}
-                className="h-11 border-0 border-b border-[color:var(--color-navy)]/45 bg-transparent px-0 text-base text-[color:var(--color-graphite)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/55 focus:border-[color:var(--color-navy)]"
+                className="h-11 border-0 border-b-2 border-[color:var(--color-navy)]/55 bg-transparent px-0 text-base text-[color:var(--color-navy)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/72 focus:border-[color:var(--color-navy)]"
                 placeholder="04941 986770-0"
               />
             </label>
           </div>
 
           <label className="grid gap-2">
-            <span className="text-sm font-medium text-[color:var(--color-navy)]">Nachricht *</span>
+            <span className="text-sm font-semibold text-[color:var(--color-navy)]">{messageLabel}</span>
             <textarea
               name="message"
               rows={8}
               required
               value={form.message}
               onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
-              className="min-h-[13rem] resize-y rounded-xl border border-[color:var(--color-navy)]/35 bg-white p-4 text-base text-[color:var(--color-graphite)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/55 focus:border-[color:var(--color-navy)]"
-              placeholder="z.B.: Ich überlege, meine Immobilie zu verkaufen und möchte wissen, was sie aktuell wer ist."
+              className="min-h-[13rem] resize-y rounded-xl border-2 border-[color:var(--color-navy)]/45 bg-white p-4 text-base text-[color:var(--color-navy)] outline-none transition-colors placeholder:text-[color:var(--color-graphite)]/72 focus:border-[color:var(--color-navy)]"
+              placeholder={messagePlaceholder}
             />
           </label>
 
@@ -291,11 +334,11 @@ export default function KontaktForm() {
             <div className="h-[55px] max-w-[320px] overflow-hidden rounded-xl bg-white">
               <div ref={widgetRef} id="turnstile-widget" className="min-h-[65px]" />
             </div>
-          ) : (
+          ) : !captchaBypassed ? (
             <p className="text-xs text-red-700">
               Captcha ist noch nicht konfiguriert (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`).
             </p>
-          )}
+          ) : null}
           {captchaEnabled && !captchaReady ? (
             <p className="text-xs text-[color:var(--color-graphite)]/80">
               Captcha wird geladen …
@@ -305,27 +348,27 @@ export default function KontaktForm() {
             <p className="text-xs text-red-700">{captchaError}</p>
           ) : null}
 
-          <p className="text-xs leading-[1.6] text-[color:var(--color-graphite)]/85">
+          <p className="text-xs leading-[1.6] text-[color:var(--color-graphite)]">
             Mit dem Absenden erklärst du dich mit der Verarbeitung deiner Angaben zur Kontaktaufnahme einverstanden.
             Details findest du in unserer{" "}
-            <Link href="/datenschutz" className="underline underline-offset-4">
+            <Link href="/recht/datenschutz" className="underline underline-offset-4">
               Datenschutzerklärung
             </Link>
             .
           </p>
 
-          <div className="pt-2">
+          <div className="pt-5">
             <button
               type="submit"
               disabled={!canSubmit}
-              className="inline-flex rounded-xl bg-[color:var(--color-navy)] px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-55"
+              className="inline-flex rounded-xl bg-[color:var(--color-navy)] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--color-brackish)] disabled:cursor-not-allowed disabled:bg-[color:var(--color-navy)]/72 disabled:text-white"
             >
-              {status === "sending" ? "Wird gesendet..." : "Nachricht senden – wir melden uns persönlich"}
+              {status === "sending" ? "Wird gesendet..." : submitLabel}
             </button>
-            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-medium text-[color:var(--color-graphite)]">
-              <span>✓ Persönliche Rückmeldung</span>
-              <span>✓ Vertraulich</span>
-              <span>✓ Unverbindlich</span>
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-[color:var(--color-navy)]">
+              {trustItems.map((item) => (
+                <span key={item}>✓ {item}</span>
+              ))}
             </div>
           </div>
 

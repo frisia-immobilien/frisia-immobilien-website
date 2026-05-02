@@ -396,7 +396,25 @@ function formatExtraLabel(value: string) {
   }
 }
 
+function formatEuro(value: number | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return null;
+  return `${Math.round(value).toLocaleString("de-DE")} EUR`;
+}
+
+function formatOtherExtrasLines(payload: LeadSyncPayload) {
+  const otherExtras = normalizeText(payload.facts?.otherExtras);
+  const otherExtrasValue = formatEuro(payload.facts?.otherExtrasValueEur);
+  if (!otherExtras && !otherExtrasValue) return [] as string[];
+
+  return [
+    "Zusatzangaben",
+    `Andere Extras: ${otherExtras || "k. A."}`,
+    `Wert der anderen Extras: ${otherExtrasValue || "k. A."}`,
+  ];
+}
+
 function buildDealNote(payload: LeadSyncPayload) {
+  const otherExtrasLines = formatOtherExtrasLines(payload);
   const lines = [
     "Immobilienbewertung",
     "",
@@ -410,6 +428,7 @@ function buildDealNote(payload: LeadSyncPayload) {
         ? payload.facts.rooms
         : "k. A."
     }`,
+    ...(otherExtrasLines.length > 0 ? ["", ...otherExtrasLines] : []),
   ];
 
   return lines.join("\n");
@@ -419,6 +438,7 @@ function buildTaskBody(payload: LeadSyncPayload) {
   const person = payload.person;
   const extras =
     payload.facts?.extras?.filter(Boolean).map(formatExtraLabel).join(", ") || "k. A.";
+  const otherExtrasLines = formatOtherExtrasLines(payload);
   const notes = normalizeText(person?.notes) || "Keine";
   const name = [person?.firstName, person?.lastName].filter(Boolean).join(" ") || "k. A.";
   const rooms =
@@ -448,6 +468,7 @@ function buildTaskBody(payload: LeadSyncPayload) {
     `Zustand: ${formatConditionLabel(payload.facts?.condition)}`,
     `Ausstattung: ${formatQualityLabel(payload.facts?.qualityId)}`,
     `Extras: ${extras}`,
+    ...(otherExtrasLines.length > 0 ? otherExtrasLines : []),
     "",
     "Hinweise",
     `Hinweise: ${notes}`,
@@ -503,9 +524,10 @@ function buildContactAttributes(
   });
 }
 
-function buildPropertyAttributes(payload: LeadSyncPayload, meta: LeadMeta) {
+function buildPropertyAttributes(payload: LeadSyncPayload, meta: LeadMeta, includePrivateNote: boolean) {
   const location = payload.location;
   const propertyType = resolvePropstackPropertyType(payload);
+  const otherExtrasLines = formatOtherExtrasLines(payload);
 
   return compactObject({
     title: buildLeadTitle(payload),
@@ -541,6 +563,10 @@ function buildPropertyAttributes(payload: LeadSyncPayload, meta: LeadMeta) {
         ? payload.facts.yearBuilt
         : undefined,
     energy_efficiency_class: normalizeText(payload.facts?.energyClass) || undefined,
+    description_note:
+      includePrivateNote && otherExtrasLines.length > 0
+        ? ["Website Leadgenerator", "", ...otherExtrasLines].join("\n")
+        : undefined,
   });
 }
 
@@ -573,7 +599,7 @@ async function createOrUpdateProperty(
   payload: LeadSyncPayload,
   meta: LeadMeta,
 ) {
-  const body = { property: buildPropertyAttributes(payload, meta) };
+  const body = { property: buildPropertyAttributes(payload, meta, !propertyId) };
 
   if (propertyId) {
     const updated = await propstackV1Fetch<unknown>(`/units/${propertyId}`, {

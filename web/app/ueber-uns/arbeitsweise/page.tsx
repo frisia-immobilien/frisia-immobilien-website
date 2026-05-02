@@ -40,7 +40,7 @@ export default function ArbeitsweisePage() {
       internalLinks={[
         { href: "/ueber-uns", label: "Über Frisia Immobilien" },
         { href: "/maklerhaus", label: "Das Maklerhaus" },
-        { href: "/immobilie-verkaufen-aurich", label: "Immobilie verkaufen Aurich" },
+        { href: "/haus-verkaufen-aurich", label: "Haus verkaufen Aurich" },
       ]}
     />
   );

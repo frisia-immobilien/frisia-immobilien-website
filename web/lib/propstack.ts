@@ -1,4 +1,5 @@
 const DEFAULT_PROPSTACK_BASE_URL = "https://api.propstack.de/v2";
+const DEFAULT_PROPSTACK_V1_BASE_URL = "https://api.propstack.de/v1";
 
 const PRIMARY_CITY = "aurich";
 const SURROUNDING_CITIES = [
@@ -35,6 +36,12 @@ type PropstackTranslation = {
   furnishing_note?: string | null;
   location_note?: string | null;
   other_note?: string | null;
+};
+
+type PropstackOptionalField = {
+  key?: string | null;
+  name?: string | null;
+  value?: unknown;
 };
 
 type PropstackProperty = {
@@ -77,6 +84,11 @@ type PropstackProperty = {
   energy_efficiency_class?: string | null;
   energy_efficiency_value?: number | null;
   thermal_characteristic?: string | null;
+  firing_types?: string | string[] | null;
+  monument?: string | number | boolean | null;
+  fields?: Record<string, unknown> | null;
+  optional_fields?: PropstackOptionalField[] | null;
+  custom_fields?: Record<string, unknown> | null;
   cellar?: boolean | null;
   balcony?: boolean | null;
   garden?: boolean | null;
@@ -95,6 +107,8 @@ type PropstackProperty = {
   updated_at?: string | null;
 };
 
+type PropstackCustomField = string | { value?: string | null; pretty_value?: string | null } | null;
+
 type PropstackBroker = {
   id: number;
   first_name?: string | null;
@@ -103,8 +117,15 @@ type PropstackBroker = {
   public_phone?: string | null;
   public_cell?: string | null;
   avatar_url?: string | null;
+  custom?: {
+    titel?: PropstackCustomField;
+    qualifikation?: PropstackCustomField;
+  } | null;
   custom_fields?: {
-    titel?: string | null;
+    titel?: PropstackCustomField;
+    Titel?: PropstackCustomField;
+    qualifikation?: PropstackCustomField;
+    Qualifikation?: PropstackCustomField;
   } | null;
 };
 
@@ -122,6 +143,43 @@ type PropstackListResponse<T> = {
 
 function toArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
+}
+
+const ENERGY_CARRIER_LABELS: Record<string, string> = {
+  GAS: "Gas",
+  OIL: "Öl",
+  OEL: "Öl",
+  ELECTRICITY: "Strom",
+  DISTRICT_HEATING: "Fernwärme",
+  GEOTHERMAL: "Erdwärme",
+  SOLAR: "Solar",
+  WOOD: "Holz",
+  PELLET: "Pellets",
+  LIQUID_GAS: "Flüssiggas",
+  COAL: "Kohle",
+};
+
+function normalizeEnergyCarrier(value: string | string[] | null | undefined) {
+  const values = Array.isArray(value)
+    ? value
+    : String(value ?? "")
+        .split(/[,;]/)
+        .map((item) => item.trim());
+
+  const labels = values
+    .filter(Boolean)
+    .map((item) => {
+      const key = item.replace(/[\s/-]+/g, "_").toUpperCase();
+      return (
+        ENERGY_CARRIER_LABELS[key] ??
+        item
+          .replace(/[_-]+/g, " ")
+          .toLocaleLowerCase("de-DE")
+          .replace(/(^|\s)\S/g, (match) => match.toLocaleUpperCase("de-DE"))
+      );
+    });
+
+  return labels.length > 0 ? labels.join(", ") : null;
 }
 
 export type PropertyListItem = {
@@ -189,6 +247,8 @@ export type PropertyDetail = PropertyListItem & {
   energyEfficiencyClass: string | null;
   energyEfficiencyValue: number | null;
   thermalCharacteristic: string | null;
+  energyCarrier: string | null;
+  monumentProtection: boolean;
   cellar: boolean;
   balcony: boolean;
   garden: boolean;
@@ -212,6 +272,16 @@ function getPropstackConfig() {
   }
 
   return { apiKey, baseUrl };
+}
+
+function getPropstackV1Config() {
+  const { apiKey, baseUrl } = getPropstackConfig();
+  const configuredBaseUrl = process.env.PROPSTACK_V1_BASE_URL?.trim();
+  const derivedBaseUrl = baseUrl.replace(/\/v2\/?$/i, "/v1");
+  return {
+    apiKey,
+    baseUrl: configuredBaseUrl || (derivedBaseUrl !== baseUrl ? derivedBaseUrl : DEFAULT_PROPSTACK_V1_BASE_URL),
+  };
 }
 
 async function propstackFetch<T>(path: string, searchParams?: Record<string, string | number | boolean | undefined>) {
@@ -241,6 +311,26 @@ async function propstackFetch<T>(path: string, searchParams?: Record<string, str
   return (await response.json()) as T;
 }
 
+async function propstackV1Fetch<T>(path: string) {
+  const { apiKey, baseUrl } = getPropstackV1Config();
+  const normalizedPath = path.replace(/^\/+/, "");
+  const url = new URL(normalizedPath, `${baseUrl.replace(/\/$/, "")}/`);
+
+  const response = await fetch(url.toString(), {
+    headers: {
+      "X-API-KEY": apiKey,
+      Accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Propstack v1 request failed (${response.status}) for ${path}`);
+  }
+
+  return (await response.json()) as T;
+}
+
 function normalizeText(value?: unknown) {
   if (typeof value === "string") return value.trim();
   if (typeof value === "number") return String(value);
@@ -253,25 +343,44 @@ function normalizeText(value?: unknown) {
   return "";
 }
 
+function getCustomFieldText(field?: PropstackCustomField) {
+  if (!field) return null;
+  if (typeof field === "string") return field;
+  return field.pretty_value ?? field.value ?? null;
+}
+
 function normalizeBrokerTitle(value?: string | null) {
-  const parts = normalizeText(value)
-    .split(/\n+/g)
-    .map((part) => part.trim())
-    .filter(Boolean);
+  return normalizeText(value) || null;
+}
 
-  if (parts.length === 0) return null;
+function isTruthyPropstackFlag(value: unknown) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
 
-  const normalized = parts.join(" ").toLocaleLowerCase("de-DE");
-  if (
-    normalized.includes("immobilienmakler") &&
-    normalized.includes("dekra") &&
-    normalized.includes("wirtschaftsfachwirt") &&
-    normalized.includes("geschäftsführender")
-  ) {
-    return "Immobilienmakler (IHK) · DEKRA-zertifizierter Sachverständiger für Immobilienbewertung – D1 · Geprüfter Wirtschaftsfachwirt (IHK) · Geschäftsführender Gesellschafter";
-  }
+  const normalized = normalizeText(value).toLocaleLowerCase("de-DE");
+  if (!normalized) return false;
 
-  return parts.join(" · ");
+  return !["0", "false", "falsch", "nein", "no", "keine", "nicht vorhanden", "no_information"].includes(
+    normalized,
+  );
+}
+
+function resolveMonumentProtection(property: PropstackProperty) {
+  const optionalMonumentField = property.optional_fields?.find((field) => {
+    const key = normalizeText(field.key).toLocaleLowerCase("de-DE");
+    const name = normalizeText(field.name).toLocaleLowerCase("de-DE");
+    return key === "monument" || name.includes("denkmalschutz") || name.includes("denkmal");
+  });
+  const customMonumentValue = Object.entries(property.custom_fields ?? {}).find(([key]) =>
+    key.toLocaleLowerCase("de-DE").includes("denkmal"),
+  )?.[1];
+
+  return (
+    isTruthyPropstackFlag(property.monument) ||
+    isTruthyPropstackFlag(property.fields?.monument) ||
+    isTruthyPropstackFlag(optionalMonumentField?.value) ||
+    isTruthyPropstackFlag(customMonumentValue)
+  );
 }
 
 function toNumberOrNull(value?: unknown) {
@@ -533,8 +642,22 @@ export async function getImmobilienAurichListingResult(): Promise<PropertyListin
 }
 
 export async function getPropstackPropertyById(id: number) {
-  const property = await propstackFetch<PropstackProperty>(`/properties/${id}`);
-  return property;
+  const [property, v1Supplement] = await Promise.all([
+    propstackFetch<PropstackProperty>(`/properties/${id}`),
+    propstackV1Fetch<Pick<PropstackProperty, "custom_fields" | "fields" | "monument" | "optional_fields">>(
+      `/units/${id}`,
+    ).catch(() => null),
+  ]);
+
+  if (!v1Supplement) return property;
+
+  return {
+    ...property,
+    custom_fields: v1Supplement.custom_fields ?? property.custom_fields,
+    fields: v1Supplement.fields ?? property.fields,
+    monument: v1Supplement.monument ?? property.monument,
+    optional_fields: v1Supplement.optional_fields ?? property.optional_fields,
+  };
 }
 
 export async function getPropstackBrokerById(id: number | null | undefined) {
@@ -582,6 +705,8 @@ export function mapPropertyDetail(property: PropstackProperty, broker?: Propstac
     energyEfficiencyClass: normalizeText(property.energy_efficiency_class) || null,
     energyEfficiencyValue: property.energy_efficiency_value ?? null,
     thermalCharacteristic: normalizeText(property.thermal_characteristic) || null,
+    energyCarrier: normalizeEnergyCarrier(property.firing_types),
+    monumentProtection: resolveMonumentProtection(property),
     cellar: Boolean(property.cellar),
     balcony: Boolean(property.balcony),
     garden: Boolean(property.garden),
@@ -593,6 +718,10 @@ export function mapPropertyDetail(property: PropstackProperty, broker?: Propstac
     otherNote: normalizeText(property.other_note) || normalizeText(findGermanTranslation(property)?.other_note) || null,
     galleryImages: images.filter((image) => !image.isFloorplan),
     floorplanImages: images.filter((image) => image.isFloorplan),
-    contactTitle: normalizeBrokerTitle(broker?.custom_fields?.titel),
+    contactTitle: normalizeBrokerTitle(
+      getCustomFieldText(broker?.custom?.titel) ??
+        getCustomFieldText(broker?.custom_fields?.titel) ??
+        getCustomFieldText(broker?.custom_fields?.Titel),
+    ),
   } satisfies PropertyDetail;
 }

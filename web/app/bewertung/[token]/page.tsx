@@ -4,6 +4,7 @@ import Link from "next/link";
 import LeadValuationTemplate from "@/components/immobilienbewertung/valuation/LeadValuationTemplate";
 import HeroDivider from "@/components/site/HeroDivider";
 import { getLeadByToken } from "@/lib/immobilienbewertung/lead-records";
+import { resolveLandValue } from "@/lib/land/resolveLandValue";
 import { getLeadReportByToken, markReportOpened } from "@/lib/leadgen/repository";
 import {
   formatLeadLocationLabel,
@@ -98,6 +99,78 @@ function reportValueMid(report: ReportResult) {
   return null;
 }
 
+function toFiniteNumber(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  const numberValue = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numberValue) ? numberValue : null;
+}
+
+function reportMarketPricePerSqm(report: ReportResult) {
+  const market = report.market_data;
+  return toFiniteNumber(market?.median_preis_eur_m2) ?? toFiniteNumber(market?.durchschnitt_preis_eur_m2);
+}
+
+function reportMarketPriceBasisLabel(report: ReportResult) {
+  const market = report.market_data;
+  if (toFiniteNumber(market?.median_preis_eur_m2) !== null) return "Medianwert";
+  if (toFiniteNumber(market?.durchschnitt_preis_eur_m2) !== null) return "Durchschnittswert";
+  return null;
+}
+
+function landValueSourceLabel(source: string | null | undefined) {
+  const normalized = String(source ?? "").toLowerCase();
+  if (normalized.includes("niedersachsen")) return "Quelle: BORIS Niedersachsen (LGLN)";
+  if (normalized.includes("boris")) return "Quelle: BORIS Bodenrichtwert";
+  if (normalized.includes("cache")) return "Quelle: BORIS Bodenrichtwert";
+  return "Quelle: BORIS Bodenrichtwert";
+}
+
+function estimatedBodenrichtwertFromReport(report: ReportResult) {
+  const landArea = toFiniteNumber(report.lead_request.plot_area);
+  const baseValue = toFiniteNumber(report.base_value);
+  if (!landArea || landArea <= 0 || !baseValue) return null;
+  return baseValue / landArea;
+}
+
+async function reportLandBodenrichtwert(report: ReportResult) {
+  const lead = report.lead_request;
+  if (lead.object_type !== "grundstueck") return { value: null, sourceLabel: null };
+
+  const plotArea = toFiniteNumber(lead.plot_area);
+  if (!plotArea || plotArea <= 0) return { value: null, sourceLabel: null };
+
+  try {
+    const resolved = await resolveLandValue({
+      street: lead.street,
+      house_number: lead.house_number,
+      postal_code: lead.postal_code,
+      city: lead.city,
+      district: lead.district,
+      landkreis: lead.landkreis,
+      lat: lead.lat,
+      lng: lead.lng,
+      plot_area: plotArea,
+      nutzungsart: lead.sub_type,
+      erschliessung: lead.condition,
+    });
+
+    if (resolved?.bodenrichtwert_eur_m2) {
+      return {
+        value: resolved.bodenrichtwert_eur_m2,
+        sourceLabel: landValueSourceLabel(resolved.source),
+      };
+    }
+  } catch {
+    // Die Ergebnisseite soll auch dann laden, wenn BORIS kurzfristig nicht erreichbar ist.
+  }
+
+  const estimated = estimatedBodenrichtwertFromReport(report);
+  return {
+    value: estimated,
+    sourceLabel: estimated ? "Quelle: BORIS Bodenrichtwert, aus Bewertungsbasis abgeleitet" : null,
+  };
+}
+
 function renderShell(input: {
   title: string;
   text: string;
@@ -144,7 +217,7 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
         type: "shell",
         title: "Ungültiger Link",
         text: "Der Bewertungslink ist unvollständig oder nicht mehr gültig.",
-        ctaHref: "/immobilie-bewerten",
+        ctaHref: "/immobilienbewertung",
         ctaLabel: "Neue Bewertung starten",
       };
     } else {
@@ -158,7 +231,7 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
             title: "Diese Einschätzung ist nicht mehr abrufbar",
             text:
               "Diese Einschätzung ist nicht mehr abrufbar. Fordere bitte eine neue Marktpreiseinschätzung an.",
-            ctaHref: "/immobilie-bewerten",
+            ctaHref: "/immobilienbewertung",
             ctaLabel: "Neue Bewertung starten",
           };
         } else {
@@ -173,7 +246,7 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
             type: "shell",
             title: "Dieser Bewertungslink ist nicht mehr verfügbar",
             text: "Bitte starten Sie eine neue Bewertung oder melden Sie sich direkt bei uns. Wir ordnen Ihre Immobilie gern persönlich ein.",
-            ctaHref: "/immobilie-bewerten",
+            ctaHref: "/immobilienbewertung",
             ctaLabel: "Neue Bewertung starten",
           };
         } else {
@@ -183,7 +256,7 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
               type: "shell",
               title: "Ihre Bewertung ist abgelaufen",
               text: "Der Link war aus Sicherheitsgründen zeitlich begrenzt. Starten Sie die Bewertung einfach neu oder fordern Sie direkt eine persönliche Einordnung an.",
-              ctaHref: "/immobilie-bewerten",
+              ctaHref: "/immobilienbewertung",
               ctaLabel: "Neue Bewertung starten",
             };
           } else {
@@ -227,12 +300,15 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
   if (state.type === "report") {
     const lead = state.report.lead_request;
     const market = state.report.market_data;
+    const landBodenrichtwert = await reportLandBodenrichtwert(state.report);
     return (
       <LeadValuationTemplate
         token={state.token}
         expiresAt={state.report.expires_at}
         email={lead.email ?? ""}
+        phone={lead.phone}
         enableTracking={false}
+        resultTrackingEnabled
         firstName={lead.firstname}
         lastName={lead.lastname}
         propertyTypeLabel={reportObjectTypeLabel(lead.object_type)}
@@ -244,16 +320,23 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
         energyClass={lead.energy_class}
         conditionLabel={lead.condition}
         qualityLabel={lead.equipment}
+        landSubTypeLabel={lead.sub_type}
+        landBodenrichtwertPerSqm={landBodenrichtwert.value}
+        landBodenrichtwertSourceLabel={landBodenrichtwert.sourceLabel}
         extrasLabels={[]}
+        otherExtrasValueEur={lead.other_extras_value_eur}
         valueMid={reportValueMid(state.report)}
         valueMin={state.report.range_min}
         valueMax={state.report.range_max}
         marketLocationLabel={market?.location_label ?? lead.city}
         marketScopeLabel={state.report.market_level_used}
-        marketMedianPerSqm={market?.median_preis_eur_m2 ?? null}
+        marketMedianPerSqm={reportMarketPricePerSqm(state.report)}
+        marketPriceBasisLabel={reportMarketPriceBasisLabel(state.report)}
         marketSalesCount={market?.verkaeufe_anzahl ?? null}
         marketDays={market?.tage_am_markt ?? null}
         marketDeltaPercent={market?.delta_vorjahr_median_prozent ?? null}
+        latitude={lead.lat}
+        longitude={lead.lng}
       />
     );
   }
@@ -263,6 +346,7 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
       token={state.token}
       expiresAt={state.lead.expires_at}
       email={state.lead.email}
+      phone={state.lead.phone}
       salutation={state.lead.salutation}
       firstName={state.lead.first_name}
       lastName={state.lead.last_name}
@@ -276,6 +360,7 @@ export default async function Page({ params }: { params: Promise<PageParams> }) 
       conditionLabel={getLeadgenConditionLabel(state.lead.condition)}
       qualityLabel={getLeadgenQualityLabel(state.lead.quality)}
       extrasLabels={parseExtras(state.lead.extras).map(getLeadgenExtraLabel)}
+      otherExtrasValueEur={state.lead.other_extras_value_eur}
       valueMid={state.lead.value_mid}
       valueMin={state.lead.value_min}
       valueMax={state.lead.value_max}

@@ -17,17 +17,27 @@
  * Performance-Regel:
  * - Diese Datei darf keine Wizard/Step-Imports ziehen, damit die Startseite schlank bleibt.
  *
- * UX-Anforderung (Mobile):
- * - Wenn "Gewerbe" ausgewählt wird, muss die Info-Box zuverlässig ins Sichtfeld gescrollt werden,
- *   sonst "poppt" sie unterhalb des Viewports auf und wird nicht wahrgenommen.
+ * UX-Anforderung Gewerbe:
+ * - Wenn "Gewerbe" ausgewählt wird, öffnen wir ein abgedunkeltes Kontaktformular-Overlay.
+ * - Gewerbeimmobilien werden nicht durch den Standard-Wizard geführt.
  *
  * Hinweis:
  * - Icons sind als optimierte WebP-Bilder eingebunden (schnell & konsistent).
  */
 
-import {useEffect, useMemo, useRef} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
+import dynamic from 'next/dynamic'
+import {createPortal} from 'react-dom'
+
+const KontaktForm = dynamic(() => import('@/components/contact/KontaktForm.client'), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-[1.75rem] border border-white/70 bg-white p-8 text-sm font-semibold text-brand-navy shadow-[0_30px_90px_rgba(0,0,0,0.28)]">
+      Kontaktformular wird geladen ...
+    </div>
+  ),
+})
 
 /* =========================
    TYPES
@@ -110,30 +120,70 @@ function IconBase({
 ========================= */
 export default function PropertyTypeSection(props: Props) {
   const selected = (props.value?.type ?? 'unknown') as PropertyTypeCore
-  const showGewerbeHint = selected === 'commercial'
+  const [showCommercialContact, setShowCommercialContact] = useState(false)
+  const commercialContactOverlay =
+    showCommercialContact && typeof document !== 'undefined'
+      ? createPortal(
+          <div
+            className="fixed inset-0 z-[9999] overflow-y-auto overscroll-contain bg-[rgba(13,31,45,0.76)] px-4 py-6 backdrop-blur-[3px] sm:px-6 sm:py-8"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Kontaktformular für Gewerbeimmobilien"
+            onClick={() => setShowCommercialContact(false)}
+          >
+            <div className="flex min-h-full items-center justify-center">
+              <div
+                className="relative mx-auto w-full max-w-[66rem] max-h-[calc(100dvh-3rem)] overflow-y-auto sm:max-h-[calc(100dvh-4rem)]"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowCommercialContact(false)}
+                  className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--color-navy)]/15 bg-white text-xl font-semibold leading-none text-[color:var(--color-navy)] shadow-[0_12px_30px_rgba(15,23,42,0.14)] transition hover:bg-slate-50"
+                  aria-label="Kontaktformular schließen"
+                >
+                  ×
+                </button>
+                <KontaktForm
+                  id="gewerbe-kontaktformular"
+                  heading="Gewerbeimmobilie persönlich besprechen"
+                  intro={`Gewerbeimmobilien sind komplexer als klassische Wohnimmobilien und lassen sich selten pauschal bewerten. Nutzung, Ertrag, Lage und Entwicklungspotenzial müssen individuell eingeordnet werden.
 
-  /**
-   * Ref auf den Gewerbe-Hinweis-Container:
-   * - wird genutzt, um nach Auswahl von "Gewerbe" zuverlässig ins Sichtfeld zu scrollen (Mobile).
-   */
-  const gewerbeHintRef = useRef<HTMLDivElement | null>(null)
+Lass uns deine Situation kurz persönlich durchgehen. Du bekommst eine klare, realistische Einschätzung – strukturiert, nachvollziehbar und ohne unnötigen Aufwand.`}
+                  messageLabel="Angaben zur Gewerbeimmobilie *"
+                  messagePlaceholder="z.B.: Bürofläche, Halle, Laden oder Praxis, Lage/Adresse, Fläche, aktuelle Nutzung und ob Verkauf oder Vermietung geplant ist."
+                  submitLabel="Anfrage zu Gewerbeimmobilie senden"
+                  successTitle="Anfrage eingegangen"
+                  successMessage="Vielen Dank. Deine Anfrage zur Gewerbeimmobilie ist bei uns eingegangen. Wir melden uns persönlich bei dir."
+                  trustItems={['Persönliche Einordnung', 'Diskret', 'Unverbindlich']}
+                  context="LeadGen Gewerbeimmobilie"
+                />
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null
 
-  /**
-   * Mobile-Wahrnehmung sicherstellen:
-   * - Wenn "Gewerbe" aktiv wird, scrollen wir die Info-Box smooth ins Sichtfeld.
-   * - requestAnimationFrame stellt sicher, dass der DOM-Node bereits gerendert ist.
-   */
   useEffect(() => {
-    if (!showGewerbeHint) return
+    if (!showCommercialContact) return
 
-    requestAnimationFrame(() => {
-      gewerbeHintRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'end',
-        inline: 'nearest',
-      })
-    })
-  }, [showGewerbeHint])
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setShowCommercialContact(false)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [showCommercialContact])
 
   const cards = useMemo(
     () => [
@@ -187,6 +237,10 @@ export default function PropertyTypeSection(props: Props) {
    * - Wizard-Mode: onChange({type}) + optionaler Auto-Fortschritt (nicht für Gewerbe)
    */
   function handleSelect(type: Exclude<PropertyTypeCore, 'unknown'>) {
+    if (type === 'commercial') {
+      setShowCommercialContact(true)
+    }
+
     // Entry-Mode (Startseite): ONLY callback
     if (typeof props.onSelect === 'function') {
       props.onSelect(type)
@@ -198,7 +252,7 @@ export default function PropertyTypeSection(props: Props) {
       props.onChange({type})
     }
 
-    // Auto-Sprung: Haus/Wohnung/Grundstück — Gewerbe bleibt stehen (Box soll gelesen werden)
+    // Auto-Sprung: Haus/Wohnung/Grundstück — Gewerbe öffnet das Kontaktformular-Overlay.
     if (type !== 'commercial' && typeof props.onNext === 'function') {
       props.onNext()
     }
@@ -209,7 +263,7 @@ export default function PropertyTypeSection(props: Props) {
       {/* SEO/GEO microdata (leicht, ohne JS, ohne Risiko) */}
       <meta itemProp="serviceType" content="Immobilienbewertung" />
       <meta itemProp="areaServed" content="Aurich und Ostfriesland" />
-      <meta itemProp="image" content="/immobilienbewertung/icons/haus-bewerten-aurich.webp" />
+      <meta itemProp="image" content="/immobilienbewertung/icons/einfamilienhaus-bewerten-aurich.webp" />
       <meta itemProp="image" content="/immobilienbewertung/icons/wohnung-bewerten-aurich.webp" />
       <meta itemProp="image" content="/immobilienbewertung/icons/grundstueck-bewerten-aurich.webp" />
       <meta itemProp="image" content="/immobilienbewertung/icons/gewerbeimmobilie-bewerten-aurich.webp" />
@@ -219,9 +273,9 @@ export default function PropertyTypeSection(props: Props) {
         Wie viel ist meine Immobilie wert?
       </div>
 
-      <h2 className="mt-5 text-2xl tracking-tight text-brand-navy" itemProp="name">
+      <h3 className="mt-5 text-2xl tracking-tight text-brand-navy" itemProp="name">
         Welche Immobilie möchtest du bewerten?
-      </h2>
+      </h3>
 
       <p className="mt-2 mb-5 text-base leading-relaxed text-brand-graphite" itemProp="description">
         Wähle zuerst die passende Kategorie. Danach führen wir dich Schritt für Schritt durch die
@@ -268,34 +322,7 @@ export default function PropertyTypeSection(props: Props) {
         })}
       </div>
 
-      {/* Gewerbe-Hinweis:
-          - Design/Layout der Box bleiben unverändert.
-          - Ref sitzt auf dem äußeren Wrapper, damit scrollIntoView zuverlässig funktioniert.
-          - pb-6 gibt "Luft" unten, damit die Box nicht an der Browser-UI klebt (Mobile). */}
-      {showGewerbeHint ? (
-        <div ref={gewerbeHintRef} className="mt-5">
-          <div
-            className="mb-[5px] rounded-2xl border border-brand-navy/15 bg-brand-navy/5 p-4"
-            aria-live="polite"
-          >
-            <div className="text-sm font-semibold text-brand-navy">Gewerbeimmobilie?</div>
-
-            <div className="mt-1 text-sm leading-relaxed text-brand-graphite">
-              Frisia Immobilien konzentriert sich auf Wohnimmobilien und Grundstücke in Aurich &
-              Ostfriesland. Wenn es um eine Gewerbeimmobilie geht, ist eine Bewertung meist sehr
-              komplex: melde dich bitte persönlich – wir sagen dir sofort, wie wir helfen können.
-            </div>
-
-            <Link
-              href="/kontakt"
-              className="mt-3 inline-flex items-center rounded-xl border border-brand-navy/25 bg-white px-3 py-2 text-sm font-semibold text-brand-navy hover:bg-brand-navy/05"
-            >
-              Persönlich klären
-            </Link>
-          </div>
-          <br />
-        </div>
-      ) : null}
+      {commercialContactOverlay}
     </div>
   )
 }

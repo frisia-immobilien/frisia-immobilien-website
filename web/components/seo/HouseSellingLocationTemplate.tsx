@@ -1,8 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
+import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
+import { formatLocationPhrase } from "@/lib/seo/locationDisplay";
 import { daysOnMarket, medianPricePerM2, totalSalesCount } from "@/lib/seo/valuationLanding";
-import type { SeoLocationRow } from "@/lib/types/leadgen";
 import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/site";
 
 function numeric(value: number | string | null | undefined) {
@@ -31,30 +34,6 @@ function demandLabel(salesCount: number | null) {
   if (salesCount >= 80) return "hoch";
   if (salesCount >= 25) return "mittel";
   return "gering";
-}
-
-function formatLocationLabel(label: string) {
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]}, ${parts.slice(1).join(", ")}`;
-}
-
-function formatLocationForTemplate(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district}, ${city}`;
-  return formatLocationLabel(label);
-}
-
-function formatLocationForProse(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district} in ${city}`;
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]} in ${parts.slice(1).join(", ")}`;
 }
 
 function Section({
@@ -114,9 +93,9 @@ function StepCard({ index, title, text }: { index: string; title: string; text: 
   );
 }
 
-function FaqItem({ question, answer }: { question: string; answer: string }) {
+function FaqItem({ question, answer, defaultOpen = false }: { question: string; answer: string; defaultOpen?: boolean }) {
   return (
-    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0">
+    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-start justify-between gap-5 px-5 py-5 marker:hidden sm:px-6">
         <h3 className="text-base font-semibold leading-snug text-[color:var(--color-navy)] sm:text-lg">{question}</h3>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)] text-xl leading-none text-[color:var(--color-navy)] transition-transform group-open:rotate-45">
@@ -131,19 +110,18 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function HouseSellingLocationTemplate({ data }: { data: LocationPageData }) {
-  const location = formatLocationForTemplate(data.location);
-  const proseLocation = formatLocationForProse(data.location);
+  const locationPhrase = formatLocationPhrase(data.location);
   const housePriceM2 = medianPricePerM2(data.houseMarket);
   const offerPrice = numeric(data.houseMarket?.median_preis_eur);
   const marketDays = daysOnMarket(data.houseMarket, data.apartmentMarket);
   const salesCount = totalSalesCount(data.houseMarket, data.apartmentMarket);
-  const heroImage = "/images/immobilienbewertung/hero-background.png";
+  const heroImage = "/images/immobilienbewertung/hero-background.webp";
 
   const steps = [
     ["+1", "Du nimmst Kontakt auf", "Wir klären, ob ein Verkauf für dich sinnvoll ist und welche nächsten Schritte passen."],
     ["1", "Erstgespräch", "Wir besprechen deine Situation, dein Haus und dein Ziel."],
     ["2", "Unterlagenprüfung", "Wir prüfen die wichtigsten Objektunterlagen und erkennen mögliche Risiken frühzeitig."],
-    ["3", "Bewertung", `Wir ermitteln einen realistischen Preisrahmen für dein Haus in ${proseLocation}.`],
+    ["3", "Bewertung", `Wir ermitteln einen realistischen Preisrahmen für dein Haus ${locationPhrase}.`],
     ["4", "Verkaufsstrategie", "Wir legen fest, wie dein Haus positioniert wird und welche Käufer angesprochen werden."],
     ["5", "Vorbereitung", "Fotos, Grundriss, Exposé, Energieangaben und Vermarktungsunterlagen werden sauber vorbereitet."],
     ["6", "Vermarktung", "Dein Haus wird strukturiert sichtbar gemacht - passend zur Zielgruppe und zur Nachfrage."],
@@ -154,8 +132,8 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
 
   const faqs = [
     {
-      question: `Wie starte ich den Hausverkauf in ${proseLocation} richtig?`,
-      answer: `Der Hausverkauf startet mit einer realistischen Einordnung des Hauses. Dazu gehören Lage, Zustand, Grundstück, Wohnfläche, Modernisierung, Energie, Nachfrage und vergleichbare Angebote in ${proseLocation}. Erst danach sollte entschieden werden, mit welchem Preis und welcher Strategie das Haus angeboten wird.`,
+      question: `Wie starte ich den Hausverkauf ${locationPhrase} richtig?`,
+      answer: `Der Hausverkauf startet mit einer realistischen Einordnung des Hauses. Dazu gehören Lage, Zustand, Grundstück, Wohnfläche, Modernisierung, Energie, Nachfrage und vergleichbare Angebote ${locationPhrase}. Erst danach sollte entschieden werden, mit welchem Preis und welcher Strategie das Haus angeboten wird.`,
     },
     {
       question: "Warum ist der Angebotspreis beim Hausverkauf so wichtig?",
@@ -166,28 +144,41 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
       answer: "Wir achten darauf, ob die Kaufabsicht ernsthaft ist, ob die Finanzierung plausibel wirkt und ob der Interessent wirklich zum Haus passt. Dadurch werden unnötige Besichtigungen reduziert und der Verkaufsprozess bleibt ruhiger und verbindlicher.",
     },
     {
-      question: `Wie lange dauert ein Hausverkauf in ${proseLocation}?`,
+      question: `Wie lange dauert ein Hausverkauf ${locationPhrase}?`,
       answer: "Die Dauer hängt von Lage, Zustand, Preis, Nachfrage und Käuferzielgruppe ab. Ein gut vorbereiteter Verkauf mit realistischer Einpreisung kann deutlich strukturierter verlaufen als ein Verkauf, der ohne klare Strategie startet.",
     },
     {
-      question: `Warum sollte ich mein Haus in ${proseLocation} mit Frisia Immobilien verkaufen?`,
+      question: `Warum sollte ich mein Haus ${locationPhrase} mit Frisia Immobilien verkaufen?`,
       answer: "Weil Frisia Immobilien den Verkauf nicht dem Zufall überlässt. Wir verbinden regionale Marktkenntnis, fundierte Bewertung, strukturierte Vermarktung, Käuferprüfung und persönliche Begleitung - vom ersten Gespräch bis zum klaren Abschluss.",
     },
   ];
 
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-[color:var(--color-section)]">
+      <MobileHeroSection
+        eyebrow={`Haus verkaufen ${locationPhrase}`}
+        title={<>Haus verkaufen {locationPhrase}</>}
+        description="Mit klarem Preisansatz, geprüften Käufern und einer strukturierten Vorgehensweise vom ersten Gespräch bis zum Notartermin."
+        imageSrc={heroImage}
+        imageAlt=""
+        imagePosition="right center"
+        primaryCta={{ href: "#verkauf-planen", label: "Verkauf planen" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Klare Bewertung", "Strukturierter Verkauf", "Geprüfte Käufer"]}
+      />
+
+      <section className="relative isolate hidden overflow-hidden bg-[color:var(--color-section)] md:block">
         <Image src={heroImage} alt="" fill priority sizes="100vw" className="object-cover object-right opacity-90" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.50)_34%,rgba(255,255,255,0.18)_58%,rgba(255,255,255,0.04)_100%)]" />
         <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[1440px] gap-10 px-5 py-14 sm:px-8 md:py-16 lg:grid-cols-[1.12fr_0.88fr] lg:items-center lg:px-12">
           <div className="max-w-[47rem]">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
-              Haus verkaufen in {location}
+              Haus verkaufen {locationPhrase}
             </p>
-            <h1 className="mt-5 max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)]">
-              Haus verkaufen in {location}
+            <h1 className="mt-5 max-w-full break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
+              Haus verkaufen {locationPhrase}
             </h1>
+            <HeroDivider />
             <p className="mt-7 max-w-3xl text-[1.15rem] leading-[1.65] text-[color:var(--color-navy)] md:text-[1.35rem]">
               Mit klarem Preisansatz, geprüften Käufern und einer strukturierten Vorgehensweise vom ersten Gespräch bis zum Notartermin.
             </p>
@@ -223,11 +214,13 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
         </div>
       </section>
 
-      <Section title={`Warum viele Hausverkäufe in ${proseLocation} unnötig schwer werden`}>
+      <RegionalCrossLinks data={data} placement="hero" />
+
+      <Section title={`Warum viele Hausverkäufe ${locationPhrase} unnötig schwer werden`}>
         <p>Viele Eigentümer starten mit einer groben Preisvorstellung. Genau hier entstehen die größten Risiken.</p>
         <p>Ist der Angebotspreis zu hoch, bleibt das Haus zu lange am Markt. Interessenten werden vorsichtig, Besichtigungen nehmen ab und spätere Preisreduzierungen wirken wie ein Warnsignal.</p>
         <p>Ist der Preis zu niedrig, entsteht zwar schnell Nachfrage - aber ein Teil des möglichen Verkaufserlöses bleibt liegen.</p>
-        <p>Für dich zählt deshalb nicht irgendein Wunschpreis, sondern ein Preisrahmen, der zum Haus, zur Lage in {proseLocation}, zur Nachfrage und zur aktuellen Marktsituation passt.</p>
+        <p>Für dich zählt deshalb nicht irgendein Wunschpreis, sondern ein Preisrahmen, der zum Haus, zur Lage {locationPhrase}, zur Nachfrage und zur aktuellen Marktsituation passt.</p>
         <div className="grid gap-4 md:grid-cols-3">
           <InfoCard title="Zu hoch angesetzt" text="Das Haus bleibt länger sichtbar. Nachfrage und Verhandlungsposition werden schwächer." />
           <InfoCard title="Zu niedrig angesetzt" text="Der Verkauf wirkt schnell - aber du verschenkst mögliches Kapital." />
@@ -235,8 +228,8 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
         </div>
       </Section>
 
-      <Section title={`Der Hausmarkt in ${proseLocation} entscheidet über Tempo und Preis`} muted>
-        <p>Ein guter Verkaufspreis entsteht nicht allein aus Wohnfläche, Baujahr oder Grundstücksgröße. Entscheidend ist, wie der Markt in {proseLocation} aktuell reagiert: Wie viele vergleichbare Häuser angeboten werden, wie schnell Käufer reagieren und welche Preisspannen tatsächlich akzeptiert werden.</p>
+      <Section title={`Der Hausmarkt ${locationPhrase} entscheidet über Tempo und Preis`} muted>
+        <p>Ein guter Verkaufspreis entsteht nicht allein aus Wohnfläche, Baujahr oder Grundstücksgröße. Entscheidend ist, wie der Markt {locationPhrase} aktuell reagiert: Wie viele vergleichbare Häuser angeboten werden, wie schnell Käufer reagieren und welche Preisspannen tatsächlich akzeptiert werden.</p>
         <dl className="grid gap-4 md:grid-cols-4">
           <DataCard label="Ø Angebotspreis" value={formatEuro(offerPrice)} />
           <DataCard label="Ø Preis pro m²" value={formatEuroPerM2(housePriceM2)} />
@@ -246,8 +239,8 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
         <p>Diese Werte geben dir eine erste Orientierung. Für deinen konkreten Verkauf zählt jedoch die individuelle Einordnung deines Hauses: Zustand, Lage, Grundstück, Energie, Modernisierung, Grundriss und Käuferzielgruppe.</p>
       </Section>
 
-      <Section title={`Haus verkaufen in ${proseLocation} - mit dem 9+1 System`}>
-        <p>Der erste Schritt ist dein Anruf. Danach führen wir den Verkauf klar, ruhig und strukturiert.</p>
+      <Section title={`Haus verkaufen ${locationPhrase} - mit dem 9+1 System`}>
+        <p>Der erste Schritt ist dein Anruf. Danach übernehmen wir alle weiteren Schritte und führen den Verkauf klar, ruhig und strukturiert.</p>
         <div className="grid gap-4 md:grid-cols-2">
           {steps.map(([index, title, text]) => (
             <StepCard key={`${index}-${title}`} index={index} title={title} text={text} />
@@ -277,7 +270,7 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
       <Section title="Das Ergebnis: ein ruhiger Verkauf mit klarem Abschluss" muted>
         <p>Ein guter Hausverkauf fühlt sich nicht hektisch an. Er ist vorbereitet, nachvollziehbar und geführt.</p>
         <p>Du weißt, wo dein Haus preislich steht. Du weißt, welche Schritte folgen. Und du musst dich nicht mit jedem Detail allein beschäftigen.</p>
-        <p>Frisia Immobilien übernimmt Bewertung, Strategie, Vermarktung, Käuferprüfung, Verhandlung und Abschlussbegleitung - mit regionaler Marktkenntnis in {proseLocation}, Aurich und ganz Ostfriesland.</p>
+        <p>Frisia Immobilien übernimmt Bewertung, Strategie, Vermarktung, Käuferprüfung, Verhandlung und Abschlussbegleitung - mit regionaler Marktkenntnis {locationPhrase}, Aurich und ganz Ostfriesland.</p>
         <div className="grid gap-4 md:grid-cols-4">
           <InfoCard title="Klarer Preisrahmen" text="Du startest nicht mit Vermutungen, sondern mit Orientierung." />
           <InfoCard title="Strukturierter Ablauf" text="Jeder Schritt ist vorbereitet und nachvollziehbar." />
@@ -289,10 +282,10 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
       <section id="verkauf-planen" className="bg-[color:var(--color-navy)] py-12 text-white md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight md:text-[2.85rem]">
-            Hausverkauf in {proseLocation} strukturiert starten
+            Hausverkauf {locationPhrase} strukturiert starten
           </h2>
           <p className="mt-5 max-w-4xl text-base leading-[1.8] text-white/86 md:text-lg">
-            Wenn du dein Haus in {proseLocation} verkaufen möchtest, beginnen wir mit einer klaren Einschätzung: realistische Preisspanne, passende Verkaufsstrategie und nächster sinnvoller Schritt.
+            Wenn du dein Haus {locationPhrase} verkaufen möchtest, beginnen wir mit einer klaren Einschätzung: realistische Preisspanne, passende Verkaufsstrategie und nächster sinnvoller Schritt.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link href="/kontakt" className="inline-flex min-h-14 items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-semibold text-[color:var(--color-navy)]">
@@ -309,11 +302,11 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
       <section className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[980px] px-5 sm:px-8">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight text-[color:var(--color-navy)] md:text-[2.85rem]">
-            Häufige Fragen zum Hausverkauf in {proseLocation}
+            Häufige Fragen zum Hausverkauf {locationPhrase}
           </h2>
           <div className="mt-6 divide-y divide-[color:var(--color-brass)]/20 rounded-xl border border-[color:var(--color-brass)]/25 bg-white shadow-[0_18px_70px_-64px_rgba(27,48,64,0.45)]">
-            {faqs.map((item) => (
-              <FaqItem key={item.question} question={item.question} answer={item.answer} />
+            {faqs.map((item, index) => (
+              <FaqItem key={item.question} question={item.question} answer={item.answer} defaultOpen={index === 0} />
             ))}
           </div>
         </div>

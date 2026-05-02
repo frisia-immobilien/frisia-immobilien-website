@@ -3,6 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
 import LeadGenWizard from "@/components/immobilienbewertung/LeadGenWizard.client";
+import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
 import {
   AREA_SERVED,
@@ -19,12 +22,12 @@ import {
 } from "@/lib/site";
 
 const PATH = "/immobilie-verkaufen-aurich";
-const META_TITLE = "Immobilie verkaufen Aurich | Bewertung & Verkauf mit Frisia Immobilien";
+const META_TITLE = "Immobilie verkaufen Aurich: Bewertung und Verkauf | Frisia Immobilien";
 const META_DESCRIPTION =
   "Immobilie in Aurich verkaufen? Frisia Immobilien begleitet dich mit fundierter Bewertung, klarer Verkaufsstrategie und persönlicher Betreuung in Aurich und Ostfriesland.";
-const HERO_IMAGE = "/images/hero/immobilie-verkaufen-aurich-hero-galgen.png";
-const HERO_REFERENCES_IMAGE = "/images/hero/referenzen_eigentuemer_isolated_browser.png";
-const HERO_LOCK_IMAGE = "/images/hero/schloss.png";
+const HERO_IMAGE = "/images/hero/immobilie-verkaufen-aurich-hero-verkauft-maklergalgen.webp";
+const HERO_REFERENCES_IMAGE = "/images/hero/referenzen_eigentuemer_isolated_browser.webp";
+const HERO_LOCK_IMAGE = "/images/hero/schloss.webp";
 const SEBASTIAN_IMAGE =
   "/images/hero/dekra-zertifizierter-sachverstaendiger-fuer-immobilenbewertung-d1-sebastian_munzig.webp";
 
@@ -36,7 +39,7 @@ const heroTrustItems = [
 
 const heroStats = [
   { value: "200+", label: "Verkaufte Immobilien*" },
-  { value: "4,8★", label: "Kundenbewertung" },
+  { value: "4,8", label: "Kundenbewertung", suffix: "★" },
   { value: "50+", label: "Jahre Erfahrung*" },
   { value: "100%", label: "Persönlich für dich da" },
 ] as const;
@@ -85,38 +88,38 @@ const solutionItems = [
 ] as const;
 
 const principleSteps = [
-  { label: "+1", title: "Dein Anruf / deine Anfrage" },
-  { label: "1", title: "Bewertung" },
-  { label: "2", title: "Unterlagen" },
-  { label: "3", title: "Strategie" },
-  { label: "4", title: "Präsentation" },
-  { label: "5", title: "Vermarktung" },
-  { label: "6", title: "Käuferprüfung" },
-  { label: "7", title: "Besichtigung" },
-  { label: "8", title: "Verhandlung" },
-  { label: "9", title: "Notartermin & Übergabe" },
+  { label: "+1", title: "Dein Anruf / deine Anfrage", text: "Du schilderst kurz deine Situation. Wir ordnen ein, welcher nächste Schritt sinnvoll ist." },
+  { label: "1", title: "Bewertung", text: "Wir ermitteln einen realistischen Preisrahmen für deine Immobilie in Aurich." },
+  { label: "2", title: "Unterlagen", text: "Alle wichtigen Dokumente werden geprüft, ergänzt und verkaufsbereit vorbereitet." },
+  { label: "3", title: "Strategie", text: "Preis, Zielgruppe und Vermarktungsweg werden klar festgelegt." },
+  { label: "4", title: "Präsentation", text: "Fotos, Exposé und Energieangaben bringen die Immobilie sauber auf den Punkt." },
+  { label: "5", title: "Vermarktung", text: "Deine Immobilie wird gezielt sichtbar gemacht, ohne unnötige Streuverluste." },
+  { label: "6", title: "Käuferprüfung", text: "Anfragen werden eingeordnet, qualifiziert und vor Besichtigungen geprüft." },
+  { label: "7", title: "Besichtigung", text: "Termine werden vorbereitet, geführt und auf echte Abschlussfähigkeit geprüft." },
+  { label: "8", title: "Verhandlung", text: "Preis, Bedingungen und Zeitplan werden ruhig und verbindlich abgestimmt." },
+  { label: "9", title: "Notartermin & Übergabe", text: "Wir begleiten Abschluss, Kaufvertrag und Übergabe bis alles sauber erledigt ist." },
 ] as const;
 
 const processPhases = [
   {
-    title: "Klarheit schaffen",
-    text: "Bewertung, Situation, Ziel und Unterlagen werden sauber eingeordnet.",
+    title: "Klarheit von Anfang an",
+    text: "Du weißt, welcher Preis realistisch ist und welche nächsten Schritte sinnvoll sind.",
   },
   {
-    title: "Verkauf vorbereiten",
-    text: "Preisstrategie, Präsentation, Exposé und Vermarktungsweg werden festgelegt.",
+    title: "Saubere Vorbereitung",
+    text: "Unterlagen, Präsentation und Vermarktung werden geordnet vorbereitet.",
   },
   {
-    title: "Käufer finden",
-    text: "Reichweite, Vorauswahl und geprüfte Interessenten bringen Ordnung in die Nachfrage.",
+    title: "Geprüfte Käufer",
+    text: "Anfragen werden vorsortiert, qualifiziert und auf Abschlussfähigkeit geprüft.",
   },
   {
-    title: "Sicher verhandeln",
-    text: "Kommunikation, Preisführung und Abschlussvorbereitung bleiben in einer Hand.",
+    title: "Sichere Verhandlung",
+    text: "Preis, Bedingungen und Zeitplan werden ruhig und verbindlich geführt.",
   },
   {
-    title: "Notar & Übergabe",
-    text: "Frisia Immobilien begleitet den Verkauf bis zur rechtssicheren Übergabe.",
+    title: "Begleiteter Abschluss",
+    text: "Notartermin, Kaufvertrag und Übergabe bleiben sauber begleitet.",
   },
 ] as const;
 
@@ -130,23 +133,23 @@ const whyItems = [
 ] as const;
 
 const districts = [
-  "Innenstadt",
-  "Extum",
-  "Haxtum",
-  "Walle",
-  "Sandhorst",
-  "Tannenhausen",
-  "Egels",
-  "Kirchdorf",
-  "Wallinghausen",
-  "Popens",
+  { label: "Innenstadt", href: "/immobilie-verkaufen-innenstadt-aurich" },
+  { label: "Extum", href: "/immobilie-verkaufen-extum" },
+  { label: "Haxtum", href: "/immobilie-verkaufen-haxtum" },
+  { label: "Walle", href: "/immobilie-verkaufen-walle" },
+  { label: "Sandhorst", href: "/immobilie-verkaufen-sandhorst" },
+  { label: "Tannenhausen", href: "/immobilie-verkaufen-tannenhausen" },
+  { label: "Egels", href: "/immobilie-verkaufen-egels" },
+  { label: "Kirchdorf", href: "/immobilie-verkaufen-kirchdorf" },
+  { label: "Wallinghausen", href: "/immobilie-verkaufen-wallinghausen" },
+  { label: "Popens", href: "/immobilie-verkaufen-popens" },
 ] as const;
 
-const internalLinks = [
+const internalInfoLinks = [
+  { href: "/immobilie-verkaufen-aurich", label: "Immobilie verkaufen in Aurich" },
   { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung Aurich" },
-  { href: "/immobilienmakler-aurich", label: "Immobilienmakler Aurich" },
-  { href: "/haus-verkaufen-aurich", label: "Haus verkaufen Aurich" },
-  { href: "/kontakt", label: "Kontakt aufnehmen" },
+  { href: "/immobilienpreise-aurich", label: "Immobilienpreise Aurich" },
+  { href: "/immobilien-aurich", label: "Aktuelle Immobilien" },
 ] as const;
 
 function BoxCheckIcon() {
@@ -335,7 +338,23 @@ export default function ImmobilieVerkaufenAurichPage() {
       <JsonLd data={realEstateAgentJsonLd} />
       <JsonLd data={localBusinessJsonLd} />
 
-      <section className="relative isolate overflow-x-hidden bg-white">
+      <MobileHeroSection
+        eyebrow="Immobilie verkaufen in Aurich & Ostfriesland"
+        title={
+          <>
+            Immobilie verkaufen in Aurich & Ostfriesland
+          </>
+        }
+        description="Wir begleiten dich persönlich, bewerten realistisch und finden den richtigen Käufer - ruhig, klar und verbindlich."
+        imageSrc={HERO_IMAGE}
+        imageAlt="Gepflegte Immobilie am Wasser in Aurich als Symbol für einen strukturierten Immobilienverkauf"
+        imagePosition="64% center"
+        primaryCta={{ href: "#bewertung", label: "Immobilie bewerten lassen" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Kostenfrei", "DEKRA-zertifiziert", "Persönlich aus Aurich"]}
+      />
+
+      <section className="relative isolate hidden overflow-x-hidden bg-white md:block">
         <div className="relative w-full overflow-hidden bg-[color:var(--color-section)] lg:min-h-[calc(100svh-4rem)]">
         <Image
           src={HERO_IMAGE}
@@ -347,11 +366,11 @@ export default function ImmobilieVerkaufenAurichPage() {
         />
         <div
           aria-hidden="true"
-          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_26%,rgba(255,255,255,0.62)_42%,rgba(255,255,255,0.14)_58%,rgba(255,255,255,0)_78%)]"
+          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.95)_24%,rgba(255,255,255,0.78)_46%,rgba(255,255,255,0.24)_70%,rgba(255,255,255,0.04)_100%)]"
         />
         <div
           aria-hidden="true"
-          className="absolute inset-x-0 bottom-0 h-36 bg-[linear-gradient(0deg,rgba(255,255,255,0.84)_0%,rgba(255,255,255,0)_100%)]"
+          className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,rgba(255,255,255,0.10)_62%,rgba(255,255,255,0.52)_100%)]"
         />
 
         <div className="relative z-10 mx-auto w-full max-w-[1440px] px-5 pb-10 pt-14 sm:px-8 md:pb-12 md:pt-16 lg:min-h-[calc(100svh-4rem)] lg:px-12 lg:pb-44 lg:pt-20">
@@ -359,12 +378,12 @@ export default function ImmobilieVerkaufenAurichPage() {
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)] sm:text-[0.78rem] sm:tracking-[0.18em]">
               Immobilie verkaufen in Aurich & Ostfriesland
             </p>
-            <div className="mt-6 h-1 w-24 bg-[color:var(--color-brass)] sm:w-28" aria-hidden="true" />
             <h1 className="mt-7 max-w-full font-[family-name:var(--font-playfair)] text-[clamp(2.4rem,10vw,3.35rem)] leading-[1.05] text-[color:var(--color-navy)] sm:text-[4.1rem] lg:text-[5rem]">
               Deine Immobilie
               <span className="block">in Aurich erfolgreich</span>
               <span className="block">verkaufen.</span>
             </h1>
+            <HeroDivider />
             <p className="mt-6 max-w-[38rem] text-[1.02rem] leading-[1.6] text-[color:var(--color-navy)] sm:text-[1.15rem] md:text-[1.28rem]">
               Wir begleiten dich persönlich, bewerten realistisch und finden den richtigen Käufer –{" "}
               <span className="font-semibold">zum besten Preis.</span>
@@ -401,14 +420,6 @@ export default function ImmobilieVerkaufenAurichPage() {
                 className="inline-flex min-h-14 w-full items-center justify-center gap-4 rounded-xl border border-[color:var(--color-brass)]/24 bg-white/94 px-7 py-4 text-[0.98rem] font-semibold text-[color:var(--color-navy)] shadow-[0_16px_36px_-32px_rgba(27,48,64,0.65)] transition-colors hover:border-[color:var(--color-brackish)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)] sm:w-auto"
               >
                 <span>Kostenlose Bewertung</span>
-                <Image
-                  src="/immobilienbewertung/icons/hero/statistik.png"
-                  alt=""
-                  width={24}
-                  height={24}
-                  sizes="24px"
-                  className="h-6 w-6 shrink-0 object-contain"
-                />
               </a>
             </div>
 
@@ -455,6 +466,9 @@ export default function ImmobilieVerkaufenAurichPage() {
                 >
                   <p className="font-[family-name:var(--font-playfair)] text-[2rem] leading-none text-[color:var(--color-navy)]">
                     {item.value}
+                    {"suffix" in item ? (
+                      <span className="text-[color:var(--color-brass)]">{item.suffix}</span>
+                    ) : null}
                   </p>
                   <p className="mt-2 text-[0.88rem] leading-[1.45] text-[color:var(--color-graphite)]">
                     {item.label}
@@ -543,7 +557,9 @@ export default function ImmobilieVerkaufenAurichPage() {
         </div>
       </section>
 
-      <section id="prozess" className="bg-white py-14 md:py-20">
+      <AurichMarketTeaser tone="white" />
+
+      <section id="prozess" className="bg-[color:var(--color-section)] py-14 md:py-20">
         <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
           <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
             <div className="max-w-3xl">
@@ -555,8 +571,9 @@ export default function ImmobilieVerkaufenAurichPage() {
               </h2>
             </div>
             <p className="max-w-[48rem] border-l-2 border-[color:var(--color-brass)]/55 pl-5 text-[1.05rem] leading-[1.75] text-[color:var(--color-graphite)]">
-              Der erste Schritt ist dein kurzer Anruf oder deine Bewertungsanfrage. Danach führt Frisia Immobilien dich
-              strukturiert durch Bewertung, Vorbereitung, Vermarktung, Käuferprüfung, Verhandlung und Abschluss.
+              Unser 9+1 Prinzip: Der erste Schritt ist dein kurzer Anruf oder deine Bewertungsanfrage. Danach übernehmen
+              wir alle weiteren Schritte für dich. Frisia Immobilien führt dich strukturiert durch Bewertung,
+              Vorbereitung, Vermarktung, Käuferprüfung, Verhandlung und Abschluss.
             </p>
           </div>
 
@@ -565,7 +582,7 @@ export default function ImmobilieVerkaufenAurichPage() {
               {principleSteps.map((step, index) => (
                 <article
                   key={`${step.label}-${step.title}`}
-                  className={`relative min-h-[9.5rem] overflow-hidden rounded-2xl border p-5 shadow-[0_14px_34px_-32px_rgba(27,48,64,0.45)] ${
+                  className={`relative min-h-[13rem] overflow-hidden rounded-2xl border p-5 shadow-[0_14px_34px_-32px_rgba(27,48,64,0.45)] ${
                     index === 0
                       ? "border-[color:var(--color-navy)] bg-[color:var(--color-navy)] text-white"
                       : "border-[color:var(--color-brass)]/22 bg-white text-[color:var(--color-navy)]"
@@ -582,15 +599,30 @@ export default function ImmobilieVerkaufenAurichPage() {
                       {step.label}
                     </span>
                     {index < principleSteps.length - 1 ? (
-                      <span
+                      <svg
                         aria-hidden="true"
-                        className={`hidden h-px flex-1 lg:block ${
-                          index === 0 ? "bg-white/28" : "bg-[color:var(--color-brass)]/25"
+                        viewBox="0 0 132 18"
+                        preserveAspectRatio="none"
+                        className={`hidden h-5 flex-1 lg:block ${
+                          index === 0 ? "text-white/35" : "text-[color:var(--color-brass)]/45"
                         }`}
-                      />
+                      >
+                        <path
+                          d="M1 9H124M116 2L124 9L116 16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          vectorEffect="non-scaling-stroke"
+                        />
+                      </svg>
                     ) : null}
                   </div>
                   <h3 className="mt-5 text-[1.16rem] font-semibold leading-[1.35]">{step.title}</h3>
+                  <p className={`mt-3 text-[0.92rem] leading-[1.62] ${index === 0 ? "text-white/82" : "text-[color:var(--color-graphite)]"}`}>
+                    {step.text}
+                  </p>
                 </article>
               ))}
             </div>
@@ -598,16 +630,13 @@ export default function ImmobilieVerkaufenAurichPage() {
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] py-14 md:py-20">
+      <section className="bg-white py-14 md:py-20">
         <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
-          <SectionHeading title="So läuft der Immobilienverkauf mit Frisia Immobilien ab." />
+          <SectionHeading title="Was dieses Prinzip für dich bedeutet." />
           <div className="mt-9 grid gap-4 lg:grid-cols-5">
-            {processPhases.map((phase, index) => (
+            {processPhases.map((phase) => (
               <article key={phase.title} className="rounded-2xl border border-[color:var(--color-brass)]/22 bg-white p-6">
-                <p className="text-[0.82rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--color-brackish)]">
-                  Phase {index + 1}
-                </p>
-                <h3 className="mt-3 text-[1.25rem] font-semibold leading-[1.35] text-[color:var(--color-navy)]">{phase.title}</h3>
+                <h3 className="text-[1.25rem] font-semibold leading-[1.35] text-[color:var(--color-navy)]">{phase.title}</h3>
                 <p className="mt-3 text-[0.98rem] leading-[1.72] text-[color:var(--color-graphite)]">{phase.text}</p>
               </article>
             ))}
@@ -615,7 +644,7 @@ export default function ImmobilieVerkaufenAurichPage() {
         </div>
       </section>
 
-      <section className="bg-white py-14 md:py-20">
+      <section className="bg-[color:var(--color-section)] py-14 md:py-20">
         <div className="mx-auto grid w-full max-w-[1240px] gap-9 px-4 sm:px-6 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-5">
             <SectionHeading title="Warum du in Aurich mit Frisia Immobilien verkaufst." />
@@ -631,7 +660,7 @@ export default function ImmobilieVerkaufenAurichPage() {
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] py-14 md:py-20">
+      <section className="bg-white py-14 md:py-20">
         <div className="mx-auto w-full max-w-[980px] px-4 sm:px-6">
           <article className="rounded-2xl border border-[color:var(--color-brass)]/24 bg-white p-6 shadow-[0_18px_50px_-42px_rgba(27,48,64,0.45)] md:p-9">
             <h2 className="font-[family-name:var(--font-playfair)] text-[2rem] leading-[1.16] text-[color:var(--color-navy)] md:text-[2.65rem]">
@@ -654,7 +683,7 @@ export default function ImmobilieVerkaufenAurichPage() {
         </div>
       </section>
 
-      <section className="bg-white py-14 md:py-20">
+      <section className="bg-[color:var(--color-section)] py-14 md:py-20">
         <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
           <div className="grid gap-9 lg:grid-cols-12 lg:items-start">
             <div className="lg:col-span-7">
@@ -665,16 +694,20 @@ export default function ImmobilieVerkaufenAurichPage() {
             </div>
             <div className="grid grid-cols-2 gap-3 lg:col-span-5">
               {districts.map((district) => (
-                <span key={district} className="rounded-xl border border-[color:var(--color-brass)]/22 bg-[color:var(--color-section)] px-4 py-3 text-[0.95rem] font-medium text-[color:var(--color-navy)]">
-                  {district}
-                </span>
+                <Link
+                  key={district.href}
+                  href={district.href}
+                  className="rounded-xl border border-[color:var(--color-brass)]/22 bg-[color:var(--color-section)] px-4 py-3 text-[0.95rem] font-medium text-[color:var(--color-navy)] transition hover:border-[color:var(--color-brass)] hover:bg-white"
+                >
+                  {district.label}
+                </Link>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] py-14 md:py-20">
+      <section className="bg-white py-14 md:py-20">
         <div className="mx-auto grid w-full max-w-[1240px] gap-8 px-4 sm:px-6 lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-4">
             <div className="mx-auto max-w-[18rem] overflow-hidden rounded-2xl border border-[color:var(--color-brass)]/22 bg-white lg:mx-0">
@@ -706,7 +739,7 @@ export default function ImmobilieVerkaufenAurichPage() {
         </div>
       </section>
 
-      <section id="faq" className="bg-white py-14 md:py-20">
+      <section id="faq" className="bg-[color:var(--color-section)] py-14 md:py-20">
         <div className="mx-auto w-full max-w-[980px] px-4 sm:px-6">
           <SectionHeading eyebrow="FAQ" title="Häufige Fragen zum Immobilienverkauf in Aurich" />
           <div className="mt-9 space-y-4 border-t border-[color:var(--color-brass)]/25 pt-5">
@@ -734,7 +767,7 @@ export default function ImmobilieVerkaufenAurichPage() {
         </div>
       </section>
 
-      <section className="bg-[color:var(--color-section)] py-14 md:py-20">
+      <section className="bg-white py-14 md:py-20">
         <div className="mx-auto w-full max-w-[980px] px-4 text-center sm:px-6">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.2rem] leading-[1.14] text-[color:var(--color-navy)] md:text-[3rem]">
             Du möchtest deine Immobilie in Aurich verkaufen?
@@ -750,16 +783,24 @@ export default function ImmobilieVerkaufenAurichPage() {
           <p className="mt-8 text-[1.15rem] font-semibold text-[color:var(--color-navy)]">
             Du musst dich nicht allein darum kümmern.
           </p>
-          <nav aria-label="Weiterführende Seiten" className="mt-10 border-t border-[color:var(--color-brass)]/25 pt-6">
-            <ul className="flex flex-wrap justify-center gap-x-5 gap-y-3 text-[0.95rem] text-[color:var(--color-graphite)]">
-              {internalLinks.map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href} className="underline underline-offset-4 hover:text-[color:var(--color-navy)]">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        </div>
+      </section>
+
+      <section className="bg-[color:var(--color-section)] px-4 py-14 sm:px-6 md:py-20">
+        <div className="mx-auto w-full max-w-[1240px] rounded-[1.5rem] border border-[color:var(--color-brass)]/18 bg-white p-6 shadow-[0_18px_54px_-48px_rgba(27,48,64,0.45)] md:p-8">
+          <p className="text-[0.75rem] font-semibold uppercase tracking-[0.15em] text-[color:var(--color-brackish)]">
+            Weiterführende Informationen
+          </p>
+          <nav className="mt-6 flex flex-wrap gap-3" aria-label="Weiterführende Informationen">
+            {internalInfoLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="inline-flex min-h-12 items-center rounded-full border border-[color:var(--color-brass)]/25 bg-white px-5 py-2.5 text-[0.98rem] font-semibold text-[color:var(--color-navy)] transition-colors hover:border-[color:var(--color-brass)] hover:bg-[color:var(--color-section)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brass)]"
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
         </div>
       </section>
@@ -770,12 +811,6 @@ export default function ImmobilieVerkaufenAurichPage() {
         </p>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--color-brass)]/25 bg-white/96 p-3 shadow-[0_-16px_35px_-30px_rgba(27,48,64,0.7)] backdrop-blur md:hidden">
-        <div className="grid grid-cols-2 gap-2">
-          <PrimaryCta label="Jetzt Marktwert ermitteln" className="min-h-12 px-3 text-[0.9rem]" />
-          <PhoneCta label="Direkt sprechen – wir klären das für dich" className="min-h-12 px-2 text-[0.78rem] leading-tight" />
-        </div>
-      </div>
     </main>
   );
 }

@@ -39,7 +39,7 @@ export default function MietspiegelAurichPage() {
         },
       ]}
       internalLinks={[
-        { href: "/immobilienmarkt-aurich", label: "Immobilienmarkt Aurich" },
+        { href: "/immobilienbewertung-aurich", label: "Immobilienbewertung Aurich" },
         { href: "/immobilienpreise-aurich", label: "Immobilienpreise Aurich" },
         { href: "/immobilien-aurich", label: "Immobilien Aurich" },
       ]}

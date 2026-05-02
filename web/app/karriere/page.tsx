@@ -2,11 +2,16 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import KontaktForm from "@/components/contact/KontaktForm.client";
 import JsonLd from "@/components/seo/JsonLd";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
 import { SITE_URL, createBreadcrumbListJsonLd, createFAQPageJsonLd, createJobPostingJsonLd, createWebPageJsonLd } from "@/lib/site";
 
-const heroImage = "/images/karriere/karriere-hero-frisia.png";
+const heroImage = "/images/karriere/karriere-hero-frisia.webp";
+const brokerCareerImage = "/images/karriere/immobilienmakler-beratung-unterlagen.png";
+const traineeCareerImage = "/images/karriere/ausbildung-begleitung-unterlagen.png";
 
 export const metadata: Metadata = buildPageMetadata({
   title: "Karriere bei Frisia Immobilien",
@@ -46,7 +51,7 @@ const faq = [
   {
     question: "Wie starte ich am besten?",
     answer:
-      "Mit einem Gespräch. Danach lässt sich klären, ob Makler, Ausbildung oder ein anderer Einstieg für dich sinnvoll ist.",
+      "Mit einer kurzen Bewerbung oder einem ersten Gespräch. Danach lässt sich klären, ob der Einstieg als Immobilienmakler, Ausbildung oder ein anderer Weg sinnvoll ist.",
   },
 ];
 
@@ -112,86 +117,35 @@ function FeatureCard({ title, text }: { title: string; text: string }) {
   );
 }
 
-function iconTypeForCareerItem(item: string) {
+function iconAssetForCareerItem(item: string) {
   const text = item.toLowerCase();
-  if (text.includes("freier makler")) return "briefcase";
-  if (text.includes("eigenverantwortlich")) return "compass";
-  if (text.includes("regeln") || text.includes("zuständigkeiten")) return "checklist";
-  if (text.includes("immobilien")) return "home";
-  if (text.includes("zuverlässige") || text.includes("saubere")) return "shield";
-  if (text.includes("lernen")) return "book";
-  if (text.includes("kommunikation")) return "message";
-  if (text.includes("zu tun")) return "clipboard";
-  if (text.includes("warum")) return "target";
-  if (text.includes("nächste")) return "arrow";
-  return "check";
+  if (text.includes("freier makler")) return "/images/immobilienmakler-aurich/person.webp";
+  if (text.includes("eigenverantwortlich")) return "/images/prozess/zustaendigkeit.webp";
+  if (text.includes("regeln") || text.includes("zuständigkeiten")) return "/images/prozess/geordneter_ablauf.webp";
+  if (text.includes("immobilien")) return "/images/immobilienmakler-aurich/haus.webp";
+  if (text.includes("zuverlässige") || text.includes("saubere")) return "/images/maklerhaus/icons/serioes.webp";
+  if (text.includes("lernen")) return "/images/prozess/schritt_03.webp";
+  if (text.includes("kommunikation")) return "/images/maklerhaus/icons/persoenliche-ansprechpartner.webp";
+  if (text.includes("zu tun")) return "/images/prozess/geordneter_ablauf.webp";
+  if (text.includes("warum")) return "/images/immobilienmakler-aurich/zielscheibe.webp";
+  if (text.includes("nächste")) return "/images/prozess/schritt_07.webp";
+  return "/images/prozess/checkbox.webp";
 }
 
 function CareerListIcon({ item }: { item: string }) {
-  const iconType = iconTypeForCareerItem(item);
-  const icon =
-    iconType === "briefcase" ? (
-      <>
-        <path d="M9 8V6.8A1.8 1.8 0 0 1 10.8 5h2.4A1.8 1.8 0 0 1 15 6.8V8" />
-        <path d="M5 9.5h14v8.2A1.3 1.3 0 0 1 17.7 19H6.3A1.3 1.3 0 0 1 5 17.7V9.5Z" />
-        <path d="M5 12.2h14M11 12.2v1.4h2v-1.4" />
-      </>
-    ) : iconType === "compass" ? (
-      <>
-        <circle cx="12" cy="12" r="7" />
-        <path d="m14.8 9.2-1.6 4-4 1.6 1.6-4 4-1.6Z" />
-      </>
-    ) : iconType === "checklist" ? (
-      <>
-        <path d="M8 6h9M8 12h9M8 18h9" />
-        <path d="m4.5 6 1 1 1.8-2M4.5 12l1 1 1.8-2M4.5 18l1 1 1.8-2" />
-      </>
-    ) : iconType === "home" ? (
-      <>
-        <path d="m4.5 11 7.5-6 7.5 6" />
-        <path d="M6.5 10.2V19h11v-8.8" />
-        <path d="M10 19v-5h4v5" />
-      </>
-    ) : iconType === "shield" ? (
-      <>
-        <path d="M12 4.5 18 7v4.3c0 3.8-2.2 6.3-6 8.2-3.8-1.9-6-4.4-6-8.2V7l6-2.5Z" />
-        <path d="m9.2 12.2 1.8 1.8 3.8-4" />
-      </>
-    ) : iconType === "book" ? (
-      <>
-        <path d="M6 5.5h5a2 2 0 0 1 2 2V19a2 2 0 0 0-2-2H6V5.5Z" />
-        <path d="M13 7.5a2 2 0 0 1 2-2h3V17h-3a2 2 0 0 0-2 2" />
-      </>
-    ) : iconType === "message" ? (
-      <>
-        <path d="M5 6.5h14v9H9l-4 3v-12Z" />
-        <path d="M8.5 10h7M8.5 13h4.5" />
-      </>
-    ) : iconType === "clipboard" ? (
-      <>
-        <path d="M9 5.5h6l.7 2H18v11H6v-11h2.3l.7-2Z" />
-        <path d="M9 11h6M9 14.5h5" />
-      </>
-    ) : iconType === "target" ? (
-      <>
-        <circle cx="12" cy="12" r="7" />
-        <circle cx="12" cy="12" r="3.5" />
-        <path d="M12 12h8" />
-      </>
-    ) : iconType === "arrow" ? (
-      <>
-        <path d="M5 12h13" />
-        <path d="m13 7 5 5-5 5" />
-      </>
-    ) : (
-      <path d="m6 12 4 4 8-8" />
-    );
+  const iconSrc = iconAssetForCareerItem(item);
 
   return (
-    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)] text-[color:var(--color-navy)]">
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-none stroke-current stroke-[1.9] [stroke-linecap:round] [stroke-linejoin:round]">
-        {icon}
-      </svg>
+    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)]/85 ring-1 ring-[color:var(--color-brass)]/12">
+      <Image
+        src={iconSrc}
+        alt=""
+        width={34}
+        height={34}
+        sizes="34px"
+        aria-hidden="true"
+        className="h-8 w-8 object-contain"
+      />
     </span>
   );
 }
@@ -218,7 +172,19 @@ export default function KarrierePage() {
       <JsonLd data={brokerJobJsonLd} />
       <JsonLd data={traineeJobJsonLd} />
 
-      <section className="relative isolate overflow-hidden bg-[color:var(--color-section)]">
+      <MobileHeroSection
+        eyebrow="Karriere bei Frisia Immobilien"
+        title="Immobilienmakler werden oder Ausbildung starten"
+        description="Struktur, klare Abläufe und ein Markt, den du wirklich verstehst - für Makler und Auszubildende in Aurich."
+        imageSrc={heroImage}
+        imageAlt="Frisia Immobilien Team und Arbeitsumfeld in Aurich"
+        imagePosition="58% center"
+        primaryCta={{ href: "#initiativbewerbung", label: "Gespräch starten" }}
+        secondaryCta={{ href: "#ausbildung", label: "Ausbildung ansehen" }}
+        trustItems={["Aurich", "Ausbildung", "Struktur"]}
+      />
+
+      <section className="relative isolate hidden overflow-hidden bg-[color:var(--color-section)] md:block">
         <Image
           src={heroImage}
           alt=""
@@ -227,15 +193,16 @@ export default function KarrierePage() {
           sizes="100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.98)_0%,rgba(255,255,255,0.94)_33%,rgba(255,255,255,0.68)_57%,rgba(255,255,255,0.18)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.9)_0%,rgba(255,255,255,0.74)_26%,rgba(255,255,255,0.34)_46%,rgba(255,255,255,0.06)_68%,rgba(255,255,255,0)_90%)]" />
         <div className="relative z-10 mx-auto flex min-h-[calc(100svh-4rem)] w-full max-w-[1440px] items-center px-5 py-16 sm:px-8 lg:px-12">
           <div className="max-w-[56rem]">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.18em] text-[color:var(--color-brackish)]">
               Karriere bei Frisia Immobilien
             </p>
-            <h1 className="mt-5 max-w-[14ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.55rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)]">
+            <h1 className="mt-5 max-w-[18ch] break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.2rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
               Immobilienmakler werden oder Ausbildung starten bei Frisia Immobilien
             </h1>
+            <HeroDivider />
             <p className="mt-7 max-w-4xl text-[1.12rem] leading-[1.7] text-[color:var(--color-navy)] md:text-[1.35rem]">
               Struktur, klare Abläufe und ein Markt, den du wirklich verstehst - für Makler und Auszubildende in Aurich und ganz Ostfriesland.
             </p>
@@ -277,89 +244,104 @@ export default function KarrierePage() {
 
       <section id="immobilienmakler-werden" className="bg-[color:var(--color-section)] py-12 md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
-          <SectionHeading eyebrow="Für Immobilienmakler" title="Immobilienmakler werden bei Frisia Immobilien">
-            <p>
-              Du arbeitest bereits als Makler oder möchtest in den Vertrieb einsteigen - und suchst eine Struktur, die dich wirklich weiterbringt.
-            </p>
-          </SectionHeading>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <FeatureCard title="Strukturierter Vertrieb" text="Du arbeitest mit klaren Abläufen, nicht mit Zufalls-Leads." />
-            <FeatureCard title="Klare Positionierung" text="Frisia Immobilien steht für Bewertung, Struktur und sichere Verkäufe - nicht für schnelle Abschlüsse." />
-            <FeatureCard title="Unterstützung im Hintergrund" text="Systeme, Prozesse und Vermarktung sind vorbereitet, damit du dich auf das Wesentliche konzentrieren kannst." />
-            <FeatureCard title="Regionale Marktkenntnis" text="Fokus auf Aurich und ganz Ostfriesland - kein beliebiger Markt." />
+          <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch">
+            <figure className="overflow-hidden rounded-xl border border-[color:var(--color-brass)]/35 bg-white shadow-[0_22px_70px_-52px_rgba(27,48,64,0.55)]">
+              <div className="relative aspect-[4/5] min-h-[420px] sm:aspect-[3/4] lg:h-full lg:min-h-[820px] lg:aspect-auto">
+                <Image
+                  src={brokerCareerImage}
+                  alt="Erfahrener Immobilienmakler berät mit Exposé und Grundrissunterlagen"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 38vw"
+                  className="object-cover"
+                  style={{ objectPosition: "center center" }}
+                />
+              </div>
+            </figure>
+
+            <div className="flex flex-col">
+              <SectionHeading eyebrow="Für Immobilienmakler" title="Immobilienmakler werden bei Frisia Immobilien">
+                <p>
+                  Du möchtest Immobilien professionell vermitteln und suchst ein Umfeld mit klarer Marke, regionaler Nachfrage und sauberer Struktur.
+                </p>
+              </SectionHeading>
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                <FeatureCard title="Planbarer Vertrieb" text="Du arbeitest nicht mit Zufall, sondern mit klaren Abläufen, sauberer Vorbereitung und echter regionaler Nachfrage." />
+                <FeatureCard title="Eigenständig arbeiten" text="Du bleibst unternehmerisch frei, arbeitest aber nicht ohne System, Marke und Rückhalt." />
+                <FeatureCard title="Fokus auf Abschlüsse" text="Wir konzentrieren uns auf Eigentümer, Bewertung, Vermarktung und sauber geführte Verkaufsprozesse." />
+                <FeatureCard title="Klare Zuständigkeiten" text="Du weißt, was zu tun ist, wer wofür verantwortlich ist und wie ein Verkauf strukturiert geführt wird." />
+              </div>
+              <div className="mt-8 rounded-xl border border-[color:var(--color-brass)]/35 bg-white p-6">
+                <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Arbeitsmodell</h3>
+                <PlainList
+                  items={[
+                    "möglich als freier Makler",
+                    "eigenverantwortlich, aber nicht allein",
+                    "klare Regeln und klare Zuständigkeiten",
+                  ]}
+                />
+              </div>
+              <p className="mt-7 text-lg font-semibold leading-8 text-[color:var(--color-navy)]">
+                Wenn du Immobilien nicht nur vermitteln, sondern Eigentümer strukturiert beraten und Verkäufe sauber führen willst, passt das zu dir.
+              </p>
+              <Link href="#initiativbewerbung" className="mt-7 inline-flex min-h-14 w-fit items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition hover:bg-[color:var(--color-brackish)]">
+                Jetzt als Immobilienmakler bewerben
+              </Link>
+            </div>
           </div>
-          <div className="mt-8 rounded-xl border border-[color:var(--color-brass)]/35 bg-white p-6">
-            <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Arbeitsmodell</h3>
-            <PlainList
-              items={[
-                "möglich als freier Makler",
-                "eigenverantwortlich, aber nicht allein",
-                "klare Regeln und klare Zuständigkeiten",
-              ]}
-            />
-          </div>
-          <p className="mt-7 text-lg font-semibold leading-8 text-[color:var(--color-navy)]">
-            Wenn du strukturiert arbeiten willst und nicht jeden Tag bei null anfangen möchtest, passt das zu dir.
-          </p>
-          <Link href="#initiativbewerbung" className="mt-7 inline-flex min-h-14 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition hover:bg-[color:var(--color-brackish)]">
-            Gespräch als Makler führen
-          </Link>
         </div>
       </section>
 
       <section id="ausbildung" className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
-          <SectionHeading eyebrow="Ausbildung" title="Ausbildung bei Frisia Immobilien">
-            <p>
-              Du suchst eine Ausbildung im Immobilienbereich und möchtest von Anfang an verstehen, wie Immobilien wirklich funktionieren.
-            </p>
-          </SectionHeading>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <FeatureCard title="Grundlagen Immobilien" text="Bewertung, Markt, Verkauf - von Anfang an verständlich erklärt." />
-            <FeatureCard title="Strukturierter Ablauf" text="Du lernst nicht nur Aufgaben, sondern den gesamten Prozess." />
-            <FeatureCard title="Praxis statt Theorie" text="Du bist nah am echten Geschäft - nicht nur im Hintergrund." />
-            <FeatureCard title="Verantwortung Schritt für Schritt" text="Du wirst langsam in echte Aufgaben geführt." />
+          <div className="grid gap-8 lg:grid-cols-[1.18fr_0.82fr] lg:items-stretch">
+            <div className="flex flex-col">
+              <SectionHeading eyebrow="Ausbildung" title="Ausbildung bei Frisia Immobilien">
+                <p>
+                  Du suchst einen Ausbildungsplatz im Immobilienbereich und möchtest von Anfang an praktisch lernen, wie Bewertung, Vermarktung, Kundenkontakt und Verkaufsprozesse wirklich funktionieren.
+                </p>
+              </SectionHeading>
+              <div className="mt-8 grid gap-4 md:grid-cols-2">
+                <FeatureCard title="Grundlagen verstehen" text="Du lernst Immobilien, Märkte, Bewertung und Verkauf Schritt für Schritt kennen." />
+                <FeatureCard title="Praktisch mitarbeiten" text="Du bist nah am echten Geschäft und lernst nicht nur aus der Theorie." />
+                <FeatureCard title="Klare Begleitung" text="Du bekommst Orientierung, feste Ansprechpartner und einen verständlichen Einstieg." />
+                <FeatureCard title="Verantwortung lernen" text="Du wächst langsam in echte Aufgaben hinein - ohne allein gelassen zu werden." />
+              </div>
+              <div className="mt-8 rounded-xl border border-[color:var(--color-brass)]/35 bg-[color:var(--color-section)] p-6">
+                <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Voraussetzungen</h3>
+                <PlainList
+                  items={[
+                    "Interesse an Immobilien",
+                    "saubere, zuverlässige Arbeitsweise",
+                    "Bereitschaft zu lernen",
+                    "klare Kommunikation",
+                  ]}
+                />
+              </div>
+              <p className="mt-7 text-lg font-semibold leading-8 text-[color:var(--color-navy)]">
+                Die Ausbildung ist kein &quot;Durchlaufen&quot;, sondern ein echter Einstieg in die Immobilienpraxis mit klarer Begleitung.
+              </p>
+              <Link href="#initiativbewerbung" className="mt-7 inline-flex min-h-14 w-fit items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition hover:bg-[color:var(--color-brackish)]">
+                Jetzt auf Ausbildungsplatz bewerben
+              </Link>
+            </div>
+
+            <figure className="overflow-hidden rounded-xl border border-[color:var(--color-brass)]/35 bg-white shadow-[0_22px_70px_-52px_rgba(27,48,64,0.55)]">
+              <div className="relative aspect-[4/5] min-h-[420px] sm:aspect-[3/4] lg:h-full lg:min-h-[820px] lg:aspect-auto">
+                <Image
+                  src={traineeCareerImage}
+                  alt="Auszubildende lernt mit Begleitung anhand von Immobilienunterlagen"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 38vw"
+                  className="object-cover"
+                  style={{ objectPosition: "center center" }}
+                />
+              </div>
+            </figure>
           </div>
-          <div className="mt-8 rounded-xl border border-[color:var(--color-brass)]/35 bg-[color:var(--color-section)] p-6">
-            <h3 className="text-xl font-semibold text-[color:var(--color-navy)]">Voraussetzungen</h3>
-            <PlainList
-              items={[
-                "Interesse an Immobilien",
-                "saubere, zuverlässige Arbeitsweise",
-                "Bereitschaft zu lernen",
-                "klare Kommunikation",
-              ]}
-            />
-          </div>
-          <p className="mt-7 text-lg font-semibold leading-8 text-[color:var(--color-navy)]">
-            Die Ausbildung ist kein &quot;Durchlaufen&quot;, sondern ein echter Einstieg in die Immobilienpraxis.
-          </p>
-          <Link href="#initiativbewerbung" className="mt-7 inline-flex min-h-14 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition hover:bg-[color:var(--color-brackish)]">
-            Ausbildung starten
-          </Link>
         </div>
       </section>
 
       <section className="bg-[color:var(--color-section)] py-12 md:py-16">
-        <div className="mx-auto grid w-full max-w-[1240px] gap-8 px-5 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:px-12">
-          <SectionHeading title="So arbeiten wir im Alltag">
-            <p>
-              Der Arbeitsalltag bei Frisia Immobilien ist bewusst ruhig, klar und strukturiert.
-            </p>
-          </SectionHeading>
-          <div className="space-y-5">
-            <PlainList items={["was zu tun ist", "warum du es tust", "wie der nächste Schritt aussieht"]} />
-            <p className="text-base leading-[1.8] text-[color:var(--color-graphite)] md:text-lg">
-              Keine unnötigen Meetings. Keine unklaren Zuständigkeiten.
-            </p>
-            <p className="text-lg font-semibold leading-8 text-[color:var(--color-navy)]">
-              Wir reduzieren Komplexität - für Kunden und im Team.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
           <SectionHeading title="Was du bei uns nicht findest" />
           <div className="mt-8 grid gap-3 md:grid-cols-2">
@@ -369,7 +351,7 @@ export default function KarrierePage() {
               "kein Chaos im Tagesgeschäft",
               "kein Arbeiten ohne klare Struktur",
             ].map((item) => (
-              <div key={item} className="rounded-lg border border-[color:var(--color-brass)]/35 bg-[color:var(--color-section)] px-5 py-4 font-semibold text-[color:var(--color-navy)]">
+              <div key={item} className="rounded-lg border border-[color:var(--color-brass)]/35 bg-white px-5 py-4 font-semibold text-[color:var(--color-navy)]">
                 {item}
               </div>
             ))}
@@ -387,7 +369,7 @@ export default function KarrierePage() {
           </h2>
           <div className="mt-6 max-w-4xl space-y-5 text-base leading-[1.8] text-white/86 md:text-lg">
             <p>
-              Du bist dir noch nicht sicher, ob Makler oder Ausbildung - möchtest aber grundsätzlich bei Frisia Immobilien arbeiten?
+              Du bist dir noch nicht sicher, ob der Einstieg als Immobilienmakler oder als Auszubildender besser passt - möchtest dich aber grundsätzlich bei Frisia Immobilien bewerben?
             </p>
             <p>Dann sprich mit uns.</p>
           </div>
@@ -398,10 +380,21 @@ export default function KarrierePage() {
               </div>
             ))}
           </div>
-          <Link href="/kontakt" className="mt-8 inline-flex min-h-14 items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-semibold text-[color:var(--color-navy)]">
-            Initiativ bewerben
-          </Link>
-          <p className="mt-4 text-sm leading-7 text-white/78">Ein kurzes Gespräch reicht. Danach weißt du, ob es passt.</p>
+          <div className="mt-8">
+            <KontaktForm
+              id="initiativbewerbung-formular"
+              heading="Kontaktformular Initiativbewerbung"
+              intro="Sende uns kurz, ob dich der Einstieg als Immobilienmakler, eine Ausbildung oder beides interessiert. Ein Lebenslauf ist für den ersten Kontakt nicht zwingend nötig."
+              messageLabel="Wofür möchtest du dich bewerben? *"
+              messagePlaceholder="z.B.: Ich interessiere mich für eine Ausbildung bei Frisia Immobilien. Mich interessiert besonders der Kontakt mit Kunden und die Bewertung von Immobilien."
+              submitLabel="Initiativbewerbung senden"
+              successTitle="Initiativbewerbung eingegangen"
+              successMessage="Vielen Dank. Deine Initiativbewerbung ist bei uns eingegangen. Wir melden uns persönlich bei dir."
+              trustItems={["Persönliche Rückmeldung", "Vertrauliche Prüfung", "Direkt bei Frisia Immobilien"]}
+              context="Initiativbewerbung Website"
+            />
+          </div>
+          <p className="mt-5 text-sm leading-7 text-white/78">Ein kurzes Gespräch reicht. Danach weißt du, ob es passt.</p>
         </div>
       </section>
 

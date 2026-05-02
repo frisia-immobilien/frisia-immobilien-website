@@ -28,16 +28,16 @@ const CITY_LINKS = [
 const ITEMS: readonly MarketItem[] = [
   {
     key: "markt-aurich",
-    title: "Immobilienmarkt Aurich",
-    teaser: "Aktuelle Entwicklungen im Immobilienmarkt der Stadt Aurich.",
-    heading: "Immobilienmarkt Aurich",
-    imageSrc: "/images/why/verkaufen.png",
-    imageAlt: "Immobilienmarkt Aurich mit regionaler Wohnimmobilie und Marktumfeld",
-    copy: "Aktuelle Entwicklungen im Immobilienmarkt der Stadt Aurich.",
+    title: "Immobilienbewertung Aurich",
+    teaser: "Marktwert realistisch einordnen lassen.",
+    heading: "Immobilienbewertung Aurich",
+    imageSrc: "/images/why/verkaufen.webp",
+    imageAlt: "Immobilienbewertung Aurich mit regionaler Wohnimmobilie und Marktumfeld",
+    copy: "Marktwert realistisch einordnen lassen.",
     copySecondary:
       "Während Immobilien in zentralen Lagen von Aurich häufig eine stabile Nachfrage verzeichnen, können Preise und Vermarktungszeiten in anderen Regionen deutlich variieren.",
-    ctaHref: "/immobilienmarkt-aurich",
-    ctaLabel: "Immobilienmarkt Aurich",
+    ctaHref: "/immobilienbewertung-aurich",
+    ctaLabel: "Immobilienbewertung Aurich",
   },
   {
     key: "preise-aurich",
@@ -63,21 +63,21 @@ const ITEMS: readonly MarketItem[] = [
     copy: "Preisunterschiede zwischen Städten, Gemeinden und ländlichen Lagen.",
     copySecondary:
       "Der Immobilienmarkt in Aurich und ganz Ostfriesland entwickelt sich je nach Lage deutlich unterschiedlich.",
-    ctaHref: "/immobilienpreise-ostfriesland",
-    ctaLabel: "Immobilienpreise Ostfriesland",
+    ctaHref: "/regionen-ostfriesland",
+    ctaLabel: "Regionen Ostfriesland",
   },
   {
     key: "vergleichsdaten",
-    title: "Vergleichsdaten aus der Region",
-    teaser: "Marktdaten aus Aurich, Emden, Norden, Leer und Wittmund.",
-    heading: "Vergleichsdaten aus der Region",
-    imageSrc: "/images/why/reichweite.png",
+    title: "Immobilienpreise Ostfriesland",
+    teaser: "Lokale Preisberichte für Aurich, Emden, Norden, Leer und Wittmund.",
+    heading: "Immobilienpreise Ostfriesland",
+    imageSrc: "/images/why/reichweite.webp",
     imageAlt: "Vergleichsdaten aus der Region mit digitaler Marktübersicht und Reichweite",
-    copy: "Marktdaten aus Aurich, Emden, Norden, Leer und Wittmund.",
+    copy: "Lokale Preisberichte für Aurich, Emden, Norden, Leer und Wittmund.",
     copySecondary:
       "Frisia Immobilien analysiert regelmäßig aktuelle Verkaufsdaten, Vergleichsobjekte und Preisentwicklungen im regionalen Immobilienmarkt sowie aktuelle Immobilienpreise in Aurich und Ostfriesland.",
-    ctaHref: "/immobilienpreise-ostfriesland",
-    ctaLabel: "Vergleichsdaten ansehen",
+    ctaHref: "/immobilienpreise",
+    ctaLabel: "Immobilienpreise ansehen",
   },
 ] as const;
 
@@ -94,7 +94,7 @@ export default function RegionalMarktInteractive() {
           REGIONALER IMMOBILIENMARKT
         </p>
         <h2 className="font-[family-name:var(--font-playfair)] text-[2rem] leading-[1.15] tracking-[-0.015em] text-[color:var(--color-navy)] md:text-[2.45rem]">
-          Immobilienmarkt Aurich und Ostfriesland
+          Der Immobilienmarkt in Aurich & Ostfriesland
         </h2>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,0.98fr)_minmax(28rem,0.9fr)] lg:items-stretch">

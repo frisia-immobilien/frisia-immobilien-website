@@ -32,6 +32,19 @@ function normalizeEmail(value: unknown) {
   return normalizeText(value)?.toLowerCase() ?? null;
 }
 
+let leadRequestExtraColumnsReady: Promise<void> | null = null;
+
+function ensureLeadRequestExtraColumns() {
+  leadRequestExtraColumnsReady ??= (async () => {
+    await sql`
+      ALTER TABLE lead_requests
+        ADD COLUMN IF NOT EXISTS other_extras TEXT,
+        ADD COLUMN IF NOT EXISTS other_extras_value_eur NUMERIC(12,2)
+    `;
+  })();
+  return leadRequestExtraColumnsReady;
+}
+
 export async function getLeadRequestById(id: string) {
   const rows = (await sql`SELECT * FROM lead_requests WHERE id = ${id} LIMIT 1`) as LeadRequestRow[];
   return rows[0] ?? null;
@@ -57,8 +70,9 @@ export async function upsertLeadRequest(input: {
   ipHash?: string | null;
   userAgentHash?: string | null;
 }) {
-  const existing =
-    input.leadId ? await getLeadRequestById(input.leadId) : input.payload.email ? await getLatestLeadRequestByEmail(input.payload.email) : null;
+  await ensureLeadRequestExtraColumns();
+
+  const existing = input.leadId ? await getLeadRequestById(input.leadId) : null;
 
   const status = input.status ?? (input.payload.email ? "email_captured" : "started");
   const consentTimestamp = input.payload.consent_given ? new Date() : null;
@@ -96,6 +110,8 @@ export async function upsertLeadRequest(input: {
         garden,
         garage,
         basement,
+        other_extras,
+        other_extras_value_eur,
         renovation_status,
         heating_type,
         consent_given,
@@ -137,6 +153,8 @@ export async function upsertLeadRequest(input: {
         ${normalizeBoolean(input.payload.garden)},
         ${normalizeBoolean(input.payload.garage)},
         ${normalizeBoolean(input.payload.basement)},
+        ${normalizeText(input.payload.other_extras)},
+        ${normalizeNumber(input.payload.other_extras_value_eur)},
         ${normalizeText(input.payload.renovation_status)},
         ${normalizeText(input.payload.heating_type)},
         ${input.payload.consent_given === true},
@@ -186,6 +204,8 @@ export async function upsertLeadRequest(input: {
       garden = COALESCE(${normalizeBoolean(input.payload.garden)}, garden),
       garage = COALESCE(${normalizeBoolean(input.payload.garage)}, garage),
       basement = COALESCE(${normalizeBoolean(input.payload.basement)}, basement),
+      other_extras = COALESCE(${normalizeText(input.payload.other_extras)}, other_extras),
+      other_extras_value_eur = COALESCE(${normalizeNumber(input.payload.other_extras_value_eur)}, other_extras_value_eur),
       renovation_status = COALESCE(${normalizeText(input.payload.renovation_status)}, renovation_status),
       heating_type = COALESCE(${normalizeText(input.payload.heating_type)}, heating_type),
       consent_given = consent_given OR ${input.payload.consent_given === true},
@@ -291,6 +311,41 @@ export async function createLeadReport(input: {
   return getLeadReportById(rows[0].id);
 }
 
+export async function createManualLeadReport(input: {
+  lead: LeadRequestRow;
+  token: string;
+  expiresAt: Date;
+  reason: string;
+}) {
+  const tokenHash = hashToken(input.token);
+  const rows = (await sql`
+    INSERT INTO lead_reports (
+      lead_request_id,
+      token_hash,
+      expires_at,
+      data_source,
+      market_level_used,
+      confidence_label,
+      calculation_notes,
+      report_status
+    )
+    VALUES (
+      ${input.lead.id},
+      ${tokenHash},
+      ${input.expiresAt},
+      'manual',
+      'none',
+      'Persönliche Prüfung',
+      ${input.reason},
+      'active'
+    )
+    RETURNING *
+  `) as LeadReportRow[];
+
+  await updateLeadStatus(input.lead.id, "valuation_calculated");
+  return getLeadReportById(rows[0].id);
+}
+
 export async function getLeadReportById(id: string): Promise<LeadReportWithRequest | null> {
   const rows = (await sql`
     SELECT
@@ -304,6 +359,71 @@ export async function getLeadReportById(id: string): Promise<LeadReportWithReque
     LIMIT 1
   `) as Array<LeadReportRow & { lead_request: LeadRequestRow; market_data: MarketDataRow | null }>;
   return rows[0] ?? null;
+}
+
+export async function getLatestLeadReportByLeadId(leadRequestId: string): Promise<LeadReportWithRequest | null> {
+  const rows = (await sql`
+    SELECT
+      lr.*,
+      to_jsonb(lreq.*) AS lead_request,
+      to_jsonb(md.*) AS market_data
+    FROM lead_reports lr
+    JOIN lead_requests lreq ON lreq.id = lr.lead_request_id
+    LEFT JOIN market_data md ON md.id = lr.market_data_id
+    WHERE lr.lead_request_id = ${leadRequestId}
+    ORDER BY lr.created_at DESC
+    LIMIT 1
+  `) as Array<LeadReportRow & { lead_request: LeadRequestRow; market_data: MarketDataRow | null }>;
+  return rows[0] ?? null;
+}
+
+export async function createLeadReportCopyWithToken(input: {
+  sourceReport: LeadReportWithRequest;
+  token: string;
+  expiresAt: Date;
+}) {
+  const tokenHash = hashToken(input.token);
+  const rows = (await sql`
+    INSERT INTO lead_reports (
+      lead_request_id,
+      token_hash,
+      expires_at,
+      base_value,
+      adjusted_value,
+      range_min,
+      range_max,
+      price_per_m2_min,
+      price_per_m2_max,
+      data_source,
+      market_level_used,
+      market_data_id,
+      accuracy_score,
+      confidence_label,
+      calculation_notes,
+      report_status
+    )
+    VALUES (
+      ${input.sourceReport.lead_request_id},
+      ${tokenHash},
+      ${input.expiresAt},
+      ${input.sourceReport.base_value},
+      ${input.sourceReport.adjusted_value},
+      ${input.sourceReport.range_min},
+      ${input.sourceReport.range_max},
+      ${input.sourceReport.price_per_m2_min},
+      ${input.sourceReport.price_per_m2_max},
+      ${input.sourceReport.data_source},
+      ${input.sourceReport.market_level_used},
+      ${input.sourceReport.market_data_id},
+      ${input.sourceReport.accuracy_score},
+      ${input.sourceReport.confidence_label},
+      ${input.sourceReport.calculation_notes},
+      'active'
+    )
+    RETURNING *
+  `) as LeadReportRow[];
+
+  return getLeadReportById(rows[0].id);
 }
 
 export async function getLeadReportByToken(token: string): Promise<LeadReportWithRequest | null> {

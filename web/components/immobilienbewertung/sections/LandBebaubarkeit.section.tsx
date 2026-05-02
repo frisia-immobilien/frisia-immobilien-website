@@ -96,10 +96,10 @@ export default function StepLand02BebaubarkeitSection({value, onChange}: Props) 
                 <Image
                   src={o.icon}
                   alt={o.alt}
-                  width={144}
-                  height={144}
-                  sizes="144px"
-                  className="h-[144px] w-[144px] object-contain"
+                  width={216}
+                  height={216}
+                  sizes="216px"
+                  className="h-[216px] w-[216px] object-contain"
                 />
               </div>
 

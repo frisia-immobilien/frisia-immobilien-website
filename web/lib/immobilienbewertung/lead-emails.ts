@@ -4,6 +4,8 @@ import { Resend } from "resend";
 
 import type { LeadValuationRow } from "@/lib/immobilienbewertung/lead-records";
 import { renderLeadValuationEmail } from "@/lib/immobilienbewertung/templates/valuation-email";
+import { getBrokerAvatarUrlByEmail } from "@/lib/propstack/client";
+import { DIRECT_CONTACT } from "@/lib/site";
 
 export type SentLeadMail = {
   provider: "resend";
@@ -43,7 +45,9 @@ export async function sendLeadValuationEmails(input: {
   requireMailConfig();
   const resend = getResendClient();
 
-  const customerTemplate = renderLeadValuationEmail(input);
+  const contactImageUrl =
+    (await getBrokerAvatarUrlByEmail(DIRECT_CONTACT.email).catch(() => null)) || DIRECT_CONTACT.imagePath;
+  const customerTemplate = renderLeadValuationEmail({ ...input, contactImageUrl });
   const customerResponse = await resend.emails.send({
     from: process.env.LEAD_FROM_EMAIL!,
     to: input.lead.email,

@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
+import { blockDebugRouteInProduction } from "@/lib/api/debugGuard";
 import { hashToken } from "@/lib/tokens";
 
 export async function GET(req: Request) {
+  const blocked = blockDebugRouteInProduction(req);
+  if (blocked) return blocked;
+
   const url = new URL(req.url);
   const token = url.searchParams.get("token") || "";
   const secret = process.env.TOKEN_SECRET || "";

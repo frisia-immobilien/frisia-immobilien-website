@@ -1,6 +1,6 @@
 import { hausKaufenTemplate } from "./haus-kaufen";
 import { hausVerkaufenTemplate } from "./haus-verkaufen";
-import { immobilieVerkaufenTemplate } from "./immobilie-verkaufen";
+import { immobilieVerkaufenTemplate, immobilienVerkaufenTemplate } from "./immobilie-verkaufen";
 import { immobilienTemplate } from "./immobilien";
 import { immobilienbewertungTemplate } from "./immobilienbewertung";
 import { immobilienmaklerTemplate } from "./immobilienmakler";
@@ -14,6 +14,7 @@ export const LANDING_TEMPLATES: LandingTemplate[] = [
   immobilienbewertungTemplate,
   hausVerkaufenTemplate,
   immobilieVerkaufenTemplate,
+  immobilienVerkaufenTemplate,
   hausKaufenTemplate,
   immobilienTemplate,
   immobilienpreiseTemplate,

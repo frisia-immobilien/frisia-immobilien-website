@@ -28,9 +28,10 @@ export function buildPageMetadata({
   const url = absoluteUrl(path);
   const socialImageUrl = absoluteUrl(imagePath);
   const openGraphTitle = title.includes(BRAND_NAME) ? title : `${title} | ${BRAND_NAME}`;
+  const pageTitle = title.includes(BRAND_NAME) ? ({ absolute: title } as const) : title;
 
   return {
-    title,
+    title: pageTitle,
     description,
     keywords: keywords.length > 0 ? [...new Set(keywords)] : undefined,
     alternates: { canonical: url },

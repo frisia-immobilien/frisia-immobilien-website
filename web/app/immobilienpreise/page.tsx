@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
 import { SITE_URL, createBreadcrumbListJsonLd, createFAQPageJsonLd, createWebPageJsonLd } from "@/lib/site";
 
@@ -74,7 +76,7 @@ const regions: readonly { title: string; links: readonly RegionLink[] }[] = [
   {
     title: "Region Gesamt",
     links: [
-      ["Immobilienpreise Ostfriesland", "/immobilienpreise-ostfriesland"],
+      ["Immobilienpreise Ostfriesland", "/immobilienpreise"],
       ["Immobilienpreise Aurich", "/immobilienpreise-aurich"],
       ["Immobilienpreise Emden", "/immobilienpreise-emden"],
       ["Immobilienpreise Leer", "/immobilienpreise-leer"],
@@ -179,9 +181,21 @@ export default function ImmobilienpreiseHubPage() {
       <JsonLd data={faqJsonLd} />
       <JsonLd data={itemListJsonLd} />
 
-      <section className="relative isolate overflow-hidden bg-[color:var(--color-section)]">
+      <MobileHeroSection
+        eyebrow="Immobilienpreise Ostfriesland"
+        title="Immobilienpreise in Ostfriesland"
+        description="Ausgewählte Marktberichte für die Region Ostfriesland: aktuelle Quadratmeterpreise, Preisentwicklungen und klare Einordnung."
+        imageSrc="/images/immobilienbewertung/hero-background.webp"
+        imageAlt="Wohnhaus und Garten als Symbol für Immobilienpreise in Ostfriesland"
+        imagePosition="64% center"
+        primaryCta={{ href: "#orte-auswaehlen", label: "Ort auswählen" }}
+        secondaryCta={{ href: "/immobilienbewertung-aurich", label: "Immobilie einordnen" }}
+        trustItems={["Marktdaten", "Bewertung", "Ostfriesland"]}
+      />
+
+      <section className="relative isolate hidden overflow-hidden bg-[color:var(--color-section)] md:block">
         <Image
-          src="/images/immobilienbewertung/hero-background.png"
+          src="/images/immobilienbewertung/hero-background.webp"
           alt=""
           fill
           priority
@@ -194,11 +208,12 @@ export default function ImmobilienpreiseHubPage() {
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
               Immobilienpreise Ostfriesland
             </p>
-            <h1 className="mt-5 max-w-[13ch] break-words font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)]">
+            <h1 className="mt-5 max-w-[18ch] font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)]">
               Immobilienpreise in Ostfriesland
             </h1>
+            <HeroDivider />
             <p className="mt-7 max-w-3xl text-[1.15rem] leading-[1.65] text-[color:var(--color-navy)] md:text-[1.35rem]">
-              Aktuelle Quadratmeterpreise, Preisentwicklungen und klare Einordnung für Städte, Gemeinden und Ortsteile.
+              Ausgewählte Marktberichte für die Region Ostfriesland: Aktuelle Quadratmeterpreise, Preisentwicklungen und klare Einordnung für Städte, Gemeinden und Ortsteile.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link href="#orte-auswaehlen" className="inline-flex min-h-14 items-center justify-center rounded-xl bg-[color:var(--color-navy)] px-7 py-4 text-base font-semibold text-white transition hover:bg-[color:var(--color-brackish)]">
@@ -258,6 +273,12 @@ export default function ImmobilienpreiseHubPage() {
           <p className="mt-8 max-w-5xl text-base leading-[1.8] text-[color:var(--color-graphite)]">
             Jeder Link führt auf eine lokale Seite mit Preisübersicht, Marktdaten, Preisentwicklung mit Charts und Tabelle sowie Bewertung.
           </p>
+          <Link
+            href="/regionen-ostfriesland"
+            className="mt-7 block max-w-5xl border-l-4 border-[color:var(--color-brass)]/65 py-1 pl-5 text-xl font-semibold leading-snug text-[color:var(--color-navy)] transition-colors hover:text-[color:var(--color-brackish)] md:text-2xl"
+          >
+            Deine Region ist nicht dabei? Hier findest du alle Orte in Ostfriesland.
+          </Link>
         </div>
       </section>
 

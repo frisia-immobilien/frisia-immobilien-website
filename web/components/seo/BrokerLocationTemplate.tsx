@@ -1,32 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
+import HeroDivider from "@/components/site/HeroDivider";
+import MobileHeroSection from "@/components/site/MobileHeroSection";
+import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
-import type { SeoLocationRow } from "@/lib/types/leadgen";
+import { formatLocationPhrase, formatLocationProseName } from "@/lib/seo/locationDisplay";
 import { PHONE_DISPLAY, PHONE_HREF } from "@/lib/site";
-
-function formatLocationLabel(label: string) {
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]}, ${parts.slice(1).join(", ")}`;
-}
-
-function formatLocationForTemplate(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district}, ${city}`;
-  return formatLocationLabel(label);
-}
-
-function formatLocationForProse(location: SeoLocationRow) {
-  const label = location.location_label.trim();
-  const city = location.stadt_gemeinde?.trim();
-  const district = location.ortsteil?.trim() || label;
-  if (location.location_type === "ortsteil" && city && district && district !== city) return `${district} in ${city}`;
-  const parts = label.split(",").map((part) => part.trim()).filter(Boolean);
-  if (parts.length < 2) return label;
-  return `${parts[0]} in ${parts.slice(1).join(", ")}`;
-}
 
 function Section({
   title,
@@ -62,56 +41,71 @@ function InfoCard({ title, text }: { title: string; text: string }) {
   );
 }
 
-function iconTypeForBullet(text: string) {
+function iconAssetForBullet(text: string) {
   const item = text.toLowerCase();
-  if (item.includes("preis") || item.includes("einpreisung") || item.includes("verkaufspreise")) return "price";
-  if (item.includes("unterlagen") || item.includes("exposé") || item.includes("objektunterlagen")) return "document";
-  if (item.includes("käufer") || item.includes("zielgruppen")) return "buyers";
-  if (item.includes("bonität") || item.includes("kaufabsicht")) return "check";
-  if (item.includes("verhandlung") || item.includes("abschluss")) return "handshake";
-  if (item.includes("aktuell") || item.includes("nächsten schritte")) return "process";
-  if (item.includes("entscheidung")) return "target";
-  if (item.includes("nachfrage")) return "chart";
-  if (item.includes("mikrolagen") || item.includes("lage")) return "pin";
-  if (item.includes("notar")) return "signature";
-  if (item.includes("übergabe") || item.includes("zahlungsfluss")) return "key";
-  return "check";
+  if (item.includes("verkauf aktuell") || item.includes("aktuell steht")) {
+    return "/images/prozess/schritt_01.webp";
+  }
+  if (item.includes("nächsten schritte")) {
+    return "/images/prozess/geordneter_ablauf.webp";
+  }
+  if (item.includes("entscheidungen sinnvoll") || item.includes("entscheidung")) {
+    return "/images/immobilienmakler-aurich/zielscheibe.webp";
+  }
+  if (item.includes("reale verkaufspreise") || item.includes("verkaufspreise")) {
+    return "/images/prozess/schritt_01.webp";
+  }
+  if (item.includes("nachfrageentwicklung") || item.includes("nachfrage")) {
+    return "/images/prozess/schritt_05.webp";
+  }
+  if (item.includes("typische käufergruppen") || item.includes("käufergruppen")) {
+    return "/images/prozess/schritt_06.webp";
+  }
+  if (item.includes("mikrolagen") || item.includes("lage")) {
+    return "/images/prozess/schritt_04.webp";
+  }
+  if (item.includes("rechtssichere angaben") || item.includes("exposé")) {
+    return "/images/immobilienmakler-aurich/klemmbrett.webp";
+  }
+  if (item.includes("objektunterlagen") || item.includes("unterlagen")) {
+    return "/images/prozess/schritt_03.webp";
+  }
+  if (item.includes("notar")) {
+    return "/images/prozess/schritt_09.webp";
+  }
+  if (item.includes("übergabe") || item.includes("zahlungsfluss")) {
+    return "/images/prozess/schritt_02.webp";
+  }
+  if (item.includes("bonität") || item.includes("kaufabsicht")) {
+    return "/images/prozess/schritt_06.webp";
+  }
+  if (item.includes("verhandlung") || item.includes("abschluss")) {
+    return "/images/prozess/schritt_08.webp";
+  }
+  if (item.includes("preis") || item.includes("einpreisung") || item.includes("verkaufspreise")) {
+    return "/images/prozess/schritt_01.webp";
+  }
+  if (item.includes("käufer") || item.includes("zielgruppen")) {
+    return "/images/prozess/schritt_06.webp";
+  }
+  if (item.includes("aktuell")) return "/images/prozess/geordneter_ablauf.webp";
+  return "/images/prozess/checkbox.webp";
 }
 
 function BulletIcon({ item }: { item: string }) {
-  const iconType = iconTypeForBullet(item);
-  const icon =
-    iconType === "price" ? (
-      <path d="M7 7.5h8.5M7 12h7M7 16.5h8.5M18 5l-3 14" />
-    ) : iconType === "document" ? (
-      <path d="M7 3.8h7l3 3V20H7V3.8zM14 3.8V7h3M9.5 11h5M9.5 14.5h5M9.5 18h3" />
-    ) : iconType === "buyers" ? (
-      <path d="M9 10.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM4 19.5c.7-3.2 2.5-5 5-5 1.8 0 3.2.9 4 2.5M16.5 11a2.4 2.4 0 1 0 0-4.8M15.5 14.5c2.1.2 3.7 1.8 4.3 5" />
-    ) : iconType === "handshake" ? (
-      <path d="M7 12.5l3.2 3.2c.7.7 1.8.7 2.5 0l4.8-4.8M3.5 12l3-3 3 3M20.5 12l-3-3-3 3" />
-    ) : iconType === "process" ? (
-      <path d="M7 7h10M7 12h7M7 17h10M18 12l2 2 3-4" />
-    ) : iconType === "target" ? (
-      <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
-    ) : iconType === "chart" ? (
-      <path d="M5 18h14M7 15v-4M12 15V6M17 15v-7M6 9l4 3 4-5 4 2" />
-    ) : iconType === "pin" ? (
-      <path d="M12 21s6-5.4 6-11a6 6 0 1 0-12 0c0 5.6 6 11 6 11zM12 12.2a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4z" />
-    ) : iconType === "signature" ? (
-      <path d="M6 19h12M7 14c2.5-4.2 4.8-6.8 6.8-7.7.8-.4 1.6.4 1.2 1.2-.8 2-3.4 4.3-7.6 6.8L6 18l3.7-1.4z" />
-    ) : iconType === "key" ? (
-      <path d="M9.5 14a4.5 4.5 0 1 1 4-2.5L21 19l-2 2-2-2-2 2-2.5-2.5M9.5 14a4.5 4.5 0 0 1-4.5-4.5" />
-    ) : (
-      <path d="M5 12.5l4.3 4.3L19 7.2" />
-    );
+  const iconSrc = iconAssetForBullet(item);
 
   return (
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)] text-[color:var(--color-brackish)]">
-      <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
-        <g fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          {icon}
-        </g>
-      </svg>
+    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)]/85 ring-1 ring-[color:var(--color-brass)]/12">
+      <Image
+        src={iconSrc}
+        alt=""
+        width={34}
+        height={34}
+        sizes="34px"
+        aria-hidden="true"
+        className="h-8 w-8 object-contain"
+      />
     </span>
   );
 }
@@ -129,9 +123,9 @@ function BulletList({ items }: { items: string[] }) {
   );
 }
 
-function FaqItem({ question, answer }: { question: string; answer: string }) {
+function FaqItem({ question, answer, defaultOpen = false }: { question: string; answer: string; defaultOpen?: boolean }) {
   return (
-    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0">
+    <details className="group border-t border-[color:var(--color-brass)]/20 first:border-t-0" open={defaultOpen}>
       <summary className="flex cursor-pointer list-none items-start justify-between gap-5 px-5 py-5 marker:hidden sm:px-6">
         <h3 className="text-base font-semibold leading-snug text-[color:var(--color-navy)] sm:text-lg">{question}</h3>
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-section)] text-xl leading-none text-[color:var(--color-navy)] transition-transform group-open:rotate-45">
@@ -146,13 +140,13 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function BrokerLocationTemplate({ data }: { data: LocationPageData }) {
-  const location = formatLocationForTemplate(data.location);
-  const proseLocation = formatLocationForProse(data.location);
-  const heroImage = "/images/immobilienbewertung/hero-background.png";
+  const proseLocation = formatLocationProseName(data.location);
+  const locationPhrase = formatLocationPhrase(data.location);
+  const heroImage = "/images/immobilienbewertung/hero-background.webp";
 
   const faqs = [
     {
-      question: `Warum sollte ich einen Immobilienmakler in ${proseLocation} beauftragen?`,
+      question: `Warum sollte ich einen Immobilienmakler ${locationPhrase} beauftragen?`,
       answer: "Ein Makler übernimmt nicht nur die Vermarktung, sondern strukturiert den gesamten Verkaufsprozess. Das betrifft Bewertung, Strategie, Käuferauswahl, Verhandlung und Abschluss.",
     },
     {
@@ -160,7 +154,7 @@ export default function BrokerLocationTemplate({ data }: { data: LocationPageDat
       answer: "An klarer Struktur, nachvollziehbarer Bewertung, transparenter Arbeitsweise und daran, wie sauber der Verkaufsprozess geführt wird - nicht an Versprechen.",
     },
     {
-      question: `Unterscheidet sich der Markt in ${proseLocation} stark von anderen Regionen?`,
+      question: `Unterscheidet sich der Markt ${locationPhrase} stark von anderen Regionen?`,
       answer: "Ja. Auch innerhalb von Ostfriesland gibt es deutliche Unterschiede in Nachfrage, Preisniveau und Käuferstruktur. Lokale Marktkenntnis ist daher entscheidend.",
     },
     {
@@ -175,18 +169,35 @@ export default function BrokerLocationTemplate({ data }: { data: LocationPageDat
 
   return (
     <>
-      <section className="relative isolate overflow-hidden bg-[color:var(--color-section)]">
+      <MobileHeroSection
+        eyebrow={`Immobilienmakler ${locationPhrase}`}
+        title={<>Immobilienmakler {locationPhrase}</>}
+        description={
+          <>
+            Was ein Makler heute wirklich leisten muss - und worauf es beim Verkauf deiner Immobilie ankommt.
+          </>
+        }
+        imageSrc={heroImage}
+        imageAlt=""
+        imagePosition="76% center"
+        primaryCta={{ href: "#zusammenarbeit-verstehen", label: "Zusammenarbeit verstehen" }}
+        secondaryCta={{ href: PHONE_HREF, label: "Einfach kurz sprechen", sublabel: PHONE_DISPLAY }}
+        trustItems={["Klare Bewertung", "Strukturierter Verkauf", "Geprüfte Käufer"]}
+      />
+
+      <section className="relative isolate hidden overflow-hidden bg-[color:var(--color-section)] md:block">
         <Image src={heroImage} alt="" fill priority sizes="100vw" className="object-cover object-right opacity-90" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.50)_34%,rgba(255,255,255,0.18)_58%,rgba(255,255,255,0.04)_100%)]" />
         <div className="relative z-10 mx-auto grid min-h-[calc(100svh-4rem)] w-full max-w-[1440px] gap-8 px-5 py-14 sm:px-8 md:py-16 lg:grid-cols-[1.28fr_0.72fr] lg:items-center lg:px-12">
           <div className="max-w-[58rem]">
             <p className="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
-              Immobilienmakler in {location}
+              Immobilienmakler {locationPhrase}
             </p>
             <h1 className="mt-5 max-w-full break-normal font-[family-name:var(--font-playfair)] text-[clamp(2.65rem,4.8vw,4.8rem)] leading-[1.01] text-[color:var(--color-navy)] [hyphens:none] [overflow-wrap:normal]">
               Immobilienmakler
-              <span className="block">in {location}</span>
+              <span className="block">{locationPhrase}</span>
             </h1>
+            <HeroDivider />
             <p className="mt-7 max-w-3xl text-[1.15rem] leading-[1.65] text-[color:var(--color-navy)] md:text-[1.35rem]">
               Was ein Makler heute wirklich leisten muss - und worauf
               <span className="block">es beim Verkauf deiner Immobilie ankommt.</span>
@@ -223,7 +234,9 @@ export default function BrokerLocationTemplate({ data }: { data: LocationPageDat
         </div>
       </section>
 
-      <Section title={`Warum ein Immobilienverkauf in ${proseLocation} ohne Struktur riskant wird`}>
+      <RegionalCrossLinks data={data} placement="hero" />
+
+      <Section title={`Warum ein Immobilienverkauf ${locationPhrase} ohne Struktur riskant wird`}>
         <p>Ein Immobilienverkauf wirkt auf den ersten Blick überschaubar: Objekt einstellen, Anfragen beantworten, Besichtigungen durchführen.</p>
         <p>In der Praxis entscheidet jedoch die Struktur dahinter über den Erfolg.</p>
         <BulletList
@@ -251,7 +264,7 @@ export default function BrokerLocationTemplate({ data }: { data: LocationPageDat
         </div>
       </Section>
 
-      <Section title={`Wie wir den Verkauf deiner Immobilie in ${proseLocation} führen`}>
+      <Section title={`Wie wir den Verkauf deiner Immobilie ${locationPhrase} führen`}>
         <p>Unsere Arbeitsweise ist bewusst ruhig, strukturiert und nachvollziehbar.</p>
         <BulletList
           items={[
@@ -264,13 +277,13 @@ export default function BrokerLocationTemplate({ data }: { data: LocationPageDat
         <p className="font-semibold text-[color:var(--color-navy)]">Du musst dich nicht in Details einarbeiten. Du bekommst eine klare Führung durch den gesamten Prozess.</p>
       </Section>
 
-      <Section title={`Marktkenntnis in ${proseLocation} - entscheidend für den richtigen Verkauf`} muted>
+      <Section title={`Marktkenntnis ${locationPhrase} - entscheidend für den richtigen Verkauf`} muted>
         <p>Jeder Ort hat seine eigene Dynamik. Auch innerhalb von {proseLocation} unterscheiden sich Lagen, Nachfrage und Preisniveaus teilweise deutlich.</p>
         <BulletList
           items={[
             "reale Verkaufspreise, nicht nur Angebote",
             "aktuelle Nachfrageentwicklung",
-            `typische Käufergruppen in ${proseLocation}`,
+            `typische Käufergruppen ${locationPhrase}`,
             "Unterschiede zwischen Mikrolagen",
           ]}
         />
@@ -278,7 +291,7 @@ export default function BrokerLocationTemplate({ data }: { data: LocationPageDat
         <p className="font-semibold text-[color:var(--color-navy)]">Ein Verkauf funktioniert dann gut, wenn deine Immobilie korrekt in den lokalen Markt eingeordnet wird.</p>
       </Section>
 
-      <Section title={`Sicherheit beim Immobilienverkauf in ${proseLocation}`}>
+      <Section title={`Sicherheit beim Immobilienverkauf ${locationPhrase}`}>
         <p>Ein Immobilienverkauf ist nicht nur eine wirtschaftliche Entscheidung, sondern auch eine rechtliche und organisatorische.</p>
         <BulletList
           items={[
@@ -295,10 +308,10 @@ export default function BrokerLocationTemplate({ data }: { data: LocationPageDat
       <section id="zusammenarbeit-verstehen" className="bg-[color:var(--color-navy)] py-12 text-white md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight md:text-[2.85rem]">
-            Zusammenarbeit mit einem Immobilienmakler in {proseLocation} einordnen
+            Zusammenarbeit mit einem Immobilienmakler {locationPhrase} einordnen
           </h2>
           <p className="mt-5 max-w-4xl text-base leading-[1.8] text-white/86 md:text-lg">
-            Wenn du überlegst, deine Immobilie in {proseLocation} mit einem Makler zu verkaufen, klären wir gemeinsam, ob und wie eine Zusammenarbeit für dich sinnvoll ist.
+            Wenn du überlegst, deine Immobilie {locationPhrase} mit einem Makler zu verkaufen, klären wir gemeinsam, ob und wie eine Zusammenarbeit für dich sinnvoll ist.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link href="/kontakt" className="inline-flex min-h-14 items-center justify-center rounded-xl bg-white px-7 py-4 text-base font-semibold text-[color:var(--color-navy)]">
@@ -317,11 +330,11 @@ export default function BrokerLocationTemplate({ data }: { data: LocationPageDat
       <section className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[980px] px-5 sm:px-8">
           <h2 className="font-[family-name:var(--font-playfair)] text-[2.15rem] leading-tight text-[color:var(--color-navy)] md:text-[2.85rem]">
-            Häufige Fragen zum Immobilienmakler in {proseLocation}
+            Häufige Fragen zum Immobilienmakler {locationPhrase}
           </h2>
           <div className="mt-6 divide-y divide-[color:var(--color-brass)]/20 rounded-xl border border-[color:var(--color-brass)]/25 bg-white shadow-[0_18px_70px_-64px_rgba(27,48,64,0.45)]">
-            {faqs.map((item) => (
-              <FaqItem key={item.question} question={item.question} answer={item.answer} />
+            {faqs.map((item, index) => (
+              <FaqItem key={item.question} question={item.question} answer={item.answer} defaultOpen={index === 0} />
             ))}
           </div>
         </div>

@@ -1,13 +1,14 @@
 import type { LandingTemplate } from "./types";
+import { formatLocationPhraseFromName } from "@/lib/seo/locationDisplay";
 
 export const immobilienmaklerTemplate: LandingTemplate = {
   pageType: "immobilienmakler",
   prefix: "immobilienmakler",
   label: "Immobilienmakler",
-  h1: (location) => `Immobilienmakler in ${location}`,
-  title: (location) => `Immobilienmakler in ${location} | Frisia Immobilien`,
+  h1: (location) => `Immobilienmakler ${formatLocationPhraseFromName(location)}`,
+  title: (location) => `Immobilienmakler ${formatLocationPhraseFromName(location)} | Frisia Immobilien`,
   description: (location) =>
-    `Immobilienmakler in ${location}: strukturierter Verkauf, datenbasierte Bewertung, Käuferprüfung und sichere Abschlussbegleitung mit Frisia Immobilien.`,
+    `Immobilienmakler ${formatLocationPhraseFromName(location)}: strukturierter Verkauf, datenbasierte Bewertung, Käuferprüfung und sichere Abschlussbegleitung mit Frisia Immobilien.`,
   intro: () =>
     "Was ein Makler heute wirklich leisten muss - und worauf es beim Verkauf deiner Immobilie ankommt.",
   text1: () =>
@@ -16,7 +17,7 @@ export const immobilienmaklerTemplate: LandingTemplate = {
     "Frisia Immobilien verbindet klassische Werte mit strukturierter, datenbasierter Arbeit und klarer persönlicher Verantwortung.",
   faq: (location) => [
     {
-      question: `Warum sollte ich einen Immobilienmakler in ${location} beauftragen?`,
+      question: `Warum sollte ich einen Immobilienmakler ${formatLocationPhraseFromName(location)} beauftragen?`,
       answer:
         "Ein Makler übernimmt nicht nur die Vermarktung, sondern strukturiert den gesamten Verkaufsprozess. Das betrifft Bewertung, Strategie, Käuferauswahl, Verhandlung und Abschluss.",
     },
@@ -26,7 +27,7 @@ export const immobilienmaklerTemplate: LandingTemplate = {
         "An klarer Struktur, nachvollziehbarer Bewertung, transparenter Arbeitsweise und daran, wie sauber der Verkaufsprozess geführt wird - nicht an Versprechen.",
     },
     {
-      question: `Unterscheidet sich der Markt in ${location} stark von anderen Regionen?`,
+      question: `Unterscheidet sich der Markt ${formatLocationPhraseFromName(location)} stark von anderen Regionen?`,
       answer:
         "Ja. Auch innerhalb von Ostfriesland gibt es deutliche Unterschiede in Nachfrage, Preisniveau und Käuferstruktur. Lokale Marktkenntnis ist daher entscheidend.",
     },

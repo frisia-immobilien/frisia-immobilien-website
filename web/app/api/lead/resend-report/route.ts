@@ -1,0 +1,91 @@
+import { NextResponse } from "next/server";
+
+import { sendReportLink } from "@/lib/email/sendReportLink";
+import {
+  createLeadReportCopyWithToken,
+  getLatestLeadReportByLeadId,
+  insertLeadEvent,
+  updateLeadStatus,
+} from "@/lib/leadgen/repository";
+import { createRandomToken, getReportExpiryDate } from "@/lib/security/hashToken";
+import { assertRateLimit, getClientIp } from "@/lib/security/rateLimit";
+
+export const runtime = "nodejs";
+
+function getBaseUrl(request: Request) {
+  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/$/, "");
+  const proto = request.headers.get("x-forwarded-proto") || "http";
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "localhost:3000";
+  return `${proto}://${host}`;
+}
+
+export async function POST(request: Request) {
+  try {
+    assertRateLimit(`lead:resend-report:${getClientIp(request)}`, 5);
+
+    const body = (await request.json()) as { leadId?: unknown };
+    const leadId = String(body.leadId ?? "").trim();
+    if (!leadId) {
+      return NextResponse.json({ success: false, error: "Lead-ID fehlt." }, { status: 400 });
+    }
+
+    const latestReport = await getLatestLeadReportByLeadId(leadId);
+    if (!latestReport) {
+      return NextResponse.json(
+        { success: false, error: "Es wurde noch keine Werteinschätzung gefunden." },
+        { status: 404 },
+      );
+    }
+
+    if (!latestReport.lead_request.email) {
+      return NextResponse.json(
+        { success: false, error: "Für diesen Lead ist keine E-Mail-Adresse hinterlegt." },
+        { status: 400 },
+      );
+    }
+
+    const token = createRandomToken();
+    const expiresAt = getReportExpiryDate();
+    const report = await createLeadReportCopyWithToken({
+      sourceReport: latestReport,
+      token,
+      expiresAt,
+    });
+
+    if (!report) {
+      return NextResponse.json(
+        { success: false, error: "Die E-Mail konnte nicht vorbereitet werden." },
+        { status: 500 },
+      );
+    }
+
+    const reportUrl = `${getBaseUrl(request)}/bewertung-ergebnis/${token}`;
+    const sent = await sendReportLink({ lead: report, reportUrl });
+    const emailWasSent = sent.provider === "propstack" || sent.provider === "resend";
+
+    await updateLeadStatus(leadId, emailWasSent ? "report_sent" : "valuation_calculated");
+    if (emailWasSent) {
+      await insertLeadEvent({
+        leadRequestId: leadId,
+        eventName: "email_sent",
+        payload: { provider: sent.provider, messageId: sent.messageId, resend: true },
+      });
+    }
+
+    return NextResponse.json({
+      success: emailWasSent,
+      email: report.lead_request.email,
+      provider: sent.provider,
+      error: emailWasSent ? undefined : "E-Mail konnte nicht automatisch gesendet werden.",
+    });
+  } catch (error) {
+    const retryAfter = (error as Error & { retryAfterSeconds?: number }).retryAfterSeconds;
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : "E-Mail konnte nicht erneut gesendet werden.",
+      },
+      { status: retryAfter ? 429 : 500, headers: retryAfter ? { "Retry-After": String(retryAfter) } : undefined },
+    );
+  }
+}

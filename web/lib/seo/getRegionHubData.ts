@@ -1,7 +1,27 @@
 import "server-only";
 
+import fs from "node:fs";
+import path from "node:path";
+
 import { sql } from "@/lib/db";
 import type { SeoLocationRow } from "@/lib/types/leadgen";
+
+type RuntimeMarketRecord = {
+  landkreis?: string | null;
+  stadt_gemeinde?: string | null;
+  ortsteil?: string | null;
+  datensatz_typ?: string | null;
+  location_label?: string | null;
+  region_code?: string | null;
+  landkreis_slug?: string | null;
+  stadt_gemeinde_slug?: string | null;
+  ortsteil_slug?: string | null;
+  region_slug?: string | null;
+  plz?: string | null;
+  landingpage_geeignet?: boolean | null;
+  leadgen_geeignet?: boolean | null;
+  verkaeufe_anzahl?: number | null;
+};
 
 const fallbackLocations: SeoLocationRow[] = [
   {
@@ -45,6 +65,137 @@ const fallbackLocations: SeoLocationRow[] = [
     updated_at: "",
   },
 ];
+
+const STRATEGIC_CITY_SLUGS = new Set([
+  "aurich",
+  "emden",
+  "leer",
+  "wittmund",
+  "norden",
+  "esens",
+  "wiesmoor",
+  "suedbrookmerland",
+  "grossheide",
+]);
+
+const MAX_CITIES_PER_REGION_GROUP = 12;
+const MAX_PLACES_PER_CITY = 6;
+
+function runtimeMarketDataPath() {
+  const candidates = [
+    path.join(process.cwd(), "..", "data", "market", "runtime", "leadgen_market_data.json"),
+    path.join(process.cwd(), "data", "market", "runtime", "leadgen_market_data.json"),
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;
+}
+
+function publicSlug(record: RuntimeMarketRecord) {
+  return record.ortsteil_slug || record.stadt_gemeinde_slug || record.landkreis_slug || record.region_slug || "";
+}
+
+function locationType(record: RuntimeMarketRecord): SeoLocationRow["location_type"] {
+  if (record.datensatz_typ === "ortsteil") return "ortsteil";
+  if (record.datensatz_typ === "landkreis") return "landkreis";
+  if (record.datensatz_typ === "region") return "region";
+  return "stadt_gemeinde";
+}
+
+function parentLocationSlug(record: RuntimeMarketRecord) {
+  if (record.datensatz_typ === "ortsteil") return record.stadt_gemeinde_slug ?? null;
+  if (record.datensatz_typ === "stadt_gemeinde") return record.landkreis_slug ?? null;
+  if (record.datensatz_typ === "landkreis") return record.region_slug ?? null;
+  return null;
+}
+
+function fallbackLocationLabel(record: RuntimeMarketRecord) {
+  return (
+    record.location_label ||
+    record.ortsteil ||
+    record.stadt_gemeinde ||
+    record.landkreis ||
+    "Ostfriesland"
+  );
+}
+
+function runtimeFallbackLocations() {
+  const filePath = runtimeMarketDataPath();
+  if (!filePath) return fallbackLocations;
+
+  try {
+    const raw = JSON.parse(fs.readFileSync(filePath, "utf8")) as { records?: RuntimeMarketRecord[] };
+    const records = Array.isArray(raw.records) ? raw.records : [];
+    const bySlug = new Map<string, SeoLocationRow & { salesCount: number }>();
+
+    for (const record of records) {
+      const slug = publicSlug(record);
+      if (!slug) continue;
+
+      const type = locationType(record);
+      if (type !== "stadt_gemeinde" && type !== "ortsteil") continue;
+
+      const salesCount = Number(record.verkaeufe_anzahl ?? 0);
+      const priority = STRATEGIC_CITY_SLUGS.has(record.stadt_gemeinde_slug ?? "") ? 100 : 50;
+      const existing = bySlug.get(slug);
+
+      const next: SeoLocationRow & { salesCount: number } = {
+        id: slug,
+        location_slug: slug,
+        location_label: fallbackLocationLabel(record),
+        location_type: type,
+        stadt_gemeinde: record.stadt_gemeinde ?? null,
+        ortsteil: record.ortsteil ?? null,
+        landkreis: record.landkreis ?? null,
+        region: "Ostfriesland",
+        plz: record.plz ?? null,
+        lat: null,
+        lng: null,
+        parent_location_slug: parentLocationSlug(record),
+        landingpage_geeignet: Boolean(record.landingpage_geeignet),
+        leadgen_geeignet: Boolean(record.leadgen_geeignet),
+        priority,
+        indexable: Boolean(record.landingpage_geeignet && (salesCount >= 10 || priority >= 90 || type !== "ortsteil")),
+        created_at: "",
+        updated_at: "",
+        salesCount,
+      };
+
+      if (!existing) {
+        bySlug.set(slug, next);
+        continue;
+      }
+
+      bySlug.set(slug, {
+        ...existing,
+        landingpage_geeignet: existing.landingpage_geeignet || next.landingpage_geeignet,
+        leadgen_geeignet: existing.leadgen_geeignet || next.leadgen_geeignet,
+        indexable: existing.indexable || next.indexable,
+        priority: Math.max(existing.priority, next.priority),
+        salesCount: Math.max(existing.salesCount, next.salesCount),
+      });
+    }
+
+    const locations = Array.from(bySlug.values())
+      .sort((a, b) => {
+        const landkreis = (a.landkreis ?? "").localeCompare(b.landkreis ?? "", "de");
+        if (landkreis !== 0) return landkreis;
+        const city = (a.stadt_gemeinde ?? "").localeCompare(b.stadt_gemeinde ?? "", "de");
+        if (city !== 0) return city;
+        if (a.location_type !== b.location_type) return a.location_type === "stadt_gemeinde" ? -1 : 1;
+        if (a.priority !== b.priority) return b.priority - a.priority;
+        return a.location_label.localeCompare(b.location_label, "de");
+      })
+      .map((location) => {
+        const seoLocation = { ...location };
+        delete (seoLocation as Partial<typeof seoLocation>).salesCount;
+        return seoLocation as SeoLocationRow;
+      });
+
+    return locations.length > fallbackLocations.length ? locations : fallbackLocations;
+  } catch {
+    return fallbackLocations;
+  }
+}
 
 function normalizeCityKey(value: string | null | undefined) {
   const label = String(value ?? "").trim();
@@ -90,7 +241,7 @@ export async function getRegionHubData() {
     rows = [];
   }
 
-  const locations = rows.length > 0 ? rows : fallbackLocations;
+  const locations = rows.length >= 10 ? rows : runtimeFallbackLocations();
   const grouped = new Map<
     string,
     Map<string, { cityLabel: string; cityLocation: SeoLocationRow | null; places: SeoLocationRow[] }>
@@ -117,12 +268,10 @@ export async function getRegionHubData() {
     }
   }
 
-  return {
-    locations,
-    grouped: Array.from(grouped.entries()).map(([landkreis, cityMap]) => ({
-      landkreis,
-      cities: Array.from(cityMap.entries())
-        .map(([cityKey, group]) => {
+  const groupedResult = Array.from(grouped.entries()).map(([landkreis, cityMap]) => ({
+    landkreis,
+    cities: Array.from(cityMap.entries())
+      .map(([cityKey, group]) => {
           const city = preferredCityLabel(cityKey, group.cityLabel);
           const cityLocation =
             group.cityLocation ??
@@ -130,8 +279,9 @@ export async function getRegionHubData() {
             null;
           const places = [...group.places].sort((a, b) => {
             if (a.indexable !== b.indexable) return a.indexable ? -1 : 1;
+            if (a.priority !== b.priority) return b.priority - a.priority;
             return a.location_label.localeCompare(b.location_label, "de");
-          });
+          }).slice(0, MAX_PLACES_PER_CITY);
 
           return {
             city,
@@ -146,7 +296,19 @@ export async function getRegionHubData() {
           const priorityB = b.cityLocation?.priority ?? Math.max(...b.places.map((place) => place.priority), 0);
           if (priorityA !== priorityB) return priorityB - priorityA;
           return a.city.localeCompare(b.city, "de");
-        }),
-    })),
+        })
+        .slice(0, MAX_CITIES_PER_REGION_GROUP),
+  }));
+
+  const visibleLocations = groupedResult.flatMap((group) =>
+    group.cities.flatMap((city) => [
+      ...(city.cityLocation ? [city.cityLocation] : []),
+      ...city.places,
+    ]),
+  );
+
+  return {
+    locations: visibleLocations,
+    grouped: groupedResult,
   };
 }

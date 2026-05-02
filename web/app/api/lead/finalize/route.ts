@@ -18,6 +18,7 @@ import { geocodeAddress } from "@/lib/market/geocodeAddress";
 import { createOrUpdateContact, createOrUpdateProperty } from "@/lib/propstack/client";
 import { hashPrivacyValue } from "@/lib/security/hashToken";
 import { assertRateLimit, getClientIp } from "@/lib/security/rateLimit";
+import { isTurnstileTestKey, shouldBypassTurnstileForLocalDev } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
 
@@ -149,7 +150,16 @@ export async function POST(request: Request) {
     }
 
     const captchaToken = normalizeText(body.captchaToken);
-    if (process.env.TURNSTILE_SECRET_KEY) {
+    const turnstileSecret = process.env.TURNSTILE_SECRET_KEY ?? "";
+    const captchaBypassed = shouldBypassTurnstileForLocalDev(turnstileSecret);
+    if (turnstileSecret && !captchaBypassed) {
+      if (isTurnstileTestKey(turnstileSecret)) {
+        return NextResponse.json(
+          { success: false, error: "Sicherheitsprüfung ist nicht korrekt konfiguriert." },
+          { status: 500 },
+        );
+      }
+
       if (!captchaToken) {
         return NextResponse.json(
           { success: false, error: "Bitte Sicherheitsprüfung bestätigen." },
@@ -214,6 +224,8 @@ export async function POST(request: Request) {
     });
     leadId = lead.id;
 
+    let propstackSyncError: string | null = null;
+
     try {
       if (lead.email) {
         const contactId = await createOrUpdateContact({
@@ -224,9 +236,12 @@ export async function POST(request: Request) {
           phone: lead.phone,
           consent: lead.consent_given,
         });
-        if (contactId) {
-          lead = (await updateLeadPropstackIds({ leadId: lead.id, contactId })) ?? lead;
+
+        if (!contactId) {
+          throw new Error("Propstack-Kontakt konnte nicht bestätigt werden.");
         }
+
+        lead = (await updateLeadPropstackIds({ leadId: lead.id, contactId })) ?? lead;
       }
 
       if (hasAddress(lead)) {
@@ -234,27 +249,48 @@ export async function POST(request: Request) {
           propertyId: lead.propstack_property_id,
           lead,
         });
-        if (propertyId) {
-          lead = (await updateLeadPropstackIds({ leadId: lead.id, propertyId })) ?? lead;
+
+        if (!propertyId) {
+          throw new Error("Propstack-Immobilie konnte nicht bestätigt werden.");
         }
+
+        lead = (await updateLeadPropstackIds({ leadId: lead.id, propertyId })) ?? lead;
       }
     } catch (error) {
+      propstackSyncError = error instanceof Error ? error.message : String(error);
       await insertLeadEvent({
         leadRequestId: lead.id,
         eventName: "valuation_failed",
-        payload: { stage: "propstack_finalize", message: error instanceof Error ? error.message : String(error) },
+        payload: { stage: "propstack_finalize", message: propstackSyncError },
       });
     }
 
+    if (propstackSyncError) {
+      return NextResponse.json(
+        { success: false, leadId: lead.id, error: `Propstack-Sync fehlgeschlagen: ${propstackSyncError}` },
+        { status: 502 },
+      );
+    }
+
     const result = await calculateLeadReportForLead({ leadRequestId: lead.id, request });
+    if (result.success !== true) {
+      return NextResponse.json(result, { status: "status" in result ? result.status : 500 });
+    }
+
     return NextResponse.json(
       {
-        ...result,
         leadId: lead.id,
-        landingUrl: "reportUrl" in result ? result.reportUrl : undefined,
-        value: "value" in result ? result.value : undefined,
+        leadRequestId: result.leadRequestId,
+        reportId: result.reportId,
+        manualReview: "manualReview" in result ? result.manualReview : undefined,
+        reason: "reason" in result ? result.reason : undefined,
+        expiresAt: result.expiresAt,
+        emailProvider: result.emailProvider,
+        emailSentAt: result.emailSentAt,
+        email: result.email,
+        success: true,
       },
-      { status: "status" in result ? result.status : 200 },
+      { status: 200 },
     );
   } catch (error) {
     const retryAfter = (error as Error & { retryAfterSeconds?: number }).retryAfterSeconds;

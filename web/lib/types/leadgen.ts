@@ -123,6 +123,8 @@ export type LeadRequestRow = {
   garden: boolean | null;
   garage: boolean | null;
   basement: boolean | null;
+  other_extras: string | null;
+  other_extras_value_eur: number | null;
   renovation_status: string | null;
   heating_type: string | null;
   consent_given: boolean;

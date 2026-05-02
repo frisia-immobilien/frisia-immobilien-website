@@ -5,7 +5,7 @@ import { buildPageMetadata } from "@/lib/metadata";
 import { SITE_URL, createBreadcrumbListJsonLd, createWebPageJsonLd } from "@/lib/site";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Immobilienbewertung Aurich",
+  title: "Online-Immobilienbewertung Aurich",
   description:
     "Strukturierte Immobilienbewertung von Frisia Immobilien in Aurich für Eigentümer, die Preis, Markt und nächsten Schritt sauber einordnen wollen.",
   path: "/immobilienbewertung",
