@@ -202,7 +202,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         success: true,
         preview: true,
-        message: "Interne Preview: Es wurde keine Propstack-Aufgabe angelegt.",
+        message: "Interne Preview: Es wurde keine Anfrage übermittelt.",
       });
     }
 
@@ -307,7 +307,7 @@ export async function POST(request: Request) {
     });
 
     if (!taskId) {
-      throw new Error("Propstack-Aufgabe konnte nicht angelegt werden.");
+      throw new Error("Anfrage konnte nicht übermittelt werden.");
     }
 
     await insertLeadEvent({
@@ -338,10 +338,15 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const retryAfter = (error as Error & { retryAfterSeconds?: number }).retryAfterSeconds;
+    const message = error instanceof Error ? error.message : "Anfrage konnte nicht übermittelt werden.";
+    const publicMessage =
+      message.toLowerCase().includes("propstack") || message.toLowerCase().includes("angelegt")
+        ? "Anfrage konnte nicht übermittelt werden."
+        : message;
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Rückruf-Aufgabe konnte nicht angelegt werden.",
+        error: publicMessage,
       },
       { status: retryAfter ? 429 : 500, headers: retryAfter ? { "Retry-After": String(retryAfter) } : undefined },
     );

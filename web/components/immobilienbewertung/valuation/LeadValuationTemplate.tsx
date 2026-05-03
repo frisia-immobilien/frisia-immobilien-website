@@ -921,7 +921,7 @@ export default function LeadValuationTemplate(props: Props) {
                 defaultEmail={props.email}
                 defaultPhone={props.phone ?? ""}
                 label="Jetzt realistischen Verkaufspreis klären"
-                doneLabel="Anfrage ist angelegt"
+                doneLabel="Anfrage wurde übermittelt"
                 formEyebrow="Verkaufspreis klären"
                 formTitle="Kontaktdaten senden"
                 messagePlaceholder="Optional: Gibt es Fragen zur Einschätzung oder einen passenden Rückrufzeitraum?"

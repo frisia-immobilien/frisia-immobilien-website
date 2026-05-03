@@ -26,6 +26,15 @@ type CallbackResponse = {
   message?: string;
 };
 
+function publicErrorMessage(message: string | undefined) {
+  const normalized = String(message ?? "").toLowerCase();
+  if (!message || normalized.includes("propstack") || normalized.includes("angelegt")) {
+    return "Anfrage konnte nicht übermittelt werden.";
+  }
+
+  return message;
+}
+
 export default function LeadCallbackTaskButton({
   token,
   className,
@@ -33,7 +42,7 @@ export default function LeadCallbackTaskButton({
   defaultEmail = "",
   defaultPhone = "",
   label = "Ich möchte einen Rückruf",
-  doneLabel = "Rückruf ist angelegt",
+  doneLabel = "Anfrage wurde übermittelt",
   formEyebrow = "Rückruf anfordern",
   formTitle = "Kontaktdaten senden",
   messagePlaceholder = "Optional: Wann passt ein Rückruf?",
@@ -79,7 +88,7 @@ export default function LeadCallbackTaskButton({
         const result = (await response.json().catch(() => ({}))) as CallbackResponse;
 
         if (!response.ok || result.success !== true) {
-          throw new Error(result.error || "Rückruf konnte nicht in Propstack angelegt werden.");
+          throw new Error(publicErrorMessage(result.error));
         }
 
         setStatus(result.preview ? "preview" : "done");
@@ -89,7 +98,7 @@ export default function LeadCallbackTaskButton({
         setError(
           requestError instanceof Error
             ? requestError.message
-            : "Rückruf konnte nicht in Propstack angelegt werden.",
+            : "Anfrage konnte nicht übermittelt werden.",
         );
       }
     });
@@ -114,7 +123,7 @@ export default function LeadCallbackTaskButton({
         {status === "done"
           ? doneLabel
           : status === "preview"
-            ? "Preview: nicht angelegt"
+            ? "Preview: nicht übermittelt"
             : status === "error"
               ? "Erneut versuchen"
               : label}
@@ -198,7 +207,7 @@ export default function LeadCallbackTaskButton({
                   disabled={pending}
                   className="rounded-md bg-[color:var(--color-navy)] px-5 py-4 text-sm font-semibold text-white transition hover:bg-[color:var(--color-brackish)] disabled:opacity-70"
                 >
-                  {pending ? "Wird in Propstack angelegt ..." : submitLabel}
+                  {pending ? "Wird übermittelt ..." : submitLabel}
                 </button>
                 <button
                   type="button"
