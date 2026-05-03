@@ -50,7 +50,7 @@ export default function DatenschutzPage() {
                 <br />
                 Telefon: 04941 986770-0
                 <br />
-                Website: www.frisia-immobilien.de
+                Website: frisia-immobilien.de
               </p>
             </section>
 

@@ -1,4 +1,4 @@
-export const SITE_URL = "https://www.frisia-immobilien.de";
+export const SITE_URL = "https://frisia-immobilien.de";
 
 export const BRAND_NAME = "Frisia Immobilien";
 export const LEGAL_NAME = "Frisia Immobilien GmbH";

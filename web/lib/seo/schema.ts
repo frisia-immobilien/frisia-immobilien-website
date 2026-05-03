@@ -147,7 +147,7 @@ export function buildRegionHubSchemas(items: RegionHubSchemaItem[]) {
               longitude: item.lng,
             }
           : undefined,
-      additionalType: item.locationType ? `https://www.frisia-immobilien.de/location-type/${item.locationType}` : undefined,
+      additionalType: item.locationType ? `${SITE_URL}/location-type/${item.locationType}` : undefined,
     },
   }));
 

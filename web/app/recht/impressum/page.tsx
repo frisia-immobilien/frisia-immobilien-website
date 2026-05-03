@@ -71,7 +71,7 @@ export default function ImpressumPage() {
                 <br />
                 E-Mail: info@frisia-immobilien.de
                 <br />
-                Web: www.frisia-immobilien.de
+                Web: frisia-immobilien.de
               </p>
             </section>
 
