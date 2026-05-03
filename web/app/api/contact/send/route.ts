@@ -63,7 +63,7 @@ async function sendContactNotification(input: PropstackContactFormInput, contact
   const fullName = `${input.firstName} ${input.lastName}`.trim();
   const context = input.context || "Kontaktanfrage Website";
 
-  await sendPropstackMessage({
+  return sendPropstackMessage({
     to: EMAIL,
     assignedBrokerEmail: EMAIL,
     contactId,
@@ -133,9 +133,15 @@ export async function POST(req: Request) {
     };
 
     const propstackResult = await syncContactFormToPropstack(contactInput);
-    await sendContactNotification(contactInput, propstackResult.contactId);
+    const messageId = await sendContactNotification(contactInput, propstackResult.contactId);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      contactId: propstackResult.contactId,
+      noteId: propstackResult.noteId,
+      taskId: propstackResult.taskId,
+      messageId,
+    });
   } catch (error) {
     console.error("Kontaktanfrage konnte nicht verarbeitet werden", error);
     return NextResponse.json({ success: false, error: "Serverfehler beim Versand." }, { status: 500 });
