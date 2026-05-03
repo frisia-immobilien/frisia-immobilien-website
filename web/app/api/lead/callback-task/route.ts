@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getLeadReportByToken, insertLeadEvent, updateLeadPropstackIds } from "@/lib/leadgen/repository";
 import {
   createOrUpdateContact,
+  createOrUpdateDeal,
   createOrUpdateProperty,
   createTask,
   findPropstackContactByEmail,
@@ -258,6 +259,24 @@ export async function POST(request: Request) {
         eventName: "propstack_property_created",
         payload: { propertyId, source: "callback_task" },
       });
+    }
+
+    if (contactId && propertyId) {
+      const previousDealId = lead.propstack_deal_id;
+      const dealId = await createOrUpdateDeal({
+        dealId: lead.propstack_deal_id,
+        contactId,
+        propertyId,
+        lead,
+      });
+      if (dealId) {
+        lead = (await updateLeadPropstackIds({ leadId: lead.id, dealId })) ?? lead;
+        await insertLeadEvent({
+          leadRequestId: lead.id,
+          eventName: previousDealId ? "propstack_deal_updated" : "propstack_deal_created",
+          payload: { dealId, source: "callback_task" },
+        });
+      }
     }
 
     const name = fullName(lead) || lead.email || "Website-Lead";

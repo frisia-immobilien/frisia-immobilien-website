@@ -5,7 +5,7 @@ import { insertLeadEvent, updateLeadPropstackIds, upsertLeadRequest } from "@/li
 import { mapLeadSyncPayloadToLeadPayload } from "@/lib/leadgen/leadSyncAdapter";
 import { leadCreateSchema } from "@/lib/leadgen/validation";
 import { geocodeAddress } from "@/lib/market/geocodeAddress";
-import { createOrUpdateContact, createOrUpdateProperty } from "@/lib/propstack/client";
+import { createOrUpdateContact, createOrUpdateDeal, createOrUpdateProperty } from "@/lib/propstack/client";
 import { hashPrivacyValue } from "@/lib/security/hashToken";
 import { assertRateLimit, getClientIp } from "@/lib/security/rateLimit";
 
@@ -164,6 +164,27 @@ export async function POST(request: Request) {
           payload: { propertyId, action: previousPropertyId ? "updated" : "created" },
         });
       }
+
+      if (lead.propstack_contact_id && lead.propstack_property_id) {
+        const previousDealId = lead.propstack_deal_id;
+        const dealId = await createOrUpdateDeal({
+          dealId: lead.propstack_deal_id,
+          contactId: lead.propstack_contact_id,
+          propertyId: lead.propstack_property_id,
+          lead,
+        });
+
+        if (!dealId) {
+          throw new Error("Propstack-Deal konnte nicht bestätigt werden.");
+        }
+
+        lead = (await updateLeadPropstackIds({ leadId: lead.id, dealId })) ?? lead;
+        await insertLeadEvent({
+          leadRequestId: lead.id,
+          eventName: previousDealId ? "propstack_deal_updated" : "propstack_deal_created",
+          payload: { dealId },
+        });
+      }
     } catch (error) {
       propstackSyncError = error instanceof Error ? error.message : String(error);
       await insertLeadEvent({
@@ -184,6 +205,7 @@ export async function POST(request: Request) {
           propstack: {
             contactId: lead.propstack_contact_id,
             propertyId: lead.propstack_property_id,
+            dealId: lead.propstack_deal_id,
           },
         },
         { status: 502 },
@@ -198,6 +220,7 @@ export async function POST(request: Request) {
       propstack: {
         contactId: lead.propstack_contact_id,
         propertyId: lead.propstack_property_id,
+        dealId: lead.propstack_deal_id,
       },
     });
   } catch (error: unknown) {

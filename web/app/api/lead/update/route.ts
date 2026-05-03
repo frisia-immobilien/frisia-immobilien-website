@@ -8,7 +8,7 @@ import {
   updateLeadPropstackIds,
   upsertLeadRequest,
 } from "@/lib/leadgen/repository";
-import { createOrUpdateContact, createOrUpdateProperty } from "@/lib/propstack/client";
+import { createOrUpdateContact, createOrUpdateDeal, createOrUpdateProperty } from "@/lib/propstack/client";
 import { getClientIp, assertRateLimit } from "@/lib/security/rateLimit";
 import { hashPrivacyValue } from "@/lib/security/hashToken";
 
@@ -99,6 +99,24 @@ export async function POST(request: Request) {
             leadRequestId: lead.id,
             eventName: "propstack_property_created",
             payload: { propertyId },
+          });
+        }
+      }
+
+      if (lead.propstack_contact_id && lead.propstack_property_id) {
+        const previousDealId = lead.propstack_deal_id;
+        const dealId = await createOrUpdateDeal({
+          dealId: lead.propstack_deal_id,
+          contactId: lead.propstack_contact_id,
+          propertyId: lead.propstack_property_id,
+          lead,
+        });
+        if (dealId) {
+          lead = (await updateLeadPropstackIds({ leadId: lead.id, dealId })) ?? lead;
+          await insertLeadEvent({
+            leadRequestId: lead.id,
+            eventName: previousDealId ? "propstack_deal_updated" : "propstack_deal_created",
+            payload: { dealId },
           });
         }
       }

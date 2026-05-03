@@ -34,6 +34,8 @@ export type LeadEventName =
   | "propstack_contact_created"
   | "propstack_contact_updated"
   | "propstack_property_created"
+  | "propstack_deal_created"
+  | "propstack_deal_updated"
   | "propstack_note_created"
   | "propstack_task_created"
   | "email_sent"
@@ -133,6 +135,7 @@ export type LeadRequestRow = {
   marketing_consent: boolean;
   propstack_contact_id: number | null;
   propstack_property_id: number | null;
+  propstack_deal_id: number | null;
   status: LeadStatus;
   ip_hash: string | null;
   user_agent_hash: string | null;

@@ -19,6 +19,33 @@ type PropstackBroker = {
   avatar_url?: string | null;
 };
 
+type PropstackKeyValue = {
+  id: number;
+  name?: string | null;
+  title?: string | null;
+  label?: string | null;
+  key?: string | null;
+};
+
+type PropstackDealStage = {
+  id: number;
+  name?: string | null;
+  position?: number | null;
+};
+
+type PropstackDealPipeline = {
+  id: number;
+  name?: string | null;
+  broker_ids?: number[] | null;
+  deal_stages?: PropstackDealStage[] | null;
+};
+
+type PropstackClientProperty = {
+  id: number;
+  client_id?: number | null;
+  property_id?: number | null;
+};
+
 type PropstackContactInput = {
   contactId?: number | null;
   email: string;
@@ -31,6 +58,13 @@ type PropstackContactInput = {
 
 type PropstackPropertyInput = {
   propertyId?: number | null;
+  lead: LeadRequestRow;
+};
+
+type PropstackDealInput = {
+  dealId?: number | null;
+  contactId: number;
+  propertyId: number;
   lead: LeadRequestRow;
 };
 
@@ -57,6 +91,18 @@ type PropstackMessageInput = {
 };
 
 const DEFAULT_LEAD_BROKER_ID = 395771;
+const DEFAULT_LEAD_BROKER_EMAIL = "sebastian.munzig@frisia-immobilien.de";
+
+type LeadMeta = {
+  brokerId: number | null;
+  contactSourceId: number | null;
+  propertyStatusId: number | null;
+  activityTypeId: number | null;
+  dealPipelineId: number | null;
+  dealStageId: number | null;
+};
+
+let leadMetaPromise: Promise<LeadMeta> | null = null;
 
 function requireApiKey() {
   if (!env.PROPSTACK_API_KEY) {
@@ -126,6 +172,10 @@ function extractId(value: unknown): number | null {
   if (typeof (client as { id?: unknown } | null)?.id === "number") return (client as { id: number }).id;
   const property = (value as { property?: unknown } | null)?.property;
   if (typeof (property as { id?: unknown } | null)?.id === "number") return (property as { id: number }).id;
+  const clientProperty = (value as { client_property?: unknown } | null)?.client_property;
+  if (typeof (clientProperty as { id?: unknown } | null)?.id === "number") {
+    return (clientProperty as { id: number }).id;
+  }
   const task = (value as { task?: unknown } | null)?.task;
   if (typeof (task as { id?: unknown } | null)?.id === "number") return (task as { id: number }).id;
   return null;
@@ -150,6 +200,57 @@ function contactEmail(contact: PropstackContact) {
 }
 
 let brokerCachePromise: Promise<PropstackBroker[]> | null = null;
+
+function keyValueName(item: PropstackKeyValue) {
+  return item.name ?? item.title ?? item.label ?? item.key ?? "";
+}
+
+function matchKeyValueByNames(items: PropstackKeyValue[], candidates: string[]) {
+  const normalizedCandidates = candidates.map(normalizeSlug).filter(Boolean);
+
+  return (
+    normalizedCandidates
+      .map((candidate) => items.find((item) => normalizeSlug(keyValueName(item)) === candidate))
+      .find(Boolean) ??
+    normalizedCandidates
+      .map((candidate) => items.find((item) => normalizeSlug(keyValueName(item)).includes(candidate)))
+      .find(Boolean) ??
+    null
+  );
+}
+
+async function fetchKeyValueCatalog(paths: string[]) {
+  for (const path of paths) {
+    try {
+      const response = await propstackV1Fetch(path);
+      const items = toArray<PropstackKeyValue>(response);
+      if (items.length > 0) return items;
+    } catch {
+      // Je nach Propstack-Version liegen Kataloge unter unterschiedlichen Endpunkten.
+    }
+  }
+
+  return [] as PropstackKeyValue[];
+}
+
+function looksLikeSystemBroker(item: PropstackBroker) {
+  const haystack = [item.name, item.email].map(normalizeSlug).join(" ");
+  return [
+    "admin",
+    "propstack",
+    "anrufprotokoll",
+    "bewerbung",
+    "buchhaltung",
+    "datenschutz",
+    "einkauf",
+    "info",
+    "innendienst",
+    "leads",
+    "marketing",
+    "portal",
+    "socialmedia",
+  ].some((candidate) => haystack.includes(candidate));
+}
 
 async function fetchBrokers() {
   if (!brokerCachePromise) {
@@ -213,13 +314,16 @@ async function resolveTaskBrokerId(input: Pick<PropstackTaskInput, "assignedBrok
       input.assignedBrokerName || "",
       env.PROPSTACK_LEAD_BROKER_EMAIL,
       env.PROPSTACK_LEAD_BROKER_NAME,
-      "leads@frisia-immobilien.de",
   ]);
 
   if (matchedBroker?.id) return matchedBroker.id;
   if (hasSpecificAssignee) return null;
 
-  return Number(env.PROPSTACK_BROKER_ID || 0) || DEFAULT_LEAD_BROKER_ID;
+  return (
+    Number(env.PROPSTACK_BROKER_ID || 0) ||
+    matchBrokerByNames(brokers, [DEFAULT_LEAD_BROKER_EMAIL])?.id ||
+    DEFAULT_LEAD_BROKER_ID
+  );
 }
 
 async function resolveSpecificBrokerId(input: Pick<PropstackMessageInput, "assignedBrokerEmail" | "assignedBrokerName">) {
@@ -254,6 +358,113 @@ async function propstackV1Fetch(path: string, init?: { method?: "GET" | "POST" |
   }
 
   return raw ? (JSON.parse(raw) as PropstackResponse) : null;
+}
+
+async function resolveLeadMetaInternal(): Promise<LeadMeta> {
+  const [brokers, pipelines, propertyStatuses, contactSources, activityTypes] = await Promise.all([
+    fetchBrokers().catch(() => []),
+    propstackV1Fetch("/deal_pipelines")
+      .then(toArray<PropstackDealPipeline>)
+      .catch(() => []),
+    propstackV1Fetch("/property_statuses")
+      .then(toArray<PropstackKeyValue>)
+      .catch(() => []),
+    fetchKeyValueCatalog(["/contact_sources", "/datadump/contact_sources"]),
+    fetchKeyValueCatalog(["/activity_types", "/note_types"]),
+  ]);
+
+  const brokerId =
+    (env.PROPSTACK_LEAD_BROKER_ID ? Number(env.PROPSTACK_LEAD_BROKER_ID) : null) ||
+    matchBrokerByNames(brokers, [
+      env.PROPSTACK_LEAD_BROKER_EMAIL,
+      env.PROPSTACK_LEAD_BROKER_NAME,
+      DEFAULT_LEAD_BROKER_EMAIL,
+      "Sebastian Munzig",
+    ])?.id ||
+    (brokers.some((item) => item.id === DEFAULT_LEAD_BROKER_ID) ? DEFAULT_LEAD_BROKER_ID : null) ||
+    brokers.find((item) => !looksLikeSystemBroker(item))?.id ||
+    null;
+
+  const contactSourceId =
+    (env.PROPSTACK_LEAD_SOURCE_ID ? Number(env.PROPSTACK_LEAD_SOURCE_ID) : null) ||
+    matchKeyValueByNames(contactSources, [
+      env.PROPSTACK_LEAD_SOURCE_NAME,
+      "Homepage (LeadGen)",
+      "Homepage LeadGen",
+      "Online Immobilienbewertung",
+      "Immobilienbewertung",
+      "Homepage",
+    ])?.id ||
+    null;
+
+  const propertyStatusId =
+    (env.PROPSTACK_LEAD_PROPERTY_STATUS_ID ? Number(env.PROPSTACK_LEAD_PROPERTY_STATUS_ID) : null) ||
+    matchKeyValueByNames(propertyStatuses, [
+      env.PROPSTACK_LEAD_PROPERTY_STATUS_NAME,
+      "Akquise",
+      "Lead",
+      "Vorbereitung",
+      "Neu",
+    ])?.id ||
+    null;
+
+  const activityTypeId =
+    (env.PROPSTACK_LEAD_ACTIVITY_TYPE_ID ? Number(env.PROPSTACK_LEAD_ACTIVITY_TYPE_ID) : null) ||
+    matchKeyValueByNames(activityTypes, [
+      env.PROPSTACK_LEAD_ACTIVITY_TYPE_NAME,
+      "112 Bewertungstermin vereinbaren",
+      "Bewertungstermin vereinbaren",
+      "Rückruf",
+      "Anruf",
+      "Todo",
+    ])?.id ||
+    null;
+
+  const pipeline =
+    (env.PROPSTACK_LEAD_PIPELINE_NAME
+      ? pipelines.find((item) => normalizeSlug(item.name) === normalizeSlug(env.PROPSTACK_LEAD_PIPELINE_NAME))
+      : null) ||
+    pipelines.find((item) =>
+      ["100 eigentuemer", "eigentuemer", "akquise", "bewertung"].some((candidate) =>
+        normalizeSlug(item.name).includes(candidate),
+      ),
+    ) ||
+    pipelines[0] ||
+    null;
+
+  const stage =
+    (env.PROPSTACK_LEAD_STAGE_NAME
+      ? pipeline?.deal_stages?.find((item) => normalizeSlug(item.name) === normalizeSlug(env.PROPSTACK_LEAD_STAGE_NAME))
+      : null) ||
+    pipeline?.deal_stages?.find((item) =>
+      ["neuer eigentuemer lead", "neuer lead", "lead", "anfrage", "bewertung"].some((candidate) =>
+        normalizeSlug(item.name).includes(candidate),
+      ),
+    ) ||
+    [...(pipeline?.deal_stages ?? [])].sort(
+      (left, right) => Number(left.position ?? 0) - Number(right.position ?? 0),
+    )[0] ||
+    null;
+
+  return {
+    brokerId,
+    contactSourceId,
+    propertyStatusId,
+    activityTypeId,
+    dealPipelineId: pipeline?.id ?? null,
+    dealStageId: stage?.id ?? null,
+  };
+}
+
+async function resolveLeadMeta() {
+  if (!leadMetaPromise) {
+    leadMetaPromise = resolveLeadMetaInternal().catch((error) => {
+      leadMetaPromise = null;
+      throw error;
+    });
+  }
+
+  return leadMetaPromise;
 }
 
 export async function findPropstackContactByEmail(email: string) {
@@ -293,6 +504,56 @@ function mapObjectType(lead: LeadRequestRow) {
   return { object_type: "LIVING", rs_type: "HOUSE", rs_category: "SINGLE_FAMILY_HOUSE" };
 }
 
+function formatArea(value: number | string | null | undefined) {
+  if (value === null || value === undefined || value === "") return "k. A.";
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) ? `${number.toLocaleString("de-DE")} m²` : "k. A.";
+}
+
+function formatLeadName(lead: LeadRequestRow) {
+  return [lead.firstname, lead.lastname].map(normalizeText).filter(Boolean).join(" ") || "k. A.";
+}
+
+function formatLeadAddress(lead: LeadRequestRow) {
+  return [
+    [lead.street, lead.house_number].map(normalizeText).filter(Boolean).join(" "),
+    [lead.postal_code, lead.city].map(normalizeText).filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
+
+function buildDealNote(lead: LeadRequestRow) {
+  const otherExtrasLines = formatLeadOtherExtrasLines(lead);
+
+  return [
+    "Leadgenerator Immobilienbewertung",
+    "",
+    "Kontakt",
+    `Name: ${formatLeadName(lead)}`,
+    `E-Mail: ${lead.email ?? "k. A."}`,
+    `Telefon: ${lead.phone ?? "k. A."}`,
+    "",
+    "Objekt",
+    `Adresse: ${formatLeadAddress(lead) || "k. A."}`,
+    `Immobilienart: ${lead.object_type ?? "k. A."}`,
+    `Wohnfläche: ${formatArea(lead.living_area)}`,
+    `Grundstück: ${formatArea(lead.plot_area)}`,
+    `Zimmer: ${lead.rooms ?? "k. A."}`,
+    `Baujahr: ${lead.construction_year ?? "k. A."}`,
+    `Zustand: ${lead.condition ?? "k. A."}`,
+    `Ausstattung: ${lead.equipment ?? "k. A."}`,
+    `Energieklasse: ${lead.energy_class ?? "k. A."}`,
+    ...(otherExtrasLines.length > 0 ? ["", ...otherExtrasLines] : []),
+    "",
+    "Nächster Schritt: Bewertung prüfen und persönlich zurückmelden.",
+  ].join("\n");
+}
+
+function todayDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function nextBusinessDate() {
   const date = new Date();
   date.setDate(date.getDate() + 1);
@@ -302,6 +563,7 @@ function nextBusinessDate() {
 }
 
 export async function createOrUpdateContact(input: PropstackContactInput) {
+  const meta = await resolveLeadMeta();
   const client = compact({
     email: input.email.toLowerCase(),
     first_name: normalizeText(input.firstname),
@@ -309,6 +571,8 @@ export async function createOrUpdateContact(input: PropstackContactInput) {
     mobile_phone: normalizeText(input.phone),
     accept_contact: input.consent === true,
     gdpr_status: input.consent === true ? 2 : undefined,
+    client_source_id: meta.contactSourceId ?? undefined,
+    broker_id: meta.brokerId ?? undefined,
     description: input.sourceNote || "Website Leadgenerator\nStatus: Bewertung gestartet",
   });
 
@@ -329,6 +593,7 @@ export async function createOrUpdateContact(input: PropstackContactInput) {
 }
 
 export async function createOrUpdateProperty(input: PropstackPropertyInput) {
+  const meta = await resolveLeadMeta();
   const lead = input.lead;
   const propertyType = mapObjectType(lead);
   const title = [
@@ -344,6 +609,8 @@ export async function createOrUpdateProperty(input: PropstackPropertyInput) {
     title,
     marketing_type: "BUY",
     ...propertyType,
+    property_status_id: meta.propertyStatusId ?? undefined,
+    broker_id: meta.brokerId ?? undefined,
     street: normalizeText(lead.street),
     house_number: normalizeText(lead.house_number),
     zip_code: normalizeText(lead.postal_code),
@@ -369,14 +636,72 @@ export async function createOrUpdateProperty(input: PropstackPropertyInput) {
   return extractId(response);
 }
 
+async function findClientPropertyId(input: Pick<PropstackDealInput, "contactId" | "propertyId">) {
+  const response = await propstackV1Fetch(
+    `/client_properties?property_id=${input.propertyId}&client_id=${input.contactId}`,
+  );
+  const items = toArray<PropstackClientProperty>(response);
+  const exact = items.find((item) => item.client_id === input.contactId && item.property_id === input.propertyId);
+  return exact?.id ?? items[0]?.id ?? null;
+}
+
+async function createOwnership(contactId: number, propertyId: number) {
+  try {
+    await propstackV1Fetch("/ownerships", {
+      method: "POST",
+      body: {
+        client_id: contactId,
+        property_id: propertyId,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (!message.includes("422") && !/exist|bereits|duplicate/i.test(message)) {
+      throw error;
+    }
+  }
+}
+
+export async function createOrUpdateDeal(input: PropstackDealInput) {
+  const meta = await resolveLeadMeta();
+  if (!meta.dealStageId) {
+    throw new Error("Keine passende Deal-Phase für LeadGen-Eigentümer gefunden.");
+  }
+
+  await createOwnership(input.contactId, input.propertyId);
+
+  const dealId = input.dealId ?? (await findClientPropertyId(input));
+  const body = {
+    client_property: compact({
+      client_id: input.contactId,
+      property_id: input.propertyId,
+      deal_pipeline_id: meta.dealPipelineId ?? undefined,
+      deal_stage_id: meta.dealStageId,
+      broker_id: meta.brokerId ?? undefined,
+      client_source_id: meta.contactSourceId ?? undefined,
+      start_date: todayDate(),
+      note: buildDealNote(input.lead),
+    }),
+  };
+
+  if (dealId) {
+    const response = await propstackV1Fetch(`/client_properties/${dealId}`, { method: "PUT", body });
+    return extractId(response) ?? dealId;
+  }
+
+  const response = await propstackV1Fetch("/client_properties", { method: "POST", body });
+  return extractId(response);
+}
+
 export async function createNote(input: PropstackTaskInput) {
+  const brokerId = await resolveTaskBrokerId({});
   const body = {
     task: compact({
       title: input.title,
       body: input.body.replace(/\n/g, "<br>"),
       client_ids: input.contactId ? [input.contactId] : undefined,
       property_ids: input.propertyId ? [input.propertyId] : undefined,
-      broker_id: env.PROPSTACK_BROKER_ID ? Number(env.PROPSTACK_BROKER_ID) : undefined,
+      broker_id: brokerId ?? undefined,
     }),
   };
 

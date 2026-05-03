@@ -113,6 +113,8 @@ export const leadEventSchema = z.object({
     "propstack_contact_created",
     "propstack_contact_updated",
     "propstack_property_created",
+    "propstack_deal_created",
+    "propstack_deal_updated",
     "propstack_note_created",
     "propstack_task_created",
     "email_sent",

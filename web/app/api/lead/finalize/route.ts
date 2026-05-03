@@ -15,7 +15,7 @@ import {
 } from "@/lib/leadgen/repository";
 import { leadCreateSchema } from "@/lib/leadgen/validation";
 import { geocodeAddress } from "@/lib/market/geocodeAddress";
-import { createOrUpdateContact, createOrUpdateProperty } from "@/lib/propstack/client";
+import { createOrUpdateContact, createOrUpdateDeal, createOrUpdateProperty } from "@/lib/propstack/client";
 import { getPublicApiErrorMessage } from "@/lib/api/publicError";
 import { hashPrivacyValue } from "@/lib/security/hashToken";
 import { assertRateLimit, getClientIp } from "@/lib/security/rateLimit";
@@ -256,6 +256,21 @@ export async function POST(request: Request) {
         }
 
         lead = (await updateLeadPropstackIds({ leadId: lead.id, propertyId })) ?? lead;
+      }
+
+      if (lead.propstack_contact_id && lead.propstack_property_id) {
+        const dealId = await createOrUpdateDeal({
+          dealId: lead.propstack_deal_id,
+          contactId: lead.propstack_contact_id,
+          propertyId: lead.propstack_property_id,
+          lead,
+        });
+
+        if (!dealId) {
+          throw new Error("Propstack-Deal konnte nicht bestätigt werden.");
+        }
+
+        lead = (await updateLeadPropstackIds({ leadId: lead.id, dealId })) ?? lead;
       }
     } catch (error) {
       propstackSyncError = error instanceof Error ? error.message : String(error);

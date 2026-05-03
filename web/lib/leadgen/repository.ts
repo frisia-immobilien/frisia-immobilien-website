@@ -39,8 +39,10 @@ function ensureLeadRequestExtraColumns() {
     await sql`
       ALTER TABLE lead_requests
         ADD COLUMN IF NOT EXISTS other_extras TEXT,
-        ADD COLUMN IF NOT EXISTS other_extras_value_eur NUMERIC(12,2)
+        ADD COLUMN IF NOT EXISTS other_extras_value_eur NUMERIC(12,2),
+        ADD COLUMN IF NOT EXISTS propstack_deal_id BIGINT
     `;
+    await sql`CREATE INDEX IF NOT EXISTS lead_requests_propstack_deal_id_idx ON lead_requests (propstack_deal_id)`;
   })();
   return leadRequestExtraColumnsReady;
 }
@@ -226,12 +228,15 @@ export async function updateLeadPropstackIds(input: {
   leadId: string;
   contactId?: number | null;
   propertyId?: number | null;
+  dealId?: number | null;
 }) {
+  await ensureLeadRequestExtraColumns();
   const rows = (await sql`
     UPDATE lead_requests
     SET
       propstack_contact_id = COALESCE(${input.contactId ?? null}, propstack_contact_id),
-      propstack_property_id = COALESCE(${input.propertyId ?? null}, propstack_property_id)
+      propstack_property_id = COALESCE(${input.propertyId ?? null}, propstack_property_id),
+      propstack_deal_id = COALESCE(${input.dealId ?? null}, propstack_deal_id)
     WHERE id = ${input.leadId}
     RETURNING *
   `) as LeadRequestRow[];
