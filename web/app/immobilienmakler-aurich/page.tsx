@@ -87,7 +87,7 @@ const whyFrisiaItems = [
   },
   {
     icon: "/images/immobilienmakler-aurich/haus.webp",
-    title: "Sie müssen sich um nichts kümmern",
+    title: "Du musst dich um nichts kümmern",
   },
 ] as const;
 
