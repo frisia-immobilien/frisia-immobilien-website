@@ -95,7 +95,7 @@ Der Entry lädt initial nur die Auswahloberfläche. Der eigentliche Wizard wird 
 
 - DB: Neon über `web/lib/db.ts`
 - Token: `web/lib/tokens.ts`
-- E-Mail: Resend
+- E-Mail: Propstack Messages
 
 ## Kontakt-Flow
 
@@ -107,7 +107,7 @@ Das Kontaktformular nutzt:
 
 - Honeypot-Feld
 - Cloudflare Turnstile
-- Resend für Versand
+- Propstack für Kontaktanlage, Aufgaben und internen Versand
 
 ## API-Routen
 
