@@ -11,6 +11,7 @@ const STATIC_ROUTES = [
   "/haus-kaufen",
   "/immobilienbewertung-aurich",
   "/haus-verkaufen-aurich",
+  "/immobilie-verkaufen-aurich",
   "/immobilien-verkaufen-aurich",
   "/haus-kaufen-aurich",
   "/immobilien-aurich",
