@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState, useTransition } from "react";
+import { dispatchFormSubmitSuccess } from "@/lib/analytics";
 
 type Props = {
   token: string;
@@ -92,6 +93,13 @@ export default function LeadCallbackTaskButton({
         }
 
         setStatus(result.preview ? "preview" : "done");
+        if (!result.preview) {
+          dispatchFormSubmitSuccess({
+            form_name: "bewertung_rueckruf",
+            form_context: intent,
+            lead_event: eventType,
+          });
+        }
         setOpen(false);
       } catch (requestError) {
         setStatus("error");

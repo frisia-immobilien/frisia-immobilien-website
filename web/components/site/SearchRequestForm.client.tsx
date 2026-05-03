@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { dispatchFormSubmitSuccess } from "@/lib/analytics";
 
 const MARKETING_OPTIONS = [
   { value: "BUY", label: "Kaufen" },
@@ -160,6 +161,10 @@ export default function SearchRequestForm() {
       }
 
       setStatus("success");
+      dispatchFormSubmitSuccess({
+        form_name: "suchauftrag",
+        form_context: "suchkunde_anlegen",
+      });
       setMessage("Dein Suchauftrag ist angelegt. Frisia Immobilien meldet sich, sobald passende Immobilien verfügbar sind.");
       setForm(initialState);
     } catch (error) {

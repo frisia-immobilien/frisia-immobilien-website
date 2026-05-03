@@ -144,6 +144,15 @@ export default function DatenschutzPage() {
                 Kategorien werden nur mit Ihrer Auswahl aktiviert.
               </p>
               <p className="mt-2">
+                Wenn Sie Analyse-Cookies akzeptieren, nutzen wir Google Analytics 4 der Google Ireland Limited zur
+                Reichweitenmessung und zur Auswertung wichtiger Lead-Interaktionen. Dazu gehören z. B. Seitenaufrufe,
+                Klicks auf Bewertungs- und Telefon-Schaltflächen sowie erfolgreich abgesendete Formulare.
+              </p>
+              <p className="mt-2">
+                Google Analytics wird ohne Ihre Einwilligung nicht geladen. Der Google Consent Mode wird berücksichtigt;
+                Werbespeicher, personalisierte Werbung und personenbezogene Werbedaten bleiben deaktiviert.
+              </p>
+              <p className="mt-2">
                 Details finden Sie in den{" "}
                 <Link href="/recht/cookies" className="underline underline-offset-4">
                   Cookie-Hinweisen

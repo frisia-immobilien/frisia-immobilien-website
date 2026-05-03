@@ -68,6 +68,17 @@ export default function CookiesPage() {
               <p className="mt-2">
                 Optionale Kategorien (z. B. Analyse) werden nur verarbeitet, wenn Sie diese aktiv freigeben.
               </p>
+              <p className="mt-2">
+                Für die Analyse nutzt diese Website Google Analytics 4 der Google Ireland Limited. Google Analytics
+                wird erst geladen, nachdem Sie Analyse-Cookies akzeptiert haben. Ohne Einwilligung wird das
+                Google-Analytics-Script nicht eingebunden und es werden keine Analyse-Events an Google übertragen.
+              </p>
+              <p className="mt-2">
+                Erfasst werden können nach Einwilligung Seitenaufrufe und Lead-bezogene Interaktionen, z. B. Klicks auf
+                Bewertungs- oder Telefon-Schaltflächen sowie erfolgreich abgesendete Formulare. Der Google Consent Mode
+                wird so verwendet, dass Werbespeicher, personalisierte Werbung und personenbezogene Werbedaten
+                deaktiviert bleiben.
+              </p>
             </section>
 
             <section>

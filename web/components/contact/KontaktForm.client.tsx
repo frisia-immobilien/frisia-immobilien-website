@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { dispatchFormSubmitSuccess } from "@/lib/analytics";
 
 type FormState = {
   firstName: string;
@@ -86,6 +87,11 @@ export default function KontaktForm({
     }
 
     setStatus("success");
+    dispatchFormSubmitSuccess({
+      form_name: "kontaktformular",
+      form_context: context,
+      form_id: id,
+    });
     setForm(INITIAL);
   }
 

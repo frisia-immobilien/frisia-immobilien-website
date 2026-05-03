@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
+import { dispatchFormSubmitSuccess } from "@/lib/analytics";
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
@@ -145,6 +146,12 @@ export default function HeroAppointmentForm({ locationLabel, displayLocationLabe
 
       form.reset();
       setSubmitState("success");
+      dispatchFormSubmitSuccess({
+        form_name: "erstgespraech",
+        form_context: "bewertungstermin",
+        location_slug: locationSlug,
+        location_label: locationLabel,
+      });
       setMessage(
         data.message ||
           "Wir haben deine Anfrage erhalten und melden uns zeitnah bei dir, um einen passenden Termin zu vereinbaren.",

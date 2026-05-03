@@ -4,6 +4,7 @@ import HomeHeader from "@/components/home/HomeHeader";
 import HeaderScrollBehavior from "@/components/home/HeaderScrollBehavior.client";
 import DeferredSiteFooter from "@/components/site/DeferredSiteFooter.client";
 import CookieBarShell from "@/components/CookieBarShell.client";
+import SiteAnalyticsBoot from "@/components/analytics/SiteAnalyticsBoot.client";
 import JsonLd from "@/components/seo/JsonLd";
 import {
   BRAND_NAME,
@@ -119,6 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <DeferredSiteFooter />
         <CookieBarShell />
+        <SiteAnalyticsBoot />
         <script
           dangerouslySetInnerHTML={{
             __html:

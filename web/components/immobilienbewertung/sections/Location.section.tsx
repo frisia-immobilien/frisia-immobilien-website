@@ -2,6 +2,7 @@
 
 import {type FormEvent, useEffect, useMemo, useRef, useState} from 'react'
 
+import {dispatchFormSubmitSuccess} from '@/lib/analytics'
 import {PHONE_DISPLAY, PHONE_HREF} from '@/lib/site'
 
 type Props = {
@@ -1075,6 +1076,11 @@ function LocationCorrectionContactButton({
       }
 
       setStatus('done')
+      dispatchFormSubmitSuccess({
+        form_name: 'ortsteil_korrektur',
+        form_context: 'leadgenerator_location',
+        location_label: locationLabel,
+      })
     } catch (requestError) {
       setStatus('error')
       setError(
