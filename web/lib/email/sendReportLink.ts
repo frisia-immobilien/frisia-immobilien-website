@@ -7,7 +7,7 @@ import {
   createTask,
   getBrokerAvatarUrlByEmail,
 } from "@/lib/propstack/client";
-import { BRAND_NAME, DIRECT_CONTACT, PHONE_DISPLAY } from "@/lib/site";
+import { absoluteUrl, BRAND_NAME, DIRECT_CONTACT, PHONE_DISPLAY, SITE_URL } from "@/lib/site";
 import type { LeadReportWithRequest } from "@/lib/types/leadgen";
 
 const RESEND_FALLBACK_FROM_EMAIL = "Frisia Immobilien <onboarding@resend.dev>";
@@ -43,9 +43,26 @@ function isUnverifiedResendDomainError(error: unknown) {
   return message.toLowerCase().includes("domain is not verified");
 }
 
-function emailTrackingUrl(reportUrl: string) {
+function publicReportUrl(reportUrl: string) {
   try {
     const url = new URL(reportUrl);
+    if (
+      url.hostname === "localhost" ||
+      url.hostname === "127.0.0.1" ||
+      url.hostname === "0.0.0.0" ||
+      url.hostname.endsWith(".local")
+    ) {
+      return `${SITE_URL}${url.pathname}${url.search}${url.hash}`;
+    }
+    return url.toString();
+  } catch {
+    return absoluteUrl(reportUrl);
+  }
+}
+
+function emailTrackingUrl(reportUrl: string) {
+  try {
+    const url = new URL(publicReportUrl(reportUrl));
     url.searchParams.set("utm_source", "email");
     url.searchParams.set("utm_medium", "leadgenerator");
     url.searchParams.set("utm_campaign", "marktwerteinschaetzung");
