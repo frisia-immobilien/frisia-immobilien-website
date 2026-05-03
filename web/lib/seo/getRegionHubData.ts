@@ -222,6 +222,29 @@ function cityLocationScore(location: SeoLocationRow) {
   return score;
 }
 
+function locationMergeKey(location: SeoLocationRow) {
+  return [
+    location.location_type,
+    location.location_slug,
+    normalizeCityKey(location.stadt_gemeinde),
+    String(location.landkreis ?? "").trim().toLowerCase(),
+  ].join(":");
+}
+
+function mergeLocationRows(databaseRows: SeoLocationRow[], runtimeRows: SeoLocationRow[]) {
+  const byKey = new Map<string, SeoLocationRow>();
+
+  for (const location of runtimeRows) {
+    byKey.set(locationMergeKey(location), location);
+  }
+
+  for (const location of databaseRows) {
+    byKey.set(locationMergeKey(location), location);
+  }
+
+  return Array.from(byKey.values());
+}
+
 function chooseCityLocation(current: SeoLocationRow | null, next: SeoLocationRow) {
   if (!current) return next;
   return cityLocationScore(next) > cityLocationScore(current) ? next : current;
@@ -241,7 +264,8 @@ export async function getRegionHubData() {
     rows = [];
   }
 
-  const locations = rows.length >= 10 ? rows : runtimeFallbackLocations();
+  const runtimeLocations = runtimeFallbackLocations();
+  const locations = rows.length > 0 ? mergeLocationRows(rows, runtimeLocations) : runtimeLocations;
   const grouped = new Map<
     string,
     Map<string, { cityLabel: string; cityLocation: SeoLocationRow | null; places: SeoLocationRow[] }>
