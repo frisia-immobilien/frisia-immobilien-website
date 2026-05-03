@@ -19,6 +19,17 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.frisia-immobilien.de",
+          },
+        ],
+        destination: "https://frisia-immobilien.de/:path*",
+        permanent: true,
+      },
+      {
         source: "/agb",
         destination: "/recht",
         permanent: false,
