@@ -210,6 +210,14 @@ function normalizeOptionalNumber(value: unknown) {
   return Number.isFinite(numeric) && numeric > 0 ? numeric : undefined
 }
 
+function isSelectedReason(value: unknown) {
+  return value === 'sale' || value === 'buy' || value === 'rent_out'
+}
+
+function isSelectedUsage(value: unknown) {
+  return value === 'rented' || value === 'owner_occupied' || value === 'vacant'
+}
+
 function isValidLeadPhone(value: unknown) {
   const normalized = String(value ?? '').trim()
   if (!normalized) return false
@@ -227,6 +235,8 @@ function getFinalizeValidationError(leadData: LeadData, selectedType: PropertyTy
   const landSize = normalizeOptionalNumber(leadData.step03?.landSize)
   const rooms = normalizeOptionalNumber(leadData.step03?.rooms)
   const yearBuilt = normalizeOptionalNumber(leadData.step05?.yearBuilt)
+  const reason = leadData.step10?.reason
+  const usage = leadData.step11?.usage
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return 'Bitte zuerst eine gültige E-Mail-Adresse eingeben.'
@@ -247,6 +257,8 @@ function getFinalizeValidationError(leadData: LeadData, selectedType: PropertyTy
   if (selectedType === 'house' || selectedType === 'apartment') {
     if (!livingArea) return 'Für die Bewertung wird eine Wohnfläche benötigt.'
     if (!yearBuilt) return 'Für die Bewertung wird ein Baujahr benötigt.'
+    if (!isSelectedReason(reason)) return 'Bitte den Grund der Anfrage angeben.'
+    if (!isSelectedUsage(usage)) return 'Bitte die aktuelle Nutzung der Immobilie angeben.'
   }
 
   if (selectedType === 'house') {
@@ -651,8 +663,8 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
     if (stepKey === 'quality') return Boolean(leadData.step08)
     if (stepKey === 'extras') return Boolean(leadData.step09)
 
-    if (stepKey === 'reason') return Boolean(leadData.step10)
-    if (stepKey === 'usage') return Boolean(leadData.step11)
+    if (stepKey === 'reason') return isSelectedReason(leadData.step10?.reason)
+    if (stepKey === 'usage') return isSelectedUsage(leadData.step11?.usage)
 
     if (stepKey === 'location') {
       const plzOk = isGermanPlz(leadData.step09Location?.postalCode)

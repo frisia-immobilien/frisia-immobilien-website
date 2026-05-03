@@ -36,12 +36,13 @@ export default function Step10ReasonSection({value, onChange}: Props) {
       </div>
 
       <h2 className="mt-5 text-2xl tracking-tight text-brand-navy" itemProp="name">
-        Grund der Anfrage
+        Grund der Anfrage <span aria-hidden="true">*</span>
       </h2>
 
       <p className="mt-2 mb-5 text-base leading-relaxed text-brand-graphite" itemProp="description">
         Wofür benötigst du den Immobilienwert?
       </p>
+      <p className="text-sm font-medium text-brand-navy">Pflichtfeld: Bitte wähle eine Option aus.</p>
 
       {/* Optik/Pattern 1:1 wie Step09Extras (Boxen, Check, Subline) */}
       <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-4">

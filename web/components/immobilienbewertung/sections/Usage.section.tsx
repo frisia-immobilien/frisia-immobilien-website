@@ -27,12 +27,13 @@ export default function Step11UsageSection({value, onChange}: Props) {
       </div>
 
       <h2 className="mt-5 text-2xl tracking-tight text-brand-navy" itemProp="name">
-        Aktuelle Nutzung
+        Aktuelle Nutzung <span aria-hidden="true">*</span>
       </h2>
 
       <p className="mt-2 mb-5 text-base leading-relaxed text-brand-graphite" itemProp="description">
         Wie wird die Immobilie aktuell genutzt?
       </p>
+      <p className="text-sm font-medium text-brand-navy">Pflichtfeld: Bitte wähle eine Option aus.</p>
 
       {/* Grid – identisch zu Reason.section.tsx */}
       <div className="mt-6 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-3">
