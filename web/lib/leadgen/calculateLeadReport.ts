@@ -12,18 +12,12 @@ import {
 import { resolveMarketData } from "@/lib/market/resolveMarketData";
 import { createNote, createTask, formatLeadOtherExtrasLines, updatePropertyRemark } from "@/lib/propstack/client";
 import { createRandomToken, getReportExpiryDate } from "@/lib/security/hashToken";
+import { absoluteUrl } from "@/lib/site";
 import {
   calculateValuation,
   getManualReviewReasonForValuationInput,
   type ValuationInput,
 } from "@/lib/valuation/calculateValuation";
-
-function getBaseUrl(request: Request) {
-  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/$/, "");
-  const proto = request.headers.get("x-forwarded-proto") || "http";
-  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "localhost:3000";
-  return `${proto}://${host}`;
-}
 
 function hasResidentialRequirements(lead: { living_area: number | null; construction_year: number | null }) {
   return Boolean(lead.living_area && lead.living_area > 0 && lead.construction_year);
@@ -125,7 +119,6 @@ async function returnManualReview(
   lead: NonNullable<Awaited<ReturnType<typeof getLeadRequestById>>>,
   reason: string,
   eventReason: string,
-  request: Request,
 ) {
   await createManualReviewTask(lead, reason);
   const token = createRandomToken();
@@ -133,7 +126,7 @@ async function returnManualReview(
   const report = await createManualLeadReport({ lead, token, expiresAt, reason });
   if (!report) throw new Error("Manueller Bewertungsreport konnte nicht erstellt werden.");
 
-  const reportUrl = `${getBaseUrl(request)}/bewertung-ergebnis/${token}`;
+  const reportUrl = absoluteUrl(`/bewertung-ergebnis/${token}`);
   const sent = await sendReportLink({ lead: report, reportUrl });
   const emailWasSent = sent.provider === "resend";
   await updateLeadStatus(lead.id, emailWasSent ? "report_sent" : "valuation_calculated");
@@ -221,7 +214,6 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
       lead,
       "Gewerbeimmobilien prüfen wir persönlich, weil Lage, Nutzung und Ertragsdaten stark einzelfallabhängig sind.",
       "commercial_manual",
-      input.request,
     );
   }
 
@@ -248,7 +240,6 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
         lead,
         "Für diese Lage liegen keine ausreichend belastbaren Marktdaten vor. Wir prüfen die Einordnung deshalb persönlich.",
         "no_market_data",
-        input.request,
       );
     }
 
@@ -274,7 +265,7 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
     };
     const manualReviewReason = getManualReviewReasonForValuationInput(valuationInput);
     if (manualReviewReason) {
-      return returnManualReview(lead, manualReviewReason, "valuation_discount_limit", input.request);
+      return returnManualReview(lead, manualReviewReason, "valuation_discount_limit");
     }
 
     valuation = calculateValuation(valuationInput);
@@ -302,7 +293,6 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
         lead,
         "Für dieses Grundstück konnte kein belastbarer Bodenrichtwert automatisch ermittelt werden. Wir prüfen die Bewertung persönlich.",
         "no_boris_data",
-        input.request,
       );
     }
 
@@ -323,7 +313,7 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
   const report = await createLeadReport({ lead, token, expiresAt, valuation, marketDataId });
   if (!report) throw new Error("Report konnte nicht erstellt werden.");
 
-  const reportUrl = `${getBaseUrl(input.request)}/bewertung-ergebnis/${token}`;
+  const reportUrl = absoluteUrl(`/bewertung-ergebnis/${token}`);
 
   await syncValuationToPropstack({
     lead,

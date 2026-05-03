@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { sendLeadCallbackRequestedNotification } from "@/lib/immobilienbewertung/lead-emails";
 import { getLeadByToken, trackLeadEvent } from "@/lib/immobilienbewertung/lead-records";
+import { absoluteUrl } from "@/lib/site";
 
 export const runtime = "nodejs";
 
@@ -17,20 +18,6 @@ const VALID_EVENTS = new Set<LeadTrackEvent>([
   "cta_precise_valuation_click",
   "callback_requested",
 ]);
-
-function getBaseUrl(request: Request) {
-  if (process.env.PUBLIC_BASE_URL) {
-    return process.env.PUBLIC_BASE_URL.replace(/\/$/, "");
-  }
-
-  const proto = request.headers.get("x-forwarded-proto") || "http";
-  const host =
-    request.headers.get("x-forwarded-host") ||
-    request.headers.get("host") ||
-    "localhost:3000";
-
-  return `${proto}://${host}`;
-}
 
 function getClientIp(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -73,7 +60,7 @@ export async function POST(request: Request) {
     if (eventType === "callback_requested" && !lead.callback_requested_at) {
       await sendLeadCallbackRequestedNotification({
         lead,
-        landingUrl: `${getBaseUrl(request)}/bewertung-ergebnis/${token}`,
+        landingUrl: absoluteUrl(`/bewertung-ergebnis/${token}`),
       });
     }
 

@@ -10,15 +10,9 @@ import {
 } from "@/lib/leadgen/repository";
 import { createRandomToken, getReportExpiryDate } from "@/lib/security/hashToken";
 import { assertRateLimit, getClientIp } from "@/lib/security/rateLimit";
+import { absoluteUrl } from "@/lib/site";
 
 export const runtime = "nodejs";
-
-function getBaseUrl(request: Request) {
-  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/$/, "");
-  const proto = request.headers.get("x-forwarded-proto") || "http";
-  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "localhost:3000";
-  return `${proto}://${host}`;
-}
 
 export async function POST(request: Request) {
   try {
@@ -60,7 +54,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const reportUrl = `${getBaseUrl(request)}/bewertung-ergebnis/${token}`;
+    const reportUrl = absoluteUrl(`/bewertung-ergebnis/${token}`);
     const sent = await sendReportLink({ lead: report, reportUrl });
     const emailWasSent = sent.provider === "resend";
 
