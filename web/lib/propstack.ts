@@ -628,17 +628,25 @@ async function getRawMarketingProperties() {
 }
 
 export async function getImmobilienAurichListingResult(): Promise<PropertyListingResult> {
-  const rawProperties = await getRawMarketingProperties();
-  const mapped = rawProperties.map(toListItem);
-  const aurichFirst = mapped.sort((a, b) => {
-    if (a.scope === b.scope) return 0;
-    return a.scope === "aurich" ? -1 : 1;
-  });
+  try {
+    const rawProperties = await getRawMarketingProperties();
+    const mapped = rawProperties.map(toListItem);
+    const aurichFirst = mapped.sort((a, b) => {
+      if (a.scope === b.scope) return 0;
+      return a.scope === "aurich" ? -1 : 1;
+    });
 
-  return {
-    items: aurichFirst,
-    coverage: "aurich-und-umgebung",
-  };
+    return {
+      items: aurichFirst,
+      coverage: "aurich-und-umgebung",
+    };
+  } catch (error) {
+    console.error("Propstack listings konnten nicht geladen werden", error);
+    return {
+      items: [],
+      coverage: "aurich-und-umgebung",
+    };
+  }
 }
 
 export async function getPropstackPropertyById(id: number) {
