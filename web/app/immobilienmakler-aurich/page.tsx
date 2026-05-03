@@ -26,7 +26,7 @@ import {
 const PAGE_PATH = "/immobilienmakler-aurich";
 const PAGE_TITLE = "Immobilienmakler Aurich – Frisia Immobilien";
 const PAGE_DESCRIPTION =
-  "Haus in Aurich verkaufen? Frisia Immobilien begleitet Sie mit klarer Preisstrategie und Struktur bis zum Notartermin.";
+  "Haus in Aurich verkaufen? Frisia Immobilien begleitet dich mit klarer Preisstrategie und Struktur bis zum Notartermin.";
 const HERO_IMAGE = "/images/hero/haus-verkaufen-aurich.webp";
 
 export const metadata: Metadata = {
@@ -171,7 +171,7 @@ const faqItems = [
   {
     question: "Wie finde ich den richtigen Immobilienmakler in Aurich?",
     answer:
-      "Ein guter Immobilienmakler kennt den regionalen Markt in Aurich und ganz Ostfriesland genau und kann eine realistische Preiseinschätzung geben. Entscheidend sind Erfahrung, eine klare Vermarktungsstrategie und die Fähigkeit, Käufer gezielt zu prüfen. Wichtig ist auch, dass Sie einen festen Ansprechpartner haben, der Sie zuverlässig durch den gesamten Verkaufsprozess begleitet.",
+      "Ein guter Immobilienmakler kennt den regionalen Markt in Aurich und ganz Ostfriesland genau und kann eine realistische Preiseinschätzung geben. Entscheidend sind Erfahrung, eine klare Vermarktungsstrategie und die Fähigkeit, Käufer gezielt zu prüfen. Wichtig ist auch, dass du einen festen Ansprechpartner hast, der dich zuverlässig durch den gesamten Verkaufsprozess begleitet.",
   },
   {
     question: "Ist ein Immobilienmakler beim Verkauf wirklich sinnvoll?",
@@ -216,7 +216,7 @@ const faqItems = [
   {
     question: "Kann ich meine Immobilie verkaufen, während ich noch darin wohne?",
     answer:
-      "Ja, das ist möglich und häufig der Fall. Wichtig ist eine abgestimmte Vermarktung, die Ihre Privatsphäre berücksichtigt und Besichtigungen sinnvoll organisiert.",
+      "Ja, das ist möglich und häufig der Fall. Wichtig ist eine abgestimmte Vermarktung, die deine Privatsphäre berücksichtigt und Besichtigungen sinnvoll organisiert.",
   },
   {
     question: "Was ist besser: hoher Angebotspreis oder realistischer Marktpreis?",
@@ -326,7 +326,7 @@ export default function ImmobilienmaklerAurichPage() {
               </li>
             </ul>
             <p>
-              Frisia Immobilien bewertet realistisch und begleitet Sie bis zum Abschluss.
+              Frisia Immobilien bewertet realistisch und begleitet dich bis zum Abschluss.
             </p>
           </div>
         }
@@ -366,22 +366,22 @@ export default function ImmobilienmaklerAurichPage() {
             </h1>
             <HeroDivider />
             <h2 className="mt-5 max-w-[18ch] font-[family-name:var(--font-playfair)] text-[2.35rem] leading-[1.06] tracking-[-0.014em] text-[color:var(--color-navy)] sm:text-[3.1rem] lg:text-[3.65rem]">
-              Ihr Immobilienmakler in Aurich und ganz Ostfriesland
+              Dein Immobilienmakler in Aurich und ganz Ostfriesland
             </h2>
 
             <div className="mt-7 w-full max-w-[43rem] min-w-0 space-y-4 text-[1.02rem] leading-[1.82] text-[color:var(--color-navy)] md:text-[1.08rem]">
               <p>
-                Wenn Sie Ihre Immobilie in Aurich verkaufen, entscheidet vor allem die richtige Einordnung.
+                Wenn du deine Immobilie in Aurich verkaufen möchtest, entscheidet vor allem die richtige Einordnung.
               </p>
               <ul className="space-y-3">
                 <CheckLine>Wird der Preis zu hoch angesetzt, bleibt die Immobilie zu lange am Markt.</CheckLine>
-                <CheckLine>Wird er zu niedrig gewählt, verlieren Eigentümer bares Geld.</CheckLine>
+                <CheckLine>Wird er zu niedrig gewählt, verlierst du bares Geld.</CheckLine>
               </ul>
             </div>
 
             <div className="mt-7 w-full min-w-0 rounded-[1.35rem] border border-[color:var(--color-brass)]/35 bg-white/86 p-5 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur">
               <p className="text-[0.98rem] leading-[1.75] text-[color:var(--color-navy)]">
-                Frisia Immobilien sorgt dafür, dass Ihre Immobilie realistisch bewertet, strukturiert vermarktet und mit dem passenden Käufer abgeschlossen wird - ruhig, klar und bis zum Notartermin begleitet.
+                Frisia Immobilien sorgt dafür, dass deine Immobilie realistisch bewertet, strukturiert vermarktet und mit dem passenden Käufer abgeschlossen wird - ruhig, klar und bis zum Notartermin begleitet.
               </p>
             </div>
 
@@ -487,7 +487,7 @@ export default function ImmobilienmaklerAurichPage() {
               Warum Frisia Immobilien?
             </p>
             <h2 className="mt-3 font-[family-name:var(--font-playfair)] text-[2.15rem] leading-[1.12] text-[color:var(--color-navy)] md:text-[3rem]">
-              Warum Eigentümer mit Frisia Immobilien arbeiten
+              Warum du mit Frisia Immobilien arbeitest
             </h2>
           </div>
 
@@ -522,7 +522,7 @@ export default function ImmobilienmaklerAurichPage() {
               So läuft der Verkauf mit Frisia Immobilien
             </h2>
             <p className="mt-5 max-w-3xl text-[1.02rem] leading-[1.75] text-[color:var(--color-graphite)]">
-              Ein klar strukturierter Ablauf nach dem Frisia 9+1 Verkaufsprozess - speziell für Eigentümer in Aurich, Ostfriesland und den umliegenden Teilmärkten.
+              Ein klar strukturierter Ablauf nach dem Frisia 9+1 Verkaufsprozess - speziell für dich als Eigentümer in Aurich, Ostfriesland und den umliegenden Teilmärkten.
             </p>
           </div>
 
@@ -573,7 +573,7 @@ export default function ImmobilienmaklerAurichPage() {
                 Aurich, Emden, Leer, Wittmund und Norden unterscheiden sich deutlich in Nachfrage und Preisentwicklung.
               </p>
               <p>
-                Wir ordnen Ihre Immobilie exakt im aktuellen Markt ein und entwickeln daraus eine tragfähige Preisstrategie - als Grundlage für einen erfolgreichen Verkauf.
+                Wir ordnen deine Immobilie exakt im aktuellen Markt ein und entwickeln daraus eine tragfähige Preisstrategie - als Grundlage für einen erfolgreichen Verkauf.
               </p>
             </div>
             <div className="mt-6 rounded-[1.2rem] border border-[color:var(--color-brass)]/18 bg-white p-5">
@@ -637,10 +637,10 @@ export default function ImmobilienmaklerAurichPage() {
               Nächster Schritt
             </p>
             <h2 className="mt-3 font-[family-name:var(--font-playfair)] text-[2.1rem] leading-[1.12] text-[color:var(--color-navy)] md:text-[2.8rem]">
-              Was ist Ihre Immobilie aktuell wert?
+              Was ist deine Immobilie aktuell wert?
             </h2>
             <p className="mt-4 max-w-2xl text-[1.02rem] leading-[1.75] text-[color:var(--color-graphite)]">
-              Dann starten Sie einfach mit einer ersten Einschätzung - und wir zeigen Ihnen, in welchem Preisrahmen ein Verkauf realistisch möglich ist.
+              Dann starte einfach mit einer ersten Einschätzung - und wir zeigen dir, in welchem Preisrahmen ein Verkauf realistisch möglich ist.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row md:justify-end">
