@@ -8,7 +8,6 @@ import { absoluteUrl } from "@/lib/site";
 export const revalidate = 86400;
 
 type SitemapEntry = MetadataRoute.Sitemap[number];
-type ChangeFrequency = NonNullable<SitemapEntry["changeFrequency"]>;
 type LocationType = "region" | "landkreis" | "stadt_gemeinde" | "ortsteil";
 type PageType =
   | "immobilienmakler"
@@ -22,12 +21,16 @@ type PageType =
 type StaticRoute = {
   path: string;
   priority: number;
-  changeFrequency: ChangeFrequency;
 };
 
 type DynamicRoute = {
   pageType: PageType;
   prefix: string;
+  priority: number;
+};
+
+type InternalSitemapEntry = {
+  entry: SitemapEntry;
   priority: number;
 };
 
@@ -112,48 +115,48 @@ type RuntimeMarketRecord = {
 };
 
 const STATIC_ROUTES: StaticRoute[] = [
-  { path: "/", priority: 1, changeFrequency: "weekly" },
-  { path: "/immobilienbewertung", priority: 0.9, changeFrequency: "monthly" },
-  { path: "/immobilie-bewerten", priority: 0.84, changeFrequency: "monthly" },
-  { path: "/immobilienpreise", priority: 0.86, changeFrequency: "monthly" },
-  { path: "/haus-verkaufen", priority: 0.86, changeFrequency: "monthly" },
-  { path: "/haus-kaufen", priority: 0.78, changeFrequency: "weekly" },
-  { path: "/immobilienbewertung-aurich", priority: 0.92, changeFrequency: "monthly" },
-  { path: "/haus-verkaufen-aurich", priority: 0.92, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-aurich", priority: 0.9, changeFrequency: "monthly" },
-  { path: "/haus-kaufen-aurich", priority: 0.82, changeFrequency: "weekly" },
-  { path: "/immobilien-aurich", priority: 0.86, changeFrequency: "weekly" },
-  { path: "/suchauftrag", priority: 0.78, changeFrequency: "weekly" },
-  { path: "/immobilienpreise-aurich", priority: 0.9, changeFrequency: "monthly" },
-  { path: "/hauspreise-aurich", priority: 0.84, changeFrequency: "monthly" },
-  { path: "/wohnungspreise-aurich", priority: 0.84, changeFrequency: "monthly" },
-  { path: "/grundstueckspreise-aurich", priority: 0.82, changeFrequency: "monthly" },
-  { path: "/bodenrichtwert-aurich", priority: 0.8, changeFrequency: "monthly" },
-  { path: "/mietspiegel-aurich", priority: 0.78, changeFrequency: "monthly" },
-  { path: "/immobilienmakler-aurich", priority: 0.95, changeFrequency: "monthly" },
-  { path: "/verkaufssituationen", priority: 0.82, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-alter", priority: 0.78, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-erbschaft", priority: 0.78, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-diskret", priority: 0.78, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-scheidung", priority: 0.78, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-zeitdruck", priority: 0.78, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-auswanderung", priority: 0.76, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-renovierungsbedarf", priority: 0.76, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-leerstand", priority: 0.76, changeFrequency: "monthly" },
-  { path: "/immobilie-verkaufen-energieausweis", priority: 0.76, changeFrequency: "monthly" },
-  { path: "/maklerhaus", priority: 0.74, changeFrequency: "monthly" },
-  { path: "/ueber-uns", priority: 0.68, changeFrequency: "monthly" },
-  { path: "/ueber-uns/sebastian-munzig", priority: 0.7, changeFrequency: "monthly" },
-  { path: "/ueber-uns/arbeitsweise", priority: 0.66, changeFrequency: "monthly" },
-  { path: "/ueber-uns/netzwerk", priority: 0.62, changeFrequency: "monthly" },
-  { path: "/kontakt", priority: 0.76, changeFrequency: "monthly" },
-  { path: "/regionen-ostfriesland", priority: 0.84, changeFrequency: "monthly" },
-  { path: "/karriere", priority: 0.55, changeFrequency: "monthly" },
-  { path: "/presse", priority: 0.5, changeFrequency: "monthly" },
-  { path: "/recht", priority: 0.25, changeFrequency: "yearly" },
-  { path: "/recht/impressum", priority: 0.2, changeFrequency: "yearly" },
-  { path: "/recht/datenschutz", priority: 0.2, changeFrequency: "yearly" },
-  { path: "/recht/cookies", priority: 0.15, changeFrequency: "yearly" },
+  { path: "/", priority: 1 },
+  { path: "/immobilienbewertung", priority: 0.9 },
+  { path: "/immobilie-bewerten", priority: 0.84 },
+  { path: "/immobilienpreise", priority: 0.86 },
+  { path: "/haus-verkaufen", priority: 0.86 },
+  { path: "/haus-kaufen", priority: 0.78 },
+  { path: "/immobilienbewertung-aurich", priority: 0.92 },
+  { path: "/haus-verkaufen-aurich", priority: 0.92 },
+  { path: "/immobilie-verkaufen-aurich", priority: 0.9 },
+  { path: "/haus-kaufen-aurich", priority: 0.82 },
+  { path: "/immobilien-aurich", priority: 0.86 },
+  { path: "/suchauftrag", priority: 0.78 },
+  { path: "/immobilienpreise-aurich", priority: 0.9 },
+  { path: "/hauspreise-aurich", priority: 0.84 },
+  { path: "/wohnungspreise-aurich", priority: 0.84 },
+  { path: "/grundstueckspreise-aurich", priority: 0.82 },
+  { path: "/bodenrichtwert-aurich", priority: 0.8 },
+  { path: "/mietspiegel-aurich", priority: 0.78 },
+  { path: "/immobilienmakler-aurich", priority: 0.95 },
+  { path: "/verkaufssituationen", priority: 0.82 },
+  { path: "/immobilie-verkaufen-alter", priority: 0.78 },
+  { path: "/immobilie-verkaufen-erbschaft", priority: 0.78 },
+  { path: "/immobilie-verkaufen-diskret", priority: 0.78 },
+  { path: "/immobilie-verkaufen-scheidung", priority: 0.78 },
+  { path: "/immobilie-verkaufen-zeitdruck", priority: 0.78 },
+  { path: "/immobilie-verkaufen-auswanderung", priority: 0.76 },
+  { path: "/immobilie-verkaufen-renovierungsbedarf", priority: 0.76 },
+  { path: "/immobilie-verkaufen-leerstand", priority: 0.76 },
+  { path: "/immobilie-verkaufen-energieausweis", priority: 0.76 },
+  { path: "/maklerhaus", priority: 0.74 },
+  { path: "/ueber-uns", priority: 0.68 },
+  { path: "/ueber-uns/sebastian-munzig", priority: 0.7 },
+  { path: "/ueber-uns/arbeitsweise", priority: 0.66 },
+  { path: "/ueber-uns/netzwerk", priority: 0.62 },
+  { path: "/kontakt", priority: 0.76 },
+  { path: "/regionen-ostfriesland", priority: 0.84 },
+  { path: "/karriere", priority: 0.55 },
+  { path: "/presse", priority: 0.5 },
+  { path: "/recht", priority: 0.25 },
+  { path: "/recht/impressum", priority: 0.2 },
+  { path: "/recht/datenschutz", priority: 0.2 },
+  { path: "/recht/cookies", priority: 0.15 },
 ];
 
 const DYNAMIC_ROUTES: DynamicRoute[] = [
@@ -400,6 +403,10 @@ function hasCustomContent(content: ContentLookup, location: SitemapLocation, pag
   return content.has(`${location.location_slug}:${pageType}`);
 }
 
+function customContentLastModified(content: ContentLookup, location: SitemapLocation, pageType: PageType) {
+  return content.get(`${location.location_slug}:${pageType}`) ?? null;
+}
+
 function isIndexableDynamicRoute(
   route: DynamicRoute,
   location: SitemapLocation,
@@ -427,28 +434,31 @@ function dynamicPriority(route: DynamicRoute, location: SitemapLocation) {
   return Math.min(0.88, Number((route.priority + locationBoost).toFixed(2)));
 }
 
-function createEntry(route: StaticRoute, fallbackLastModified: Date): SitemapEntry {
-  return {
-    url: absoluteUrl(route.path),
-    lastModified: fallbackLastModified,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
+function createEntry(routePath: string, lastModified?: Date | string | null): SitemapEntry {
+  const parsedLastModified = parseDate(lastModified);
+  const entry: SitemapEntry = {
+    url: absoluteUrl(routePath),
   };
+
+  if (parsedLastModified) {
+    entry.lastModified = parsedLastModified;
+  }
+
+  return entry;
 }
 
-function addEntry(entries: Map<string, SitemapEntry>, entry: SitemapEntry) {
+function addEntry(entries: Map<string, InternalSitemapEntry>, entry: SitemapEntry, priority: number) {
   const existing = entries.get(entry.url);
-  if (!existing || Number(entry.priority ?? 0) > Number(existing.priority ?? 0)) {
-    entries.set(entry.url, entry);
+  if (!existing || priority > existing.priority) {
+    entries.set(entry.url, { entry, priority });
   }
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const now = new Date();
-  const entries = new Map<string, SitemapEntry>();
+  const entries = new Map<string, InternalSitemapEntry>();
 
   for (const route of STATIC_ROUTES) {
-    addEntry(entries, createEntry(route, now));
+    addEntry(entries, createEntry(route.path), route.priority);
   }
 
   const sourceData = await loadSitemapSourceData();
@@ -464,23 +474,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (STATIC_PATHS.has(routePath)) continue;
       if (!isIndexableDynamicRoute(route, location, houseMarket, apartmentMarket, sourceData.content)) continue;
 
-      addEntry(entries, {
-        url: absoluteUrl(routePath),
-        lastModified: newestDate(location.lastModified, houseMarket?.lastModified, apartmentMarket?.lastModified) ?? now,
-        changeFrequency: "monthly",
-        priority: dynamicPriority(route, location),
-      });
+      addEntry(
+        entries,
+        createEntry(
+          routePath,
+          newestDate(
+            location.lastModified,
+            houseMarket?.lastModified,
+            apartmentMarket?.lastModified,
+            customContentLastModified(sourceData.content, location, route.pageType),
+          ),
+        ),
+        dynamicPriority(route, location),
+      );
     }
   }
 
   for (const slug of REGION_LANDING_EXAMPLES) {
-    addEntry(entries, {
-      url: absoluteUrl(`/regionen-ostfriesland/${slug}`),
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.58,
-    });
+    addEntry(entries, createEntry(`/regionen-ostfriesland/${slug}`), 0.58);
   }
 
-  return Array.from(entries.values());
+  return Array.from(entries.values())
+    .sort((a, b) => b.priority - a.priority || a.entry.url.localeCompare(b.entry.url))
+    .map(({ entry }) => entry);
 }
