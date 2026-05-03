@@ -115,9 +115,9 @@ export default function DatenschutzPage() {
                 7. Versand von E-Mails (Dienstleister)
               </h2>
               <p className="mt-2">
-                Für CRM-Verarbeitung, Kontaktverwaltung und den Versand von Bewertungslinks nutzen wir Propstack.
-                Für einzelne Kontaktbenachrichtigungen kann außerdem der Dienstleister Resend, Inc. eingesetzt werden.
-                Hierbei werden E-Mail-Adresse und inhaltliche Versanddaten verarbeitet.
+                Für CRM-Verarbeitung, Kontaktverwaltung, Aufgaben, Kontaktbenachrichtigungen und den Versand von
+                Bewertungslinks nutzen wir Propstack. Hierbei werden E-Mail-Adresse und inhaltliche Versanddaten
+                verarbeitet.
               </p>
               <p className="mt-2">
                 Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Anfragebearbeitung) sowie Art. 6 Abs. 1 lit. f DSGVO

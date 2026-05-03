@@ -276,7 +276,7 @@ export async function POST(request: Request) {
           body,
           contactId: lead.propstack_contact_id,
           propertyId: lead.propstack_property_id,
-          assignedBrokerId: 400034,
+          assignedBrokerId: 395772,
           noteTypeId: 616845,
         }),
       ]);

@@ -211,8 +211,8 @@ async function resolveContactFormMetaInternal(): Promise<ContactFormMeta> {
       process.env.PROPSTACK_CONTACT_BROKER_EMAIL || "",
       process.env.PROPSTACK_LEAD_BROKER_NAME || "",
       process.env.PROPSTACK_LEAD_BROKER_EMAIL || "",
-      "leads@frisia-immobilien.de",
       "info@frisia-immobilien.de",
+      "leads@frisia-immobilien.de",
     ])?.id ||
     brokers[0]?.id ||
     null;

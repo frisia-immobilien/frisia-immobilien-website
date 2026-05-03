@@ -113,6 +113,7 @@ export async function POST(request: Request) {
       contactId: result.contactId,
       savedQueryId: result.savedQueryId,
       taskId: result.taskId,
+      messageId: result.messageId,
     });
   } catch (error) {
     console.error("Suchauftrag konnte nicht an Propstack übertragen werden", error);

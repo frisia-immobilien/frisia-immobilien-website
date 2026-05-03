@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import {
   syncContactFormToPropstack,
   type PropstackContactFormInput,
 } from "@/lib/propstack-contact-form";
+import { sendPropstackMessage } from "@/lib/propstack/client";
+import { EMAIL } from "@/lib/site";
 import { isTurnstileTestKey, shouldBypassTurnstileForLocalDev } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
@@ -58,17 +59,15 @@ async function verifyTurnstile(token: string, remoteIp?: string) {
   return data.success === true;
 }
 
-async function sendContactNotification(input: PropstackContactFormInput) {
-  const resend = new Resend(process.env.RESEND_API_KEY);
-  const recipient = "info@frisia-immobilien.de";
+async function sendContactNotification(input: PropstackContactFormInput, contactId: number) {
   const fullName = `${input.firstName} ${input.lastName}`.trim();
   const context = input.context || "Kontaktanfrage Website";
 
-  await resend.emails.send({
-    from: process.env.LEAD_FROM_EMAIL!,
-    to: recipient,
+  await sendPropstackMessage({
+    to: EMAIL,
+    assignedBrokerEmail: EMAIL,
+    contactId,
     subject: `${context} – ${fullName}`,
-    replyTo: input.email,
     html: `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.6;color:#1f2937;">
         <h2 style="margin:0 0 12px 0;color:#1B3040;">${htmlEscape(context)}</h2>
@@ -86,13 +85,6 @@ async function sendContactNotification(input: PropstackContactFormInput) {
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      return NextResponse.json({ success: false, error: "RESEND_API_KEY fehlt." }, { status: 500 });
-    }
-    if (!process.env.LEAD_FROM_EMAIL) {
-      return NextResponse.json({ success: false, error: "LEAD_FROM_EMAIL fehlt." }, { status: 500 });
-    }
-
     const body = (await req.json()) as ContactBody;
     const firstName = sanitize(body.firstName);
     const lastName = sanitize(body.lastName);
@@ -140,10 +132,8 @@ export async function POST(req: Request) {
       context,
     };
 
-    await Promise.all([
-      syncContactFormToPropstack(contactInput),
-      sendContactNotification(contactInput),
-    ]);
+    const propstackResult = await syncContactFormToPropstack(contactInput);
+    await sendContactNotification(contactInput, propstackResult.contactId);
 
     return NextResponse.json({ success: true });
   } catch (error) {

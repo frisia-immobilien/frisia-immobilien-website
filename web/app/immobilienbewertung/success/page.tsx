@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import ResendReportButton from "./ResendReportButton.client";
+import SendReportButton from "./SendReportButton.client";
 
 export const metadata: Metadata = {
   title: "Werteinschätzung vorbereitet",
@@ -40,7 +40,7 @@ export default async function ImmobilienbewertungSuccessPage({ searchParams }: P
             aufzurufen.
           </p>
 
-          <ResendReportButton leadId={leadId} />
+          <SendReportButton leadId={leadId} />
         </div>
       </section>
     </main>

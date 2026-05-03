@@ -1,8 +1,10 @@
+import { EMAIL } from "@/lib/site";
+
 const DEFAULT_PROPSTACK_V1_BASE_URL = "https://api.propstack.de/v1";
-const SEARCH_REQUEST_BROKER_ID = 400034;
+const SEARCH_REQUEST_BROKER_ID = 395772;
 const SEARCH_REQUEST_BROKER_CANDIDATES = [
-  "leads@",
-  "leads@frisia-immobilien.de",
+  "info@",
+  EMAIL,
 ] as const;
 
 type PropstackKeyValue = {
@@ -52,6 +54,7 @@ type PropstackSearchRequestResult = {
   contactId: number | null;
   savedQueryId: number | null;
   taskId: number | null;
+  messageId: number | null;
 };
 
 let searchRequestMetaPromise: Promise<SearchRequestMeta> | null = null;
@@ -101,6 +104,9 @@ function extractId(value: unknown): number | null {
 
   const task = (value as { task?: unknown } | null)?.task;
   if (typeof (task as { id?: unknown } | null)?.id === "number") return (task as { id: number }).id;
+
+  const message = (value as { message?: unknown } | null)?.message;
+  if (typeof (message as { id?: unknown } | null)?.id === "number") return (message as { id: number }).id;
 
   return null;
 }
@@ -377,6 +383,36 @@ function buildPlainSearchDescription(input: SearchRequestInput) {
   return rows.filter((row, index, array) => row || array[index - 1]).join("\n").trim();
 }
 
+function htmlEscape(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function buildSearchHtml(input: SearchRequestInput) {
+  return `
+    <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.6;color:#1f2937;">
+      <h2 style="margin:0 0 12px 0;color:#1B3040;">Suchauftrag Website</h2>
+      <p><strong>Kontakt:</strong> ${htmlEscape(formatContactName(input))}</p>
+      <p><strong>E-Mail:</strong> ${htmlEscape(input.email)}</p>
+      <p><strong>Telefon:</strong> ${htmlEscape(input.phone || "nicht angegeben")}</p>
+      <p><strong>Adresse:</strong> ${htmlEscape(formatAddress(input))}</p>
+      <p><strong>Vermarktungsart:</strong> ${htmlEscape(formatMarketingType(input.marketingType))}</p>
+      <p><strong>Objektarten:</strong> ${htmlEscape(input.propertyTypes.join(", ") || "offen")}</p>
+      <p><strong>Suchorte:</strong> ${htmlEscape(input.locations)}</p>
+      <p><strong>Umkreis:</strong> ${htmlEscape(formatSearchRadius(input.searchRadiusKm))}</p>
+      <p><strong>Budget:</strong> ${htmlEscape(formatCurrency(input.budgetMax) || "offen")}</p>
+      <p><strong>Fläche:</strong> ${htmlEscape(formatNumber(input.livingSpaceMin, "m²") || "offen")}</p>
+      <p><strong>Zimmer:</strong> ${htmlEscape(formatNumber(input.roomsMin, "Zimmer") || "offen")}</p>
+      <p><strong>Eigene Immobilie:</strong> ${htmlEscape(formatSaleIfBuyer(input.saleIfBuyer))}</p>
+      ${input.notes ? `<p><strong>Hinweise:</strong><br>${htmlEscape(input.notes).replaceAll("\n", "<br>")}</p>` : ""}
+    </div>
+  `;
+}
+
 function buildContactBody(input: SearchRequestInput, meta: SearchRequestMeta) {
   return {
     client: compactObject({
@@ -437,6 +473,43 @@ async function createSavedQuery(contactId: number, input: SearchRequestInput, me
   return extractId(created);
 }
 
+async function createSearchTask(contactId: number, input: SearchRequestInput, meta: SearchRequestMeta) {
+  const created = await propstackV1Fetch<unknown>("/tasks", {
+    method: "POST",
+    body: {
+      task: compactObject({
+        is_reminder: true,
+        title: `Suchauftrag prüfen: ${formatContactName(input)}`,
+        client_ids: [contactId],
+        broker_id: meta.brokerId ?? undefined,
+        task_creator_id: meta.brokerId ?? undefined,
+        task_updater_id: meta.brokerId ?? undefined,
+        due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+        body: buildPlainSearchDescription(input).replace(/\n/g, "<br>"),
+      }),
+    },
+  });
+
+  return extractId(created);
+}
+
+async function sendSearchNotification(contactId: number, input: SearchRequestInput, meta: SearchRequestMeta) {
+  const created = await propstackV1Fetch<unknown>("/messages", {
+    method: "POST",
+    body: {
+      message: compactObject({
+        broker_id: meta.brokerId ?? SEARCH_REQUEST_BROKER_ID,
+        to: [EMAIL],
+        subject: `Suchauftrag Website – ${formatContactName(input)}`,
+        body: buildSearchHtml(input),
+        client_ids: [contactId],
+      }),
+    },
+  });
+
+  return extractId(created);
+}
+
 export async function createSearchRequestInPropstack(input: SearchRequestInput): Promise<PropstackSearchRequestResult> {
   const meta = await resolveSearchRequestMeta();
   const createdContact = await propstackV1Fetch<unknown>("/contacts", {
@@ -456,5 +529,19 @@ export async function createSearchRequestInPropstack(input: SearchRequestInput):
     console.error("Propstack-Suchprofil konnte nicht automatisch angelegt werden", error);
   }
 
-  return { contactId, savedQueryId, taskId: null };
+  let taskId: number | null = null;
+  try {
+    taskId = await createSearchTask(contactId, input, meta);
+  } catch (error) {
+    console.error("Propstack-Suchauftrag-Aufgabe konnte nicht automatisch angelegt werden", error);
+  }
+
+  let messageId: number | null = null;
+  try {
+    messageId = await sendSearchNotification(contactId, input, meta);
+  } catch (error) {
+    console.error("Propstack-Suchauftrag-Benachrichtigung konnte nicht automatisch gesendet werden", error);
+  }
+
+  return { contactId, savedQueryId, taskId, messageId };
 }

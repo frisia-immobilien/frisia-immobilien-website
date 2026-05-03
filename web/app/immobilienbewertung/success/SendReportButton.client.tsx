@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 
-export default function ResendReportButton({ leadId }: { leadId?: string }) {
+export default function SendReportButton({ leadId }: { leadId?: string }) {
   const [status, setStatus] = useState<"idle" | "pending" | "sent" | "error">("idle");
   const [error, setError] = useState("");
 
-  async function resend() {
+  async function sendAgain() {
     if (!leadId || status === "pending") return;
     setStatus("pending");
     setError("");
@@ -32,7 +32,7 @@ export default function ResendReportButton({ leadId }: { leadId?: string }) {
     <div className="mt-8 flex flex-col items-start gap-3">
       <button
         type="button"
-        onClick={resend}
+        onClick={sendAgain}
         disabled={!leadId || status === "pending" || status === "sent"}
         className={[
           "inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold transition",

@@ -26,28 +26,28 @@ type Props = {
 }
 
 export default function Step16ThanksSection({value, onChange, onRetry, context}: Props) {
-  const [resendState, setResendState] = useState<'idle' | 'pending' | 'sent' | 'error'>('idle')
-  const [resendError, setResendError] = useState('')
+  const [retryEmailState, setRetryEmailState] = useState<'idle' | 'pending' | 'sent' | 'error'>('idle')
+  const [retryEmailError, setRetryEmailError] = useState('')
   const dispatchStatus = context?.lead?.step15Result?.emailDispatchStatus ?? 'pending'
   const dispatchError = context?.lead?.step15Result?.error
   const leadId = context?.lead?.step15Result?.leadId
   const email = context?.lead?.step15Result?.email || context?.lead?.step13EmailConsent?.email
   const isSending = dispatchStatus === 'idle' || dispatchStatus === 'pending'
   const hasDispatchError = dispatchStatus === 'error'
-  const resendLabel = useMemo(() => {
-    if (resendState === 'pending') return 'E-Mail wird erneut gesendet ...'
-    if (resendState === 'sent') return 'E-Mail erneut gesendet'
+  const retryEmailLabel = useMemo(() => {
+    if (retryEmailState === 'pending') return 'E-Mail wird erneut gesendet ...'
+    if (retryEmailState === 'sent') return 'E-Mail erneut gesendet'
     return 'E-Mail erneut senden'
-  }, [resendState])
+  }, [retryEmailState])
 
   useEffect(() => {
     onChange({closed: !!value?.closed})
   }, [onChange, value?.closed])
 
-  async function resendEmail() {
-    if (!leadId || resendState === 'pending') return
-    setResendState('pending')
-    setResendError('')
+  async function retryEmail() {
+    if (!leadId || retryEmailState === 'pending') return
+    setRetryEmailState('pending')
+    setRetryEmailError('')
 
     try {
       const response = await fetch('/api/lead/resend-report', {
@@ -59,10 +59,10 @@ export default function Step16ThanksSection({value, onChange, onRetry, context}:
       if (!response.ok || result.success !== true) {
         throw new Error(result.error || 'Die E-Mail konnte nicht erneut gesendet werden.')
       }
-      setResendState('sent')
+      setRetryEmailState('sent')
     } catch (error) {
-      setResendState('error')
-      setResendError(error instanceof Error ? error.message : 'Die E-Mail konnte nicht erneut gesendet werden.')
+      setRetryEmailState('error')
+      setRetryEmailError(error instanceof Error ? error.message : 'Die E-Mail konnte nicht erneut gesendet werden.')
     }
   }
 
@@ -145,21 +145,21 @@ export default function Step16ThanksSection({value, onChange, onRetry, context}:
         {!isSending && !hasDispatchError ? (
           <button
             type="button"
-            onClick={resendEmail}
-            disabled={!leadId || resendState === 'pending' || resendState === 'sent'}
+            onClick={retryEmail}
+            disabled={!leadId || retryEmailState === 'pending' || retryEmailState === 'sent'}
             className={[
               'inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-sm font-semibold transition',
-              leadId && resendState !== 'sent'
+              leadId && retryEmailState !== 'sent'
                 ? 'bg-brand-navy text-white hover:bg-brand-brackish'
                 : 'bg-slate-200 text-slate-500',
             ].join(' ')}
           >
-            {resendLabel}
+            {retryEmailLabel}
           </button>
         ) : null}
 
-        {resendState === 'error' ? (
-          <p className="max-w-xl text-sm text-red-700">{resendError}</p>
+        {retryEmailState === 'error' ? (
+          <p className="max-w-xl text-sm text-red-700">{retryEmailError}</p>
         ) : null}
       </div>
     </div>

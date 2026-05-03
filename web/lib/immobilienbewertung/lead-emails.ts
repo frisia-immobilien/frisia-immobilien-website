@@ -1,33 +1,14 @@
 import "server-only";
 
-import { Resend } from "resend";
-
 import type { LeadValuationRow } from "@/lib/immobilienbewertung/lead-records";
 import { renderLeadValuationEmail } from "@/lib/immobilienbewertung/templates/valuation-email";
-import { getBrokerAvatarUrlByEmail } from "@/lib/propstack/client";
-import { DIRECT_CONTACT } from "@/lib/site";
+import { getBrokerAvatarUrlByEmail, sendPropstackMessage } from "@/lib/propstack/client";
+import { DIRECT_CONTACT, EMAIL } from "@/lib/site";
 
 export type SentLeadMail = {
-  provider: "resend";
-  messageId: string | null;
+  provider: "propstack_message";
+  messageId: number | null;
 };
-
-function getResendClient() {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY fehlt.");
-  }
-
-  return new Resend(process.env.RESEND_API_KEY);
-}
-
-function requireMailConfig() {
-  if (!process.env.LEAD_FROM_EMAIL) {
-    throw new Error("LEAD_FROM_EMAIL fehlt.");
-  }
-  if (!process.env.LEAD_TO_EMAIL) {
-    throw new Error("LEAD_TO_EMAIL fehlt.");
-  }
-}
 
 function escapeHtml(value: string) {
   return value
@@ -42,24 +23,20 @@ export async function sendLeadValuationEmails(input: {
   lead: LeadValuationRow;
   landingUrl: string;
 }) : Promise<SentLeadMail> {
-  requireMailConfig();
-  const resend = getResendClient();
-
   const contactImageUrl =
     (await getBrokerAvatarUrlByEmail(DIRECT_CONTACT.email).catch(() => null)) || DIRECT_CONTACT.imagePath;
   const customerTemplate = renderLeadValuationEmail({ ...input, contactImageUrl });
-  const customerResponse = await resend.emails.send({
-    from: process.env.LEAD_FROM_EMAIL!,
+  const messageId = await sendPropstackMessage({
     to: input.lead.email,
+    assignedBrokerEmail: EMAIL,
     subject: customerTemplate.subject,
     html: customerTemplate.html,
-    text: customerTemplate.text,
   });
 
   const internalSubject = `Immobilienbewertung versendet – ${input.lead.name || input.lead.email} – ${input.lead.value_mid.toLocaleString("de-DE")} €`;
-  await resend.emails.send({
-    from: process.env.LEAD_FROM_EMAIL!,
-    to: process.env.LEAD_TO_EMAIL!,
+  await sendPropstackMessage({
+    to: EMAIL,
+    assignedBrokerEmail: EMAIL,
     subject: internalSubject,
     html: `
       <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#243746;">
@@ -76,8 +53,8 @@ export async function sendLeadValuationEmails(input: {
   });
 
   return {
-    provider: "resend",
-    messageId: customerResponse.data?.id ?? null,
+    provider: "propstack_message",
+    messageId,
   };
 }
 
@@ -85,12 +62,9 @@ export async function sendLeadCallbackRequestedNotification(input: {
   lead: LeadValuationRow;
   landingUrl: string;
 }) {
-  requireMailConfig();
-  const resend = getResendClient();
-
-  await resend.emails.send({
-    from: process.env.LEAD_FROM_EMAIL!,
-    to: process.env.LEAD_TO_EMAIL!,
+  await sendPropstackMessage({
+    to: EMAIL,
+    assignedBrokerEmail: EMAIL,
     subject: `Immobilienbewertung Rückrufwunsch – ${input.lead.name || input.lead.email}`,
     html: `
       <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#243746;">
@@ -103,15 +77,5 @@ export async function sendLeadCallbackRequestedNotification(input: {
         <p><strong>Landingpage:</strong> <a href="${escapeHtml(input.landingUrl)}">${escapeHtml(input.landingUrl)}</a></p>
       </div>
     `,
-    text: [
-      "Immobilienbewertung Rückrufwunsch",
-      "",
-      `Name: ${input.lead.name || "k. A."}`,
-      `E-Mail: ${input.lead.email}`,
-      `Telefon: ${input.lead.phone || "k. A."}`,
-      `Objekt: ${input.lead.location_text || "k. A."}`,
-      `Bewertung: ${input.lead.value_mid.toLocaleString("de-DE")} €`,
-      `Landingpage: ${input.landingUrl}`,
-    ].join("\n"),
   });
 }

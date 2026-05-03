@@ -14,7 +14,7 @@ import type { LeadRequestRow } from "@/lib/types/leadgen";
 
 export const runtime = "nodejs";
 
-const CALLBACK_BROKER_ID = 400034;
+const CALLBACK_BROKER_ID = 395772;
 const CALLBACK_NOTE_TYPE_ID = 616845;
 const ALLOWED_BROKERS = {
   sebastian: {
