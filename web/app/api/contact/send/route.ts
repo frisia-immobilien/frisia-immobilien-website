@@ -105,6 +105,7 @@ export async function POST(req: Request) {
     const context = sanitize(body.context) || "Kontaktanfrage Website";
     const turnstileSecret = process.env.TURNSTILE_SECRET_KEY ?? "";
     const captchaBypassed = shouldBypassTurnstileForLocalDev(turnstileSecret);
+    const captchaConfigured = Boolean(turnstileSecret) && !captchaBypassed && !isTurnstileTestKey(turnstileSecret);
 
     if (website) {
       return NextResponse.json({ success: true });
@@ -116,17 +117,11 @@ export async function POST(req: Request) {
     if (!isEmail(email)) {
       return NextResponse.json({ success: false, error: "Bitte eine gültige E-Mail-Adresse eingeben." }, { status: 400 });
     }
-    if (!turnstileSecret) {
-      return NextResponse.json({ success: false, error: "Captcha ist nicht konfiguriert." }, { status: 500 });
-    }
-    if (!captchaBypassed && isTurnstileTestKey(turnstileSecret)) {
-      return NextResponse.json({ success: false, error: "Captcha ist nicht korrekt konfiguriert." }, { status: 500 });
-    }
-    if (!captchaBypassed && !captchaToken) {
+    if (captchaConfigured && !captchaToken) {
       return NextResponse.json({ success: false, error: "Bitte Captcha bestätigen." }, { status: 400 });
     }
 
-    if (!captchaBypassed) {
+    if (captchaConfigured) {
       const forwardedFor = req.headers.get("x-forwarded-for");
       const remoteIp = forwardedFor?.split(",")[0]?.trim();
       const captchaOk = await verifyTurnstile(captchaToken, remoteIp);

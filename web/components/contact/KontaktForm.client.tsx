@@ -90,10 +90,9 @@ export default function KontaktForm({
   const canSubmit = useMemo(() => {
     if (status === "sending") return false;
     if (!form.firstName || !form.lastName || !form.email || !form.message) return false;
-    if (!captchaEnabled && !captchaBypassed) return false;
     if (captchaEnabled && !captchaToken) return false;
     return true;
-  }, [captchaBypassed, captchaEnabled, captchaToken, form, status]);
+  }, [captchaEnabled, captchaToken, form, status]);
 
   const initTurnstile = useCallback(() => {
     if (!captchaEnabled || widgetId || !widgetRef.current) return;
@@ -334,10 +333,6 @@ export default function KontaktForm({
             <div className="h-[55px] max-w-[320px] overflow-hidden rounded-xl bg-white">
               <div ref={widgetRef} id="turnstile-widget" className="min-h-[65px]" />
             </div>
-          ) : !captchaBypassed ? (
-            <p className="text-xs text-red-700">
-              Captcha ist noch nicht konfiguriert (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`).
-            </p>
           ) : null}
           {captchaEnabled && !captchaReady ? (
             <p className="text-xs text-[color:var(--color-graphite)]/80">
