@@ -3,8 +3,6 @@ import {
   syncContactFormToPropstack,
   type PropstackContactFormInput,
 } from "@/lib/propstack-contact-form";
-import { sendPropstackMessage } from "@/lib/propstack/client";
-import { EMAIL } from "@/lib/site";
 import { isTurnstileTestKey, shouldBypassTurnstileForLocalDev } from "@/lib/turnstile";
 
 export const runtime = "nodejs";
@@ -23,15 +21,6 @@ type ContactBody = {
 
 function sanitize(v: unknown) {
   return String(v ?? "").trim();
-}
-
-function htmlEscape(v: string) {
-  return v
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 function isEmail(value: string) {
@@ -57,30 +46,6 @@ async function verifyTurnstile(token: string, remoteIp?: string) {
   if (!response.ok) return false;
   const data = (await response.json()) as { success?: boolean };
   return data.success === true;
-}
-
-async function sendContactNotification(input: PropstackContactFormInput, contactId: number) {
-  const fullName = `${input.firstName} ${input.lastName}`.trim();
-  const context = input.context || "Kontaktanfrage Website";
-
-  return sendPropstackMessage({
-    to: EMAIL,
-    assignedBrokerEmail: EMAIL,
-    contactId,
-    subject: `${context} – ${fullName}`,
-    html: `
-      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;line-height:1.6;color:#1f2937;">
-        <h2 style="margin:0 0 12px 0;color:#1B3040;">${htmlEscape(context)}</h2>
-        <p><strong>Name:</strong> ${htmlEscape(fullName)}</p>
-        <p><strong>E-Mail:</strong> ${htmlEscape(input.email)}</p>
-        <p><strong>Telefon:</strong> ${htmlEscape(input.phone || "—")}</p>
-        <p><strong>Quelle:</strong> ${htmlEscape(context)}</p>
-        <p><strong>Herkunfts-URL:</strong> ${htmlEscape(input.originUrl || "—")}</p>
-        <p><strong>Nachricht:</strong></p>
-        <p style="white-space:pre-wrap;border:1px solid #d1d5db;border-radius:10px;padding:12px;">${htmlEscape(input.message)}</p>
-      </div>
-    `,
-  });
 }
 
 export async function POST(req: Request) {
@@ -133,14 +98,13 @@ export async function POST(req: Request) {
     };
 
     const propstackResult = await syncContactFormToPropstack(contactInput);
-    const messageId = await sendContactNotification(contactInput, propstackResult.contactId);
 
     return NextResponse.json({
       success: true,
       contactId: propstackResult.contactId,
       noteId: propstackResult.noteId,
       taskId: propstackResult.taskId,
-      messageId,
+      messageId: null,
     });
   } catch (error) {
     console.error("Kontaktanfrage konnte nicht verarbeitet werden", error);
