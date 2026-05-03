@@ -1,30 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
-import { shouldBypassTurnstileForLocalDev } from "@/lib/turnstile";
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (
-        container: string | HTMLElement,
-        options: {
-          sitekey: string;
-          callback?: (token: string) => void;
-          "expired-callback"?: () => void;
-          "error-callback"?: () => void;
-          theme?: "light" | "dark" | "auto";
-          size?: "normal" | "compact" | "flexible" | "invisible";
-          appearance?: "always" | "execute" | "interaction-only";
-        }
-      ) => string;
-      reset: (widgetId: string) => void;
-    };
-  }
-}
 
 type FormState = {
   firstName: string;
@@ -69,19 +47,9 @@ export default function KontaktForm({
   trustItems = ["Persönliche Rückmeldung", "Vertraulich", "Unverbindlich"],
   context = "Kontaktanfrage Website",
 }: KontaktFormProps) {
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
-  const captchaBypassed = shouldBypassTurnstileForLocalDev(siteKey);
-  const captchaEnabled = Boolean(siteKey) && !captchaBypassed;
-
   const [form, setForm] = useState<FormState>(INITIAL);
-  const [captchaToken, setCaptchaToken] = useState("");
-  const [widgetId, setWidgetId] = useState<string | null>(null);
-  const [captchaReady, setCaptchaReady] = useState(false);
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-  const [captchaError, setCaptchaError] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const widgetRef = useRef<HTMLDivElement | null>(null);
   const introParagraphs = useMemo(
     () => intro.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean),
     [intro],
@@ -90,57 +58,8 @@ export default function KontaktForm({
   const canSubmit = useMemo(() => {
     if (status === "sending") return false;
     if (!form.firstName || !form.lastName || !form.email || !form.message) return false;
-    if (captchaEnabled && !captchaToken) return false;
     return true;
-  }, [captchaEnabled, captchaToken, form, status]);
-
-  const initTurnstile = useCallback(() => {
-    if (!captchaEnabled || widgetId || !widgetRef.current) return;
-    if (!window.turnstile) return;
-
-    try {
-      const id = window.turnstile.render(widgetRef.current, {
-        sitekey: siteKey,
-        theme: "light",
-        callback: (token: string) => {
-          setCaptchaToken(token);
-          setCaptchaError("");
-        },
-        "expired-callback": () => setCaptchaToken(""),
-        "error-callback": () => {
-          setCaptchaToken("");
-          setCaptchaError("Captcha konnte nicht geladen werden. Bitte Seite neu laden.");
-        },
-      });
-      setWidgetId(id);
-      setCaptchaReady(true);
-      setCaptchaError("");
-    } catch {
-      setCaptchaReady(false);
-      setCaptchaError("Captcha konnte nicht initialisiert werden. Bitte Seite neu laden.");
-    }
-  }, [captchaEnabled, siteKey, widgetId]);
-
-  useEffect(() => {
-    if (!captchaEnabled || widgetId || !scriptLoaded) return;
-
-    let tries = 0;
-    const timer = window.setInterval(() => {
-      tries += 1;
-      if (window.turnstile && widgetRef.current && !widgetId) {
-        initTurnstile();
-        window.clearInterval(timer);
-      }
-      if (tries >= 20) {
-        window.clearInterval(timer);
-        if (!window.turnstile) {
-          setCaptchaError("Captcha-Skript wurde blockiert. Bitte Content-Blocker prüfen.");
-        }
-      }
-    }, 200);
-
-    return () => window.clearInterval(timer);
-  }, [captchaEnabled, initTurnstile, scriptLoaded, widgetId]);
+  }, [form, status]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -154,7 +73,6 @@ export default function KontaktForm({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...form,
-        captchaToken,
         originUrl: window.location.href,
         context,
       }),
@@ -164,19 +82,11 @@ export default function KontaktForm({
     if (!response.ok || !data.success) {
       setStatus("error");
       setErrorMessage(data.error || "Senden fehlgeschlagen.");
-      if (widgetId && window.turnstile) {
-        window.turnstile.reset(widgetId);
-        setCaptchaToken("");
-      }
       return;
     }
 
     setStatus("success");
     setForm(INITIAL);
-    if (widgetId && window.turnstile) {
-      window.turnstile.reset(widgetId);
-      setCaptchaToken("");
-    }
   }
 
   function closeSuccessOverlay() {
@@ -221,15 +131,6 @@ export default function KontaktForm({
       ) : null}
 
       <section id={id} className="scroll-mt-24 rounded-[1.75rem] border border-[color:var(--color-brass)]/32 bg-[#EEF1F3] p-7 shadow-[0_28px_80px_rgba(15,23,42,0.13)] md:p-10">
-      {captchaEnabled ? (
-        <Script
-          src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-          strategy="afterInteractive"
-          onLoad={() => setScriptLoaded(true)}
-          onError={() => setCaptchaError("Captcha-Skript konnte nicht geladen werden.")}
-        />
-      ) : null}
-
       <div className="grid gap-5 lg:grid-cols-[1fr_1.2fr] lg:gap-8">
         <div className="relative overflow-hidden lg:min-h-[18rem]">
           <h2 className="font-[family-name:var(--font-playfair)] text-3xl leading-[1.15] text-[color:var(--color-navy)] md:text-4xl">
@@ -328,20 +229,6 @@ export default function KontaktForm({
               placeholder={messagePlaceholder}
             />
           </label>
-
-          {captchaEnabled ? (
-            <div className="h-[55px] max-w-[320px] overflow-hidden rounded-xl bg-white">
-              <div ref={widgetRef} id="turnstile-widget" className="min-h-[65px]" />
-            </div>
-          ) : null}
-          {captchaEnabled && !captchaReady ? (
-            <p className="text-xs text-[color:var(--color-graphite)]/80">
-              Captcha wird geladen …
-            </p>
-          ) : null}
-          {captchaError ? (
-            <p className="text-xs text-red-700">{captchaError}</p>
-          ) : null}
 
           <p className="text-xs leading-[1.6] text-[color:var(--color-graphite)]">
             Mit dem Absenden erklärst du dich mit der Verarbeitung deiner Angaben zur Kontaktaufnahme einverstanden.
