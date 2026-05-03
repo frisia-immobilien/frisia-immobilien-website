@@ -6,13 +6,11 @@ import {
   createNote,
   createTask,
   getBrokerAvatarUrlByEmail,
-  sendPropstackMessage,
 } from "@/lib/propstack/client";
 import { BRAND_NAME, DIRECT_CONTACT, PHONE_DISPLAY } from "@/lib/site";
 import type { LeadReportWithRequest } from "@/lib/types/leadgen";
 
 const RESEND_FALLBACK_FROM_EMAIL = "Frisia Immobilien <onboarding@resend.dev>";
-const REPORT_FROM_EMAIL_ADDRESS = "info@frisia-immobilien.de";
 const REPORT_FROM_EMAIL = "Frisia Immobilien <info@frisia-immobilien.de>";
 
 function escapeHtml(value: string) {
@@ -220,49 +218,34 @@ export async function sendReportLink(input: {
   const rendered = renderReportEmail(input.lead, input.reportUrl, contactImageUrl);
 
   try {
-    const messageId = await sendPropstackMessage({
+    const messageId = await sendResendReportEmail({
       to: email,
       subject: rendered.subject,
       html: rendered.html,
-      contactId: input.lead.lead_request.propstack_contact_id,
-      propertyId: input.lead.lead_request.propstack_property_id,
-      assignedBrokerEmail: REPORT_FROM_EMAIL_ADDRESS,
+      text: rendered.text,
     });
 
-    return { provider: "propstack" as const, messageId };
+    await createNote({
+      title: "Bewertungslink per E-Mail versendet",
+      body: [
+        "Der Bewertungslink wurde per Resend an den Eigentümer versendet.",
+        "",
+        `Empfänger: ${email}`,
+        `Betreff: ${rendered.subject}`,
+        messageId ? `Resend Message-ID: ${messageId}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      contactId: input.lead.lead_request.propstack_contact_id,
+      propertyId: input.lead.lead_request.propstack_property_id,
+    }).catch(() => null);
+
+    return { provider: "resend" as const, messageId };
   } catch (error) {
-    const propstackErrorMessage = error instanceof Error ? error.message : String(error);
-
-    try {
-      const messageId = await sendResendReportEmail({
-        to: email,
-        subject: rendered.subject,
-        html: rendered.html,
-        text: rendered.text,
-      });
-
-      await createNote({
-        title: "Bewertungslink per E-Mail versendet",
-        body: [
-          "Der Bewertungslink wurde per Resend an den Eigentümer versendet.",
-          "",
-          `Empfänger: ${email}`,
-          `Betreff: ${rendered.subject}`,
-          "",
-          "Hinweis:",
-          `Der direkte Propstack-Mailversand war nicht verfügbar: ${propstackErrorMessage}`,
-        ].join("\n"),
-        contactId: input.lead.lead_request.propstack_contact_id,
-        propertyId: input.lead.lead_request.propstack_property_id,
-      }).catch(() => null);
-
-      return { provider: "resend" as const, messageId };
-    } catch (resendError) {
-      const resendErrorMessage = resendError instanceof Error ? resendError.message : String(resendError);
+    const resendErrorMessage = error instanceof Error ? error.message : String(error);
 
     const body = [
-      "Propstack E-Mail-Versand konnte nicht automatisch abgeschlossen werden.",
-      "Resend konnte die E-Mail ebenfalls nicht automatisch versenden.",
+      "Resend konnte den Bewertungslink nicht automatisch versenden.",
       "",
       "Bitte folgende E-Mail aus Propstack an den Kontakt senden:",
       "",
@@ -270,8 +253,7 @@ export async function sendReportLink(input: {
       "",
       rendered.text,
       "",
-        `Technischer Hinweis Propstack: ${propstackErrorMessage}`,
-        `Technischer Hinweis Resend: ${resendErrorMessage}`,
+      `Technischer Hinweis Resend: ${resendErrorMessage}`,
     ].join("\n");
 
     try {
@@ -292,7 +274,6 @@ export async function sendReportLink(input: {
       return { provider: "propstack_task" as const, messageId: null };
     } catch {
       return { provider: "failed" as const, messageId: null };
-    }
     }
   }
 }

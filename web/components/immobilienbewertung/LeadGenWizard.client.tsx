@@ -882,7 +882,7 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
 
         if (data.manualReview) {
           const emailFailed =
-            (data.emailProvider !== 'propstack' && data.emailProvider !== 'resend') ||
+            data.emailProvider !== 'resend' ||
             data.emailSentAt === null
           emitLeadEvent({
             event: 'lead_manual_review',
@@ -908,7 +908,7 @@ export default function LeadGenWizardClient(props: LeadGenWizardProps) {
         }
 
         const emailFailed =
-          (data.emailProvider !== 'propstack' && data.emailProvider !== 'resend') ||
+          data.emailProvider !== 'resend' ||
           data.emailSentAt === null
         emitLeadEvent({
           event: 'lead_valuation_ready',
