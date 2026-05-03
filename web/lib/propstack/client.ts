@@ -179,6 +179,8 @@ function extractId(value: unknown): number | null {
   }
   const task = (value as { task?: unknown } | null)?.task;
   if (typeof (task as { id?: unknown } | null)?.id === "number") return (task as { id: number }).id;
+  const message = (value as { message?: unknown } | null)?.message;
+  if (typeof (message as { id?: unknown } | null)?.id === "number") return (message as { id: number }).id;
   return null;
 }
 

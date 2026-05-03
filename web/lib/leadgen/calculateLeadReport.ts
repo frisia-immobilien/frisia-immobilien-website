@@ -128,7 +128,7 @@ async function returnManualReview(
 
   const reportUrl = absoluteUrl(`/bewertung-ergebnis/${token}`);
   const sent = await sendReportLink({ lead: report, reportUrl });
-  const emailWasSent = sent.provider === "resend";
+  const emailWasSent = sent.provider === "propstack_message";
   await updateLeadStatus(lead.id, emailWasSent ? "report_sent" : "valuation_calculated");
   await insertLeadEvent({
     leadRequestId: lead.id,
@@ -327,7 +327,7 @@ export async function calculateLeadReportForLead(input: { leadRequestId: string;
   });
 
   const sent = await sendReportLink({ lead: report, reportUrl });
-  const emailWasSent = sent.provider === "resend";
+  const emailWasSent = sent.provider === "propstack_message";
   await updateLeadStatus(lead.id, emailWasSent ? "report_sent" : "valuation_calculated");
   await insertLeadEvent({
     leadRequestId: lead.id,

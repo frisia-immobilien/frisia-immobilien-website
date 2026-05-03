@@ -1,17 +1,13 @@
 import "server-only";
 
-import { Resend } from "resend";
-
 import {
   createNote,
   createTask,
   getBrokerAvatarUrlByEmail,
+  sendPropstackMessage,
 } from "@/lib/propstack/client";
-import { absoluteUrl, BRAND_NAME, DIRECT_CONTACT, PHONE_DISPLAY, SITE_URL } from "@/lib/site";
+import { absoluteUrl, BRAND_NAME, DIRECT_CONTACT, EMAIL, PHONE_DISPLAY, SITE_URL } from "@/lib/site";
 import type { LeadReportWithRequest } from "@/lib/types/leadgen";
-
-const RESEND_FALLBACK_FROM_EMAIL = "Frisia Immobilien <onboarding@resend.dev>";
-const REPORT_FROM_EMAIL = "Frisia Immobilien <info@frisia-immobilien.de>";
 
 function escapeHtml(value: string) {
   return value
@@ -20,27 +16,6 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function getResendClient() {
-  if (!process.env.RESEND_API_KEY) {
-    throw new Error("RESEND_API_KEY fehlt.");
-  }
-
-  return new Resend(process.env.RESEND_API_KEY);
-}
-
-function getReportFromEmail() {
-  return process.env.REPORT_FROM_EMAIL?.trim() || REPORT_FROM_EMAIL;
-}
-
-function getResendFallbackFromEmail() {
-  return process.env.RESEND_FALLBACK_FROM_EMAIL?.trim() || RESEND_FALLBACK_FROM_EMAIL;
-}
-
-function isUnverifiedResendDomainError(error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-  return message.toLowerCase().includes("domain is not verified");
 }
 
 function publicReportUrl(reportUrl: string) {
@@ -187,40 +162,20 @@ export function renderReportEmail(
   return { subject, text, html };
 }
 
-async function sendResendReportEmail(input: {
+async function sendPropstackReportEmail(input: {
+  lead: LeadReportWithRequest;
   to: string;
   subject: string;
   html: string;
-  text: string;
 }) {
-  const resend = getResendClient();
-  const send = async (from: string) => {
-    const response = await resend.emails.send({
-      from,
-      to: input.to,
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
-    });
-
-    if (response.error) {
-      throw new Error(response.error.message || "Resend konnte die E-Mail nicht versenden.");
-    }
-
-    return response.data?.id ?? null;
-  };
-
-  const primaryFrom = getReportFromEmail();
-  try {
-    return await send(primaryFrom);
-  } catch (error) {
-    const fallbackFrom = getResendFallbackFromEmail();
-    if (!isUnverifiedResendDomainError(error) || fallbackFrom === primaryFrom) {
-      throw error;
-    }
-
-    return send(fallbackFrom);
-  }
+  return sendPropstackMessage({
+    to: input.to,
+    subject: input.subject,
+    html: input.html,
+    contactId: input.lead.lead_request.propstack_contact_id,
+    propertyId: input.lead.lead_request.propstack_property_id,
+    assignedBrokerEmail: EMAIL,
+  });
 }
 
 export async function sendReportLink(input: {
@@ -235,21 +190,21 @@ export async function sendReportLink(input: {
   const rendered = renderReportEmail(input.lead, input.reportUrl, contactImageUrl);
 
   try {
-    const messageId = await sendResendReportEmail({
+    const messageId = await sendPropstackReportEmail({
+      lead: input.lead,
       to: email,
       subject: rendered.subject,
       html: rendered.html,
-      text: rendered.text,
     });
 
     await createNote({
       title: "Bewertungslink per E-Mail versendet",
       body: [
-        "Der Bewertungslink wurde per Resend an den Eigentümer versendet.",
+        "Der Bewertungslink wurde per Propstack an den Eigentümer versendet.",
         "",
         `Empfänger: ${email}`,
         `Betreff: ${rendered.subject}`,
-        messageId ? `Resend Message-ID: ${messageId}` : null,
+        messageId ? `Propstack Message-ID: ${messageId}` : null,
       ]
         .filter(Boolean)
         .join("\n"),
@@ -257,12 +212,12 @@ export async function sendReportLink(input: {
       propertyId: input.lead.lead_request.propstack_property_id,
     }).catch(() => null);
 
-    return { provider: "resend" as const, messageId };
+    return { provider: "propstack_message" as const, messageId };
   } catch (error) {
-    const resendErrorMessage = error instanceof Error ? error.message : String(error);
+    const propstackErrorMessage = error instanceof Error ? error.message : String(error);
 
     const body = [
-      "Resend konnte den Bewertungslink nicht automatisch versenden.",
+      "Propstack konnte den Bewertungslink nicht automatisch versenden.",
       "",
       "Bitte folgende E-Mail aus Propstack an den Kontakt senden:",
       "",
@@ -270,7 +225,7 @@ export async function sendReportLink(input: {
       "",
       rendered.text,
       "",
-      `Technischer Hinweis Resend: ${resendErrorMessage}`,
+      `Technischer Hinweis Propstack: ${propstackErrorMessage}`,
     ].join("\n");
 
     try {

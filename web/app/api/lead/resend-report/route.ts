@@ -56,14 +56,14 @@ export async function POST(request: Request) {
 
     const reportUrl = absoluteUrl(`/bewertung-ergebnis/${token}`);
     const sent = await sendReportLink({ lead: report, reportUrl });
-    const emailWasSent = sent.provider === "resend";
+    const emailWasSent = sent.provider === "propstack_message";
 
     await updateLeadStatus(leadId, emailWasSent ? "report_sent" : "valuation_calculated");
     if (emailWasSent) {
       await insertLeadEvent({
         leadRequestId: leadId,
         eventName: "email_sent",
-        payload: { provider: sent.provider, messageId: sent.messageId, resend: true },
+        payload: { provider: sent.provider, messageId: sent.messageId },
       });
     }
 
