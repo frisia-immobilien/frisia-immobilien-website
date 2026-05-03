@@ -1,6 +1,7 @@
 import "server-only";
 
 import { env } from "@/lib/env";
+import { formatLeadgenEquipmentLabel } from "@/lib/leadgen/display";
 import type { LeadRequestRow } from "@/lib/types/leadgen";
 
 type PropstackResponse = Record<string, unknown> | null;
@@ -542,7 +543,7 @@ function buildDealNote(lead: LeadRequestRow) {
     `Zimmer: ${lead.rooms ?? "k. A."}`,
     `Baujahr: ${lead.construction_year ?? "k. A."}`,
     `Zustand: ${lead.condition ?? "k. A."}`,
-    `Ausstattung: ${lead.equipment ?? "k. A."}`,
+    `Ausstattung: ${formatLeadgenEquipmentLabel(lead.equipment) ?? "k. A."}`,
     `Energieklasse: ${lead.energy_class ?? "k. A."}`,
     ...(otherExtrasLines.length > 0 ? ["", ...otherExtrasLines] : []),
     "",

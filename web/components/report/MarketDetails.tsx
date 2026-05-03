@@ -1,4 +1,5 @@
 import type { LeadReportWithRequest } from "@/lib/types/leadgen";
+import { formatLeadgenEquipmentLabel } from "@/lib/leadgen/display";
 
 function value(value: unknown, suffix = "") {
   if (value === null || value === undefined || value === "") return "k. A.";
@@ -35,7 +36,7 @@ export default function MarketDetails({ report }: { report: LeadReportWithReques
               <div className="flex justify-between gap-4"><dt>Grundstück</dt><dd className="text-right font-semibold text-[color:var(--color-navy)]">{value(lead.plot_area, " m²")}</dd></div>
               <div className="flex justify-between gap-4"><dt>Zimmer</dt><dd className="text-right font-semibold text-[color:var(--color-navy)]">{value(lead.rooms)}</dd></div>
               <div className="flex justify-between gap-4"><dt>Zustand</dt><dd className="text-right font-semibold text-[color:var(--color-navy)]">{value(lead.condition)}</dd></div>
-              <div className="flex justify-between gap-4"><dt>Ausstattung</dt><dd className="text-right font-semibold text-[color:var(--color-navy)]">{value(lead.equipment)}</dd></div>
+              <div className="flex justify-between gap-4"><dt>Ausstattung</dt><dd className="text-right font-semibold text-[color:var(--color-navy)]">{value(formatLeadgenEquipmentLabel(lead.equipment))}</dd></div>
               <div className="flex justify-between gap-4"><dt>Energieklasse</dt><dd className="text-right font-semibold text-[color:var(--color-navy)]">{value(lead.energy_class)}</dd></div>
             </dl>
           </article>

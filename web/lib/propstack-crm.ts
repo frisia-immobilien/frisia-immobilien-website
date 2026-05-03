@@ -372,7 +372,7 @@ function formatQualityLabel(value: LeadSyncQuality | undefined) {
     case "high":
       return "Gehoben";
     case "very_high":
-      return "Sehr gehoben";
+      return "Gehoben";
     default:
       return "k. A.";
   }

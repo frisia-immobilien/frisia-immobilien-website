@@ -4,6 +4,7 @@ import LeadCallbackTaskButton from "@/components/immobilienbewertung/valuation/L
 import LeadContactChoiceClient from "@/components/immobilienbewertung/valuation/LeadContactChoice.client";
 import LeadResultTrackingClient from "@/components/immobilienbewertung/valuation/LeadResultTracking.client";
 import LeadValuationTrackingClient from "@/components/immobilienbewertung/valuation/LeadValuationTracking.client";
+import { formatLeadgenEquipmentLabel, getLeadgenEquipmentStage } from "@/lib/leadgen/display";
 import {
   BRAND_NAME,
   DIRECT_CONTACT,
@@ -119,16 +120,7 @@ function normalizedLabel(value: string | null | undefined) {
 }
 
 function qualityStage(value: string | null | undefined) {
-  const normalized = normalizedLabel(value);
-  if (normalized.includes("einfach") || normalized.includes("basic")) return "einfach";
-  if (normalized.includes("stark") || normalized.includes("luxus") || normalized.includes("premium")) {
-    return "stark gehoben";
-  }
-  if (normalized.includes("gehoben") || normalized.includes("hoch") || normalized.includes("high")) {
-    return "gehoben";
-  }
-  if (normalized.includes("mittel") || normalized.includes("normal") || normalized.includes("standard")) return "mittel";
-  return null;
+  return getLeadgenEquipmentStage(value);
 }
 
 function hasAutomaticValue(props: Props) {
@@ -424,7 +416,7 @@ function ObjectSummary({ props }: { props: Props }) {
             <DetailPill label="Grundstück" value={safeNumberLabel(props.landArea, " m²")} />
             <DetailPill label="Baujahr" value={yearLabel(props.yearBuilt)} />
             <DetailPill label="Zustand" value={props.conditionLabel || "k. A."} />
-            <DetailPill label="Ausstattung" value={props.qualityLabel || "k. A."} />
+            <DetailPill label="Ausstattung" value={formatLeadgenEquipmentLabel(props.qualityLabel) || "k. A."} />
           </>
         )}
         <DetailPill label="Bewertungslink gültig bis" value={expiresLabel} />

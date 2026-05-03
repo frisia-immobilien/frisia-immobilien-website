@@ -81,7 +81,7 @@ export function getLeadgenQualityLabel(value: LeadSyncQuality | string | undefin
     case "high":
       return "Gehoben";
     case "very_high":
-      return "Sehr gehoben";
+      return "Gehoben";
     case "unknown":
     default:
       return "k. A.";
