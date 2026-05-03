@@ -1,8 +1,6 @@
 import "server-only";
 
 import {
-  createNote,
-  createTask,
   getBrokerAvatarUrlByEmail,
   sendPropstackMessage,
 } from "@/lib/propstack/client";
@@ -197,55 +195,10 @@ export async function sendReportLink(input: {
       html: rendered.html,
     });
 
-    await createNote({
-      title: "Bewertungslink per E-Mail versendet",
-      body: [
-        "Der Bewertungslink wurde per Propstack an den Eigentümer versendet.",
-        "",
-        `Empfänger: ${email}`,
-        `Betreff: ${rendered.subject}`,
-        messageId ? `Propstack Message-ID: ${messageId}` : null,
-      ]
-        .filter(Boolean)
-        .join("\n"),
-      contactId: input.lead.lead_request.propstack_contact_id,
-      propertyId: input.lead.lead_request.propstack_property_id,
-    }).catch(() => null);
-
     return { provider: "propstack_message" as const, messageId };
   } catch (error) {
     const propstackErrorMessage = error instanceof Error ? error.message : String(error);
 
-    const body = [
-      "Propstack konnte den Bewertungslink nicht automatisch versenden.",
-      "",
-      "Bitte folgende E-Mail aus Propstack an den Kontakt senden:",
-      "",
-      `Betreff: ${rendered.subject}`,
-      "",
-      rendered.text,
-      "",
-      `Technischer Hinweis Propstack: ${propstackErrorMessage}`,
-    ].join("\n");
-
-    try {
-      await createNote({
-        title: "Bewertungslink E-Mail vorbereiten",
-        body,
-        contactId: input.lead.lead_request.propstack_contact_id,
-        propertyId: input.lead.lead_request.propstack_property_id,
-      });
-
-      await createTask({
-        title: "Bewertungslink an Eigentümer senden",
-        body,
-        contactId: input.lead.lead_request.propstack_contact_id,
-        propertyId: input.lead.lead_request.propstack_property_id,
-      });
-
-      return { provider: "propstack_task" as const, messageId: null };
-    } catch {
-      return { provider: "failed" as const, messageId: null };
-    }
+    return { provider: "failed" as const, messageId: null, error: propstackErrorMessage };
   }
 }
