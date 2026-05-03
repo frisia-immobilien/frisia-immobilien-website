@@ -16,6 +16,7 @@ import {
 import { leadCreateSchema } from "@/lib/leadgen/validation";
 import { geocodeAddress } from "@/lib/market/geocodeAddress";
 import { createOrUpdateContact, createOrUpdateProperty } from "@/lib/propstack/client";
+import { getPublicApiErrorMessage } from "@/lib/api/publicError";
 import { hashPrivacyValue } from "@/lib/security/hashToken";
 import { assertRateLimit, getClientIp } from "@/lib/security/rateLimit";
 import { isTurnstileTestKey, shouldBypassTurnstileForLocalDev } from "@/lib/turnstile";
@@ -298,7 +299,10 @@ export async function POST(request: Request) {
       {
         success: false,
         leadId,
-        error: error instanceof Error ? error.message : "Bewertung konnte nicht erstellt werden.",
+        error: getPublicApiErrorMessage(
+          error,
+          "Die E-Mail konnte gerade nicht versendet werden. Bitte versuche es erneut.",
+        ),
       },
       { status: retryAfter ? 429 : 500, headers: retryAfter ? { "Retry-After": String(retryAfter) } : undefined },
     );

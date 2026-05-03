@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { sendReportLink } from "@/lib/email/sendReportLink";
+import { getPublicApiErrorMessage } from "@/lib/api/publicError";
 import {
   createLeadReportCopyWithToken,
   getLatestLeadReportByLeadId,
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "E-Mail konnte nicht erneut gesendet werden.",
+        error: getPublicApiErrorMessage(error, "E-Mail konnte nicht erneut gesendet werden."),
       },
       { status: retryAfter ? 429 : 500, headers: retryAfter ? { "Retry-After": String(retryAfter) } : undefined },
     );
