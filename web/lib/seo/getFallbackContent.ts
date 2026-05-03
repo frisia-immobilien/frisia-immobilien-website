@@ -1,6 +1,11 @@
 import type { SeoLocationContentRow } from "@/lib/types/leadgen";
 import type { LandingTemplate } from "@/lib/seo/templates";
 
+function usableMetaTitle(value: string | null | undefined) {
+  const title = String(value ?? "").trim();
+  return title.length >= 20 ? title : "";
+}
+
 export function buildFallbackContent(input: {
   template: LandingTemplate;
   locationLabel: string;
@@ -25,7 +30,7 @@ export function buildFallbackContent(input: {
     text2: content?.custom_text_2 || template.text2(locationLabel),
     text3: content?.custom_text_3 || "",
     faq: customFaq.length > 0 ? customFaq : fallbackFaq,
-    metaTitle: content?.meta_title || template.title(locationLabel),
+    metaTitle: usableMetaTitle(content?.meta_title) || template.title(locationLabel),
     metaDescription: content?.meta_description || template.description(locationLabel),
     canonicalUrl: content?.canonical_url || null,
   };

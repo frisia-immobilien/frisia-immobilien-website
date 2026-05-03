@@ -5,11 +5,9 @@ import {
   createFAQPageJsonLd,
   createImageObjectJsonLd,
   createLocalBusinessJsonLd,
-  createOrganizationJsonLd,
   createPlaceJsonLd,
   createRealEstateAgentJsonLd,
   createServiceJsonLd,
-  createWebSiteJsonLd,
   createWebPageJsonLd,
 } from "@/lib/site";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
@@ -93,7 +91,6 @@ export function buildLocationSchemas(data: LocationPageData) {
   };
 
   return [
-    createRealEstateAgentJsonLd(),
     breadcrumb,
     webPage,
     place,
@@ -152,8 +149,6 @@ export function buildRegionHubSchemas(items: RegionHubSchemaItem[]) {
   }));
 
   return [
-    createOrganizationJsonLd(),
-    createWebSiteJsonLd(),
     createRealEstateAgentJsonLd({
       "@id": `${SITE_URL}/regionen-ostfriesland#real-estate-agent`,
       areaServed: [
