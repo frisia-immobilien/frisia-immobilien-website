@@ -5,9 +5,11 @@
   "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "sanity dev",
-    "start": "sanity start",
-    "build": "sanity build",
+    "postinstall": "npm --prefix web install --include=dev",
+    "dev": "npm --prefix web run dev",
+    "start": "npm --prefix web run start",
+    "build": "npm --prefix web run build",
+    "build:studio": "sanity build",
     "deploy": "sanity deploy",
     "deploy-graphql": "sanity graphql deploy"
   },
