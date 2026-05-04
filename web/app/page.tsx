@@ -1,6 +1,7 @@
 import HomeHero from "@/components/home/HomeHero";
 import HomeLeadBlock from "@/components/home/HomeLeadBlock";
 import DeferredHomeBelowFold from "@/components/home/DeferredHomeBelowFold.client";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import {
   DecisionFirstBlock,
   VerkaufssituationenBlock,
@@ -37,10 +38,10 @@ const siteNavigationJsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     { "@type": "SiteNavigationElement", name: "Startseite", url: `${SITE_URL}/` },
-    { "@type": "SiteNavigationElement", name: "Haus verkaufen", url: `${SITE_URL}/haus-verkaufen-aurich` },
-    { "@type": "SiteNavigationElement", name: "Immobilienbewertung", url: `${SITE_URL}/immobilienbewertung-aurich` },
+    { "@type": "SiteNavigationElement", name: "Haus verkaufen Aurich", url: `${SITE_URL}/haus-verkaufen-aurich` },
+    { "@type": "SiteNavigationElement", name: "Immobilienbewertung Aurich", url: `${SITE_URL}/immobilienbewertung-aurich` },
     { "@type": "SiteNavigationElement", name: "Immobilien", url: `${SITE_URL}/immobilien-aurich` },
-    { "@type": "SiteNavigationElement", name: "Makler Aurich", url: `${SITE_URL}/immobilienmakler-aurich` },
+    { "@type": "SiteNavigationElement", name: "Immobilienmakler Aurich", url: `${SITE_URL}/immobilienmakler-aurich` },
     { "@type": "SiteNavigationElement", name: "Das Maklerhaus", url: `${SITE_URL}/maklerhaus` },
     { "@type": "SiteNavigationElement", name: "Regionen Ostfriesland", url: `${SITE_URL}/regionen-ostfriesland` },
     { "@type": "SiteNavigationElement", name: "Kontakt", url: `${SITE_URL}/kontakt` },
@@ -98,6 +99,7 @@ export default function HomePage() {
       <JsonLd data={faqJsonLd} />
 
       <HomeHero />
+      <AurichHeroLinks />
       <VerkaufssituationenBlock />
       <WarumEigentuemerVerkaufenBlock />
       <DecisionFirstBlock />

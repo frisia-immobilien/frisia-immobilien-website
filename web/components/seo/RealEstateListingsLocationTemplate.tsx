@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import PropertyListingDirectory from "@/components/site/PropertyListingDirectory.client";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
@@ -157,6 +158,7 @@ export default async function RealEstateListingsLocationTemplate({ data }: { dat
         </div>
       </section>
 
+      <AurichHeroLinks />
       <RegionalCrossLinks data={data} placement="hero" />
 
       <section className="bg-white py-12 md:py-16">

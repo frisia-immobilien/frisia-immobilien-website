@@ -3,6 +3,7 @@ import Link from "next/link";
 import Script from "next/script";
 import PropertyListingDirectory from "@/components/site/PropertyListingDirectory.client";
 import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -136,6 +137,8 @@ export default async function ImmobilienAurichPage() {
           </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <section className="bg-white px-4 pb-16 pt-[25px] sm:px-6 lg:pb-20">
         <div className="mx-auto max-w-6xl">

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import JsonLd from "@/components/seo/JsonLd";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import { buildPageMetadata } from "@/lib/metadata";
 import {
@@ -378,6 +379,8 @@ export default function MaklerhausPage() {
           </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <section className="bg-white px-4 py-14 sm:px-6 md:py-18">
         <div className="mx-auto grid w-full max-w-[1240px] gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">

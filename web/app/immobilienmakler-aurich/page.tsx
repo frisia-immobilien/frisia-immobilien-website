@@ -4,6 +4,7 @@ import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
 import RegionalCrossLinks, { RegionalInlineLinks, RegionalLocalFAQ } from "@/components/seo/RegionalCrossLinks";
 import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import {
@@ -411,6 +412,8 @@ export default function ImmobilienmaklerAurichPage() {
           <div aria-hidden="true" className="hidden md:block" />
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <RegionalCrossLinks locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienmakler" placement="hero" />
 

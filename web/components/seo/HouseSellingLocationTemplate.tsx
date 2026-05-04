@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
@@ -214,6 +215,7 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
         </div>
       </section>
 
+      <AurichHeroLinks />
       <RegionalCrossLinks data={data} placement="hero" />
 
       <Section title={`Warum viele Hausverkäufe ${locationPhrase} unnötig schwer werden`}>

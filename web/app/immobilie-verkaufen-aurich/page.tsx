@@ -4,6 +4,7 @@ import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
 import LeadGenWizard from "@/components/immobilienbewertung/LeadGenWizard.client";
 import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -480,6 +481,8 @@ export default function ImmobilieVerkaufenAurichPage() {
         </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <section id="bewertung" className="scroll-mt-20 bg-white py-12 md:py-16" aria-label="Immobilienbewertung starten">
         <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">

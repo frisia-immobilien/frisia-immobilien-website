@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import LeadGenWizard from "@/components/immobilienbewertung/LeadGenWizard.client";
 import HeroAppointmentForm from "@/components/seo/HeroAppointmentForm.client";
 import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
@@ -464,6 +465,7 @@ export default function ValuationLocationTemplate({ data }: { data: LocationPage
         </div>
       </section>
 
+      <AurichHeroLinks />
       <RegionalCrossLinks data={data} placement="hero" />
 
       <LeadGeneratorBlock id="bewertung-starten" locationPhrase={locationPhrase} secondary />

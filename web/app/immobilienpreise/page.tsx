@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -237,6 +238,8 @@ export default function ImmobilienpreiseHubPage() {
           </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <section id="orte-auswaehlen" className="bg-white py-12 md:py-16">
         <div className="mx-auto w-full max-w-[1440px] px-5 sm:px-8 lg:px-12">

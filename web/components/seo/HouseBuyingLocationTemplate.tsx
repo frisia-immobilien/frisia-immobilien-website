@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import RegionalCrossLinks from "@/components/seo/RegionalCrossLinks";
@@ -214,6 +215,7 @@ export default function HouseBuyingLocationTemplate({ data }: { data: LocationPa
         </div>
       </section>
 
+      <AurichHeroLinks />
       <RegionalCrossLinks data={data} placement="hero" />
 
       <Section title={`Der Markt für Häuser ${locationPhrase}`}>

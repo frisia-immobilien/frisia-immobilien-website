@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import JsonLd from "@/components/seo/JsonLd";
 import KontaktForm from "@/components/contact/KontaktForm.client";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import { buildPageMetadata } from "@/lib/metadata";
 import {
@@ -207,6 +208,8 @@ export default function KontaktPage() {
           </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <section className="mx-auto w-full max-w-[1240px] px-4 py-12 sm:px-6 md:py-16">
         <KontaktForm />

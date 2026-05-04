@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import JsonLd from "@/components/seo/JsonLd";
 import RegionHub from "@/components/seo/RegionHub";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import { buildPageMetadata } from "@/lib/metadata";
 import { getRegionHubData } from "@/lib/seo/getRegionHubData";
@@ -184,6 +185,7 @@ export default async function RegionenOstfrieslandPage() {
           </div>
         </div>
       </section>
+      <AurichHeroLinks />
       <div id="regionen" className="scroll-mt-20 pt-[25px]">
         <div className="mx-auto w-full max-w-[1240px] px-4 pb-8 sm:px-6">
           <div className="border-l-4 border-[color:var(--color-brass)]/35 pl-5 md:pl-7">

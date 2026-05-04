@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import SearchRequestForm from "@/components/site/SearchRequestForm.client";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -92,6 +93,8 @@ export default function SuchauftragPage() {
           </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <section className="relative z-20 mx-auto max-w-6xl px-4 pb-8 pt-6 sm:px-6 md:pb-12 md:pt-8 lg:pb-16 lg:pt-10">
         <div id="suchauftrag-form" className="mt-0 scroll-mt-20">

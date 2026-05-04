@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
@@ -54,6 +55,8 @@ export default function LocationHero({ data }: { data: LocationPageData }) {
           </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
     </>
   );
 }

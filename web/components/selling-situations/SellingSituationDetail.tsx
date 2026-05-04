@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import JsonLd from "@/components/seo/JsonLd";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import {
@@ -108,6 +109,8 @@ export default function SellingSituationDetail({ situation }: { situation: Selli
           </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <section className="bg-white py-14 md:py-16">
         <div className="mx-auto grid w-full max-w-[1240px] gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,0.72fr)_minmax(19rem,0.28fr)] lg:px-12">

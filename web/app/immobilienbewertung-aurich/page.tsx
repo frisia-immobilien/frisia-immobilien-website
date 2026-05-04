@@ -4,6 +4,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import RegionalCrossLinks, { RegionalInlineLinks, RegionalLocalFAQ } from "@/components/seo/RegionalCrossLinks";
 import LeadGenWizard from "@/components/immobilienbewertung/LeadGenWizard.client";
 import AurichMarketTeaser from "@/components/sections/AurichMarketTeaser";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -347,6 +348,8 @@ export default function ImmobilienbewertungAurichPage() {
           </aside>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <RegionalCrossLinks locationSlug="aurich" locationLabel="Aurich" templatePrefix="immobilienbewertung" placement="hero" />
 

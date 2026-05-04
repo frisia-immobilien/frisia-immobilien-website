@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import JsonLd from "@/components/seo/JsonLd";
+import AurichHeroLinks from "@/components/site/AurichHeroLinks";
 import HeroDivider from "@/components/site/HeroDivider";
 import MobileHeroSection from "@/components/site/MobileHeroSection";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -168,6 +169,8 @@ export default async function RegionLandingPage({ params }: PageProps) {
           </div>
         </div>
       </section>
+
+      <AurichHeroLinks />
 
       <section className="bg-[color:var(--color-section)] py-14 md:py-16">
         <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6">
