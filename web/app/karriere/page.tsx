@@ -345,7 +345,7 @@ export default function KarrierePage() {
                   ]}
                 />
                 <p className="mt-5 text-base leading-7 text-[color:var(--color-graphite)]">
-                  Ausbildungsvergütung: je nach Ausbildungsjahr und Vereinbarung realistisch etwa 900 € bis 1.200 € monatlich. Die konkrete Vergütung klären wir transparent im Bewerbungsprozess.
+                  Wir bezahlen dich übertariflich, mindestens aber 900 € monatlich im ersten Ausbildungsjahr. Je nach Ausbildungsjahr und Vereinbarung sind bis 1.200 € monatlich realistisch. Die konkrete Vergütung klären wir transparent im Bewerbungsprozess.
                 </p>
               </div>
               <p className="mt-7 text-lg font-semibold leading-8 text-[color:var(--color-navy)]">
