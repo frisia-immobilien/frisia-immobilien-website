@@ -1,4 +1,5 @@
 import {
+  BRAND_NAME,
   SITE_URL,
   absoluteUrl,
   createBreadcrumbListJsonLd,
@@ -11,19 +12,39 @@ import {
   createWebPageJsonLd,
 } from "@/lib/site";
 import type { LocationPageData } from "@/lib/seo/getLocationPageData";
+import { formatLocationLabel } from "@/lib/seo/locationDisplay";
 import type { MarketDataRow } from "@/lib/types/leadgen";
 
+function marketDatasetDescription(locationName: string) {
+  return `Dieser Datensatz enthält regionale Marktdaten zu Immobilienpreisen in ${locationName} und der Umgebung. Er umfasst Auswertungen zu Kaufpreisen, Quadratmeterpreisen, Preisentwicklung und regionaler Markteinordnung für Häuser, Wohnungen und Grundstücke. Die Daten dienen der transparenten Einschätzung des Immobilienmarktes und unterstützen Eigentümer bei einer fundierten ersten Orientierung vor dem Verkauf.`;
+}
+
+function datasetOrganization() {
+  return {
+    "@type": "Organization",
+    "@id": absoluteUrl("/#organization"),
+    name: BRAND_NAME,
+    url: SITE_URL,
+  };
+}
+
 function marketDataset(data: LocationPageData, market: MarketDataRow, name: string) {
+  const locationName = formatLocationLabel(data.location.location_label);
+  const pageUrl = absoluteUrl(data.publicPath);
+
   return {
     "@context": "https://schema.org",
     "@type": "Dataset",
-    "@id": `${absoluteUrl(data.publicPath)}#dataset-${market.object_type}`,
+    "@id": `${pageUrl}#dataset-${market.object_type}`,
     name,
-    description: `Marktdaten ${name} für ${data.location.location_label}`,
-    creator: { "@id": absoluteUrl("/#organization") },
+    description: marketDatasetDescription(locationName),
+    url: pageUrl,
+    license: absoluteUrl("/datenschutz"),
+    creator: datasetOrganization(),
+    publisher: datasetOrganization(),
     spatialCoverage: {
       "@type": "Place",
-      name: data.location.location_label,
+      name: locationName,
       geo:
         data.location.lat && data.location.lng
           ? {
