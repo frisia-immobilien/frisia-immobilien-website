@@ -71,7 +71,7 @@ const teamMembers = [
     image: "/images/team/uwe-sandomeer-profilbild.webp",
     role: "Experte für Wohn- und Gewerbeimmobilien",
     focus: "Fokus auf Gewerbeimmobilien",
-    experience: "20 Jahre Erfahrung in Aurich und Umgebung.",
+    experience: "25 Jahre Erfahrung in Aurich und Umgebung.",
     phoneLabel: PHONE_DISPLAY,
     phoneHref: PHONE_HREF,
     mobileLabel: "0172 4163711",
