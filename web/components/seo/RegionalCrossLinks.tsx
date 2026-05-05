@@ -31,6 +31,10 @@ function templatePrefix(source: RegionalSource) {
   return source.data?.template.prefix ?? source.templatePrefix ?? "immobilienmakler";
 }
 
+function currentPageHref(source: RegionalSource) {
+  return `/${templatePrefix(source)}-${slug(source)}`;
+}
+
 function pageType(source: RegionalSource): SeoPageType {
   if (source.data?.template.pageType) return source.data.template.pageType;
   if (source.pageType) return source.pageType;
@@ -135,7 +139,10 @@ export default function RegionalCrossLinks({
     templatePrefix: currentTemplatePrefix,
     nearbyLocations: providedNearbyLocations,
   };
-  const links = placement === "hero" ? heroLinks(source) : bottomLinks(source);
+  const links = (placement === "hero" ? heroLinks(source) : bottomLinks(source)).filter(
+    (link) => link.href !== currentPageHref(source),
+  );
+  const heroGridColumns = links.length <= 3 ? "lg:grid-cols-3" : "lg:grid-cols-4";
   const name = locationName(source);
   const nearby = nearbyLocations(source).slice(0, 8);
   const nearbyPrefix = templatePrefix(source);
@@ -147,7 +154,7 @@ export default function RegionalCrossLinks({
           <h2 className="text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
             Für deine Situation relevant
           </h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className={`mt-5 grid gap-3 sm:grid-cols-2 ${heroGridColumns}`}>
             {links.map((link) => (
               <Link
                 key={link.href}
