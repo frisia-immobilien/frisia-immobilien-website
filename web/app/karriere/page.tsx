@@ -74,6 +74,17 @@ const brokerJobJsonLd = createJobPostingJsonLd({
   path: "/karriere",
   title: "Immobilienmakler bei Frisia Immobilien",
   employmentType: ["FULL_TIME", "CONTRACTOR"],
+  validThrough: "2026-12-31",
+  baseSalary: {
+    "@type": "MonetaryAmount",
+    currency: "EUR",
+    value: {
+      "@type": "QuantitativeValue",
+      minValue: 3000,
+      maxValue: 10000,
+      unitText: "MONTH",
+    },
+  },
   description:
     "Frisia Immobilien sucht strukturierte Immobilienmakler für Aurich und Ostfriesland. Im Mittelpunkt stehen klare Prozesse, fundierte Bewertung, regionale Marktkenntnis und Verantwortung im Verkaufsprozess.",
 });
@@ -81,6 +92,17 @@ const traineeJobJsonLd = createJobPostingJsonLd({
   path: "/karriere",
   title: "Ausbildung Immobilienkaufmann oder Immobilienkauffrau",
   employmentType: "FULL_TIME",
+  validThrough: "2026-12-31",
+  baseSalary: {
+    "@type": "MonetaryAmount",
+    currency: "EUR",
+    value: {
+      "@type": "QuantitativeValue",
+      minValue: 900,
+      maxValue: 1200,
+      unitText: "MONTH",
+    },
+  },
   description:
     "Frisia Immobilien bietet eine Ausbildung im Immobilienbereich in Aurich. Du lernst Bewertung, Vermarktung, strukturierte Abläufe und die praktische Begleitung von Immobilienverkäufen.",
 });
@@ -282,6 +304,9 @@ export default function KarrierePage() {
                     "klare Regeln und klare Zuständigkeiten",
                   ]}
                 />
+                <p className="mt-5 text-base leading-7 text-[color:var(--color-graphite)]">
+                  Einkommensspanne realistisch: 3.000 € bis 10.000 €+ monatlich - abhängig von Einsatz, Struktur und Abschlussstärke. Du arbeitest selbstständig auf Provisionsbasis mit klarem System, regionaler Marke und festen Prozessen.
+                </p>
               </div>
               <p className="mt-7 text-lg font-semibold leading-8 text-[color:var(--color-navy)]">
                 Wenn du Immobilien nicht nur vermitteln, sondern Eigentümer strukturiert beraten und Verkäufe sauber führen willst, passt das zu dir.
@@ -319,6 +344,9 @@ export default function KarrierePage() {
                     "klare Kommunikation",
                   ]}
                 />
+                <p className="mt-5 text-base leading-7 text-[color:var(--color-graphite)]">
+                  Ausbildungsvergütung: je nach Ausbildungsjahr und Vereinbarung realistisch etwa 900 € bis 1.200 € monatlich. Die konkrete Vergütung klären wir transparent im Bewerbungsprozess.
+                </p>
               </div>
               <p className="mt-7 text-lg font-semibold leading-8 text-[color:var(--color-navy)]">
                 Die Ausbildung ist kein &quot;Durchlaufen&quot;, sondern ein echter Einstieg in die Immobilienpraxis mit klarer Begleitung.

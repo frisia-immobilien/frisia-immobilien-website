@@ -351,6 +351,18 @@ type JobPostingJsonLdOptions = {
   description: string;
   employmentType: string | string[];
   datePosted?: string;
+  validThrough?: string;
+  baseSalary?: {
+    "@type": "MonetaryAmount";
+    currency: string;
+    value: {
+      "@type": "QuantitativeValue";
+      minValue?: number;
+      maxValue?: number;
+      value?: number;
+      unitText: string;
+    };
+  };
 };
 
 export function createJobPostingJsonLd({
@@ -359,6 +371,8 @@ export function createJobPostingJsonLd({
   description,
   employmentType,
   datePosted = "2026-04-27",
+  validThrough,
+  baseSalary,
 }: JobPostingJsonLdOptions) {
   return {
     "@context": "https://schema.org",
@@ -367,7 +381,9 @@ export function createJobPostingJsonLd({
     title,
     description,
     datePosted,
+    ...(validThrough ? { validThrough } : {}),
     employmentType,
+    ...(baseSalary ? { baseSalary } : {}),
     hiringOrganization: {
       "@id": absoluteUrl("/#organization"),
     },
