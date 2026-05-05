@@ -12,7 +12,7 @@ export default function AurichHeroLinks() {
       aria-label="Für deine Situation relevant"
       className="border-y border-[color:var(--color-brass)]/18 bg-white"
     >
-      <div className="mx-auto flex w-full max-w-[1240px] flex-wrap items-center gap-2 px-5 py-3 sm:px-8 lg:px-12">
+      <div className="mx-auto flex w-full max-w-[1240px] flex-wrap items-center justify-center gap-2 px-5 py-3 text-center sm:px-8 lg:px-12">
         <span className="mr-1 text-[0.82rem] font-semibold leading-6 text-[color:var(--color-navy)]">
           Für deine Situation relevant:
         </span>
