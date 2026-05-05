@@ -117,6 +117,8 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
   const marketDays = daysOnMarket(data.houseMarket, data.apartmentMarket);
   const salesCount = totalSalesCount(data.houseMarket, data.apartmentMarket);
   const heroImage = "/images/immobilienbewertung/hero-background.webp";
+  const hideAurichHeroLinks =
+    data.template.prefix === "haus-verkaufen" && data.location.location_slug === "aurich";
 
   const steps = [
     ["+1", "Du nimmst Kontakt auf", "Wir klären, ob ein Verkauf für dich sinnvoll ist und welche nächsten Schritte passen."],
@@ -215,7 +217,7 @@ export default function HouseSellingLocationTemplate({ data }: { data: LocationP
         </div>
       </section>
 
-      <AurichHeroLinks />
+      {hideAurichHeroLinks ? null : <AurichHeroLinks />}
       <RegionalCrossLinks data={data} placement="hero" />
 
       <Section title={`Warum viele Hausverkäufe ${locationPhrase} unnötig schwer werden`}>
