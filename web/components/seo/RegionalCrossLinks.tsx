@@ -151,10 +151,7 @@ export default function RegionalCrossLinks({
     return (
       <section className="bg-white py-8 md:py-10">
         <div className="mx-auto w-full max-w-[1240px] px-5 sm:px-8 lg:px-12">
-          <h2 className="text-[0.78rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--color-brackish)]">
-            Für deine Situation relevant
-          </h2>
-          <div className={`mt-5 grid gap-3 sm:grid-cols-2 ${heroGridColumns}`}>
+          <div className={`grid gap-3 sm:grid-cols-2 ${heroGridColumns}`}>
             {links.map((link) => (
               <Link
                 key={link.href}
