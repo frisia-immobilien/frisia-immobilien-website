@@ -61,6 +61,41 @@ export const OPENING_HOURS_SPECIFICATION = [
 export const DEFAULT_SITE_DESCRIPTION =
   "Frisia Immobilien in Aurich: strukturierte Immobilienbewertung und rechtssichere Verkaufsbegleitung im regionalen Markt in Aurich und Ostfriesland.";
 
+type JobPostingBaseSalary = {
+  "@type": "MonetaryAmount";
+  currency: string;
+  value: {
+    "@type": "QuantitativeValue";
+    minValue?: number;
+    maxValue?: number;
+    value?: number;
+    unitText: string;
+  };
+};
+
+const DEFAULT_JOB_POSTING_BASE_SALARY: JobPostingBaseSalary = {
+  "@type": "MonetaryAmount",
+  currency: "EUR",
+  value: {
+    "@type": "QuantitativeValue",
+    minValue: 35000,
+    maxValue: 120000,
+    unitText: "YEAR",
+  },
+};
+
+function defaultJobPostingValidThrough(daysFromNow = 120) {
+  const date = new Date();
+  date.setDate(date.getDate() + daysFromNow);
+  date.setHours(23, 59, 0, 0);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}T23:59`;
+}
+
 export function absoluteUrl(path = "/"): string {
   if (!path || path === "/") return SITE_URL;
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
@@ -356,17 +391,7 @@ type JobPostingJsonLdOptions = {
   employmentType: string | string[];
   datePosted?: string;
   validThrough?: string;
-  baseSalary?: {
-    "@type": "MonetaryAmount";
-    currency: string;
-    value: {
-      "@type": "QuantitativeValue";
-      minValue?: number;
-      maxValue?: number;
-      value?: number;
-      unitText: string;
-    };
-  };
+  baseSalary?: JobPostingBaseSalary;
 };
 
 export function createJobPostingJsonLd({
@@ -375,8 +400,8 @@ export function createJobPostingJsonLd({
   description,
   employmentType,
   datePosted = "2026-04-27",
-  validThrough,
-  baseSalary,
+  validThrough = defaultJobPostingValidThrough(),
+  baseSalary = DEFAULT_JOB_POSTING_BASE_SALARY,
 }: JobPostingJsonLdOptions) {
   return {
     "@context": "https://schema.org",

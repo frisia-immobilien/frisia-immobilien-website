@@ -74,17 +74,6 @@ const brokerJobJsonLd = createJobPostingJsonLd({
   path: "/karriere",
   title: "Immobilienmakler bei Frisia Immobilien",
   employmentType: ["FULL_TIME", "CONTRACTOR"],
-  validThrough: "2026-12-31",
-  baseSalary: {
-    "@type": "MonetaryAmount",
-    currency: "EUR",
-    value: {
-      "@type": "QuantitativeValue",
-      minValue: 3000,
-      maxValue: 10000,
-      unitText: "MONTH",
-    },
-  },
   description:
     "Frisia Immobilien sucht strukturierte Immobilienmakler für Aurich und Ostfriesland. Im Mittelpunkt stehen klare Prozesse, fundierte Bewertung, regionale Marktkenntnis und Verantwortung im Verkaufsprozess.",
 });
@@ -92,7 +81,6 @@ const traineeJobJsonLd = createJobPostingJsonLd({
   path: "/karriere",
   title: "Ausbildung Immobilienkaufmann oder Immobilienkauffrau",
   employmentType: "FULL_TIME",
-  validThrough: "2026-12-31",
   baseSalary: {
     "@type": "MonetaryAmount",
     currency: "EUR",
