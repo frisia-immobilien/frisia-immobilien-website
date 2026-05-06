@@ -2,6 +2,8 @@ export const SITE_URL = "https://frisia-immobilien.de";
 
 export const BRAND_NAME = "Frisia Immobilien";
 export const LEGAL_NAME = "Frisia Immobilien GmbH";
+export const SCHEMA_LICENSE_URL = SITE_URL;
+export const COPYRIGHT_NOTICE = "© Frisia Immobilien";
 export const LOGO_PATH = "/logo.svg";
 export const DEFAULT_SOCIAL_IMAGE_PATH = "/images/hero/haus-verkaufen-aurich.webp";
 
@@ -336,6 +338,8 @@ export function createArticleJsonLd({
     datePublished,
     dateModified,
     inLanguage: "de-DE",
+    license: SCHEMA_LICENSE_URL,
+    copyrightNotice: COPYRIGHT_NOTICE,
     author: {
       "@id": absoluteUrl("/#organization"),
     },

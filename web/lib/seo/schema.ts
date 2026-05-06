@@ -1,5 +1,7 @@
 import {
   BRAND_NAME,
+  COPYRIGHT_NOTICE,
+  SCHEMA_LICENSE_URL,
   SITE_URL,
   absoluteUrl,
   createBreadcrumbListJsonLd,
@@ -39,7 +41,8 @@ function marketDataset(data: LocationPageData, market: MarketDataRow, name: stri
     name,
     description: marketDatasetDescription(locationName),
     url: pageUrl,
-    license: absoluteUrl("/datenschutz"),
+    license: SCHEMA_LICENSE_URL,
+    copyrightNotice: COPYRIGHT_NOTICE,
     creator: datasetOrganization(),
     publisher: datasetOrganization(),
     spatialCoverage: {
