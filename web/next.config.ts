@@ -47,8 +47,23 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: "/&",
+        destination: "/",
+        permanent: true,
+      },
+      {
         source: "/datenschutz",
         destination: "/recht/datenschutz",
+        permanent: true,
+      },
+      {
+        source: "/location-type/ortsteil",
+        destination: "/regionen-ostfriesland",
+        permanent: true,
+      },
+      {
+        source: "/location-type/stadt_gemeinde",
+        destination: "/regionen-ostfriesland",
         permanent: true,
       },
       {
