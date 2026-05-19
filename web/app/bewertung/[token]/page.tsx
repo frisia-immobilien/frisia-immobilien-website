@@ -14,29 +14,44 @@ import {
   getLeadgenPropertyTypeLabel,
   getLeadgenQualityLabel,
 } from "@/lib/immobilienbewertung/presentation";
+import { absoluteUrl } from "@/lib/site";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export const metadata: Metadata = {
-  title: "Ihre Marktpreiseinschätzung",
-  description: "Persönliche Marktpreiseinschätzung Ihrer Immobilie.",
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: {
-      index: false,
-      follow: false,
-      noimageindex: true,
-    },
-  },
-};
-
 type PageParams = {
   token: string;
 };
+
+export function buildLeadResultMetadata(path: string): Metadata {
+  return {
+    title: "Ihre Marktpreiseinschätzung",
+    description: "Persönliche Marktpreiseinschätzung Ihrer Immobilie.",
+    alternates: {
+      canonical: absoluteUrl(path),
+    },
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+      googleBot: {
+        index: false,
+        follow: false,
+        noimageindex: true,
+      },
+    },
+  };
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<PageParams>;
+}): Promise<Metadata> {
+  const { token } = await params;
+  return buildLeadResultMetadata(`/bewertung/${token}`);
+}
 
 type ReportResult = NonNullable<Awaited<ReturnType<typeof getLeadReportByToken>>>;
 type LegacyLeadResult = NonNullable<Awaited<ReturnType<typeof getLeadByToken>>>;

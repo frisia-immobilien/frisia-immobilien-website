@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
           },
         ],
         destination: "https://frisia-immobilien.de/:path*",
-        permanent: true,
+        statusCode: 301,
       },
       {
         source: "/agb",

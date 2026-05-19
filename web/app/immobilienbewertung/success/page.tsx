@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 
+import { absoluteUrl } from "@/lib/site";
+
 import SendReportButton from "./SendReportButton.client";
 
 export const metadata: Metadata = {
   title: "Werteinschätzung vorbereitet",
   description: "Die Werteinschätzung wurde vorbereitet und per E-Mail versendet.",
+  alternates: {
+    canonical: absoluteUrl("/immobilienbewertung/success"),
+  },
   robots: {
     index: false,
     follow: false,
