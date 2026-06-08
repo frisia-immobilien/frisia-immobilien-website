@@ -48,6 +48,7 @@ const navigationColumns: readonly NavigationColumn[] = [
     title: "Über Frisia Immobilien",
     links: [
       { href: "/maklerhaus", label: "Das Maklerhaus" },
+      { href: "/partner", label: "Partner" },
       { href: "/#standort-aurich", label: "Standort Aurich" },
       { href: "/#kundenstimmen", label: "Kundenstimmen" },
       { href: "/kontakt", label: "Kontaktformular", className: "underline underline-offset-4 decoration-white/70" },

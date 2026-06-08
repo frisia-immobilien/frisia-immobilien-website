@@ -1,0 +1,14 @@
+{
+  "synced_at": "2026-06-01T15:07:49.289Z",
+  "source": "https://frisia-inside.de/api/website-snapshot/file.php?file={file}",
+  "version": "20260601-170639",
+  "generated_at": "2026-06-01T17:06:39+02:00",
+  "checksum_sha256": "40cbc6531a21c423eeb564b4779aa21dad62e422d56021d4f8a98b1850181848",
+  "counts": {
+    "market_records": 1436,
+    "website_locations": 977,
+    "house_price_records": 239,
+    "apartment_price_records": 761
+  },
+  "backup_dir": "data/market/snapshots/before-sync-20260601-150749"
+}

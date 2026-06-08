@@ -4,6 +4,7 @@ import type { MetadataRoute } from "next";
 import { neon } from "@neondatabase/serverless";
 import { REGION_LANDING_EXAMPLES } from "@/lib/regions";
 import { absoluteUrl } from "@/lib/site";
+import { hasActiveWebsiteSnapshot, readActiveSnapshotJson } from "@/lib/website-snapshot";
 
 export const revalidate = 86400;
 
@@ -145,6 +146,7 @@ const STATIC_ROUTES: StaticRoute[] = [
   { path: "/immobilie-verkaufen-leerstand", priority: 0.76 },
   { path: "/immobilie-verkaufen-energieausweis", priority: 0.76 },
   { path: "/maklerhaus", priority: 0.74 },
+  { path: "/partner", priority: 0.6 },
   { path: "/ueber-uns", priority: 0.68 },
   { path: "/ueber-uns/sebastian-munzig", priority: 0.7 },
   { path: "/ueber-uns/arbeitsweise", priority: 0.66 },
@@ -256,11 +258,15 @@ function emptySitemapData(): SitemapSourceData {
 }
 
 function loadRuntimeSitemapData(): SitemapSourceData {
-  const filePath = runtimeMarketDataPath();
-  if (!filePath) return emptySitemapData();
-
   try {
-    const raw = JSON.parse(fs.readFileSync(filePath, "utf8")) as { records?: RuntimeMarketRecord[] };
+    const snapshot = readActiveSnapshotJson<{ records?: RuntimeMarketRecord[] }>("leadgen_market_data");
+    const raw =
+      snapshot ??
+      (() => {
+        const filePath = runtimeMarketDataPath();
+        if (!filePath) return { records: [] };
+        return JSON.parse(fs.readFileSync(filePath, "utf8")) as { records?: RuntimeMarketRecord[] };
+      })();
     const records = Array.isArray(raw.records) ? raw.records : [];
     const data = emptySitemapData();
     const locations = new Map<string, SitemapLocation>();
@@ -382,6 +388,7 @@ async function loadDatabaseSitemapData(): Promise<SitemapSourceData | null> {
 }
 
 async function loadSitemapSourceData() {
+  if (hasActiveWebsiteSnapshot()) return loadRuntimeSitemapData();
   return (await loadDatabaseSitemapData()) ?? loadRuntimeSitemapData();
 }
 

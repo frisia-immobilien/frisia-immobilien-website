@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "generated_at": "2026-06-01T11:36:37+02:00",
+  "partners": [
+    {
+      "key": "immobilienscout24",
+      "name": "ImmobilienScout24",
+      "text": "ImmobilienScout24 zaehlt zu den reichweitenstarken Immobilienportalen und unterstuetzt die Sichtbarkeit ausgewaehlter Angebote.",
+      "image_url": "https://frisia-inside.de/uploads/partners/partner-20260601-110012-d58f02ae.png",
+      "website_url": "https://www.immobilienscout24.de/anbieter/profil/frisia-immobilien-gmbh",
+      "sort_order": 10,
+      "active": true
+    },
+    {
+      "key": "kleinanzeigen",
+      "name": "Kleinanzeigen",
+      "text": "Kleinanzeigen ergaenzt die regionale Reichweite fuer Immobilien, Gesuche und relevante Kontakte im lokalen Markt.",
+      "image_url": "https://frisia-inside.de/uploads/partners/partner-20260601-110316-7419d353.png",
+      "website_url": "https://www.kleinanzeigen.de/pro/frisia-immobilien",
+      "sort_order": 20,
+      "active": true
+    },
+    {
+      "key": "1a-immobilien",
+      "name": "1A Immobilien",
+      "text": "Wir sind Partner von 1A-Portale.de und vermarkten unsere Immobilien-Angebote bei über 1A-Immobilienmarkt.de.",
+      "image_url": "https://frisia-inside.de/uploads/partners/partner-20260601-110735-09afc492.png",
+      "website_url": "https://www.immobilienmarkt-emden.de",
+      "sort_order": 40,
+      "active": true
+    }
+  ]
+}

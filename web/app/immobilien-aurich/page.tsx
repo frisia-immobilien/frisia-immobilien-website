@@ -16,7 +16,7 @@ import {
 } from "@/lib/site";
 import { getImmobilienAurichListingResult } from "@/lib/propstack";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 export const metadata = buildPageMetadata({
   title: "Immobilien in Aurich & Ostfriesland",

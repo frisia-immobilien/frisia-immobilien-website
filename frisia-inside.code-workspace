@@ -1,0 +1,76 @@
+{
+  "folders": [
+    {
+      "name": "frisia-immobilien",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.next": true,
+      "**/node_modules": true,
+      "**/inside/deploy/package": true
+    },
+    "search.exclude": {
+      "**/.next": true,
+      "**/node_modules": true,
+      "**/inside/deploy/package": true,
+      "**/dist": true
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.formatOnSave": false
+  },
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode"
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Web: dev",
+        "type": "shell",
+        "command": "npm run dev",
+        "problemMatcher": []
+      },
+      {
+        "label": "Inside: dev",
+        "type": "shell",
+        "command": "npm run dev:inside",
+        "problemMatcher": []
+      },
+      {
+        "label": "Web: build",
+        "type": "shell",
+        "command": "npm run build",
+        "problemMatcher": []
+      },
+      {
+        "label": "Inside: build",
+        "type": "shell",
+        "command": "npm run build:inside",
+        "problemMatcher": []
+      },
+      {
+        "label": "Inside: package",
+        "type": "shell",
+        "command": "npm run package:inside",
+        "problemMatcher": []
+      },
+      {
+        "label": "Inside: deploy",
+        "type": "shell",
+        "command": "npm run deploy:inside",
+        "problemMatcher": []
+      },
+      {
+        "label": "Git: status",
+        "type": "shell",
+        "command": "git status --short --branch",
+        "problemMatcher": []
+      }
+    ]
+  }
+}

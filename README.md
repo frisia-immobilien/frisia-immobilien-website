@@ -1,3 +1,15 @@
+# Frisia Immobilien
+
+Zentraler Projektkontext fuer Codex, Betrieb und Uebergaben:
+
+- [Projektwissen](docs/PROJECT-KNOWLEDGE.md)
+- [Frisia Inside Betriebsmodell](inside/docs/operating-model.md)
+- [Leadgenerator, Marktdaten und SEO-Landingpages](web/docs/leadgenerator-seo-system.md)
+
+## Legacy Hinweis
+
+Der urspruengliche README-Inhalt stammt aus dem Sanity-Studio-Template und bleibt unten als Referenz erhalten.
+
 # Sanity Blogging Content Studio
 
 Congratulations, you have now installed the Sanity Content Studio, an open-source real-time content editing environment connected to the Sanity backend.

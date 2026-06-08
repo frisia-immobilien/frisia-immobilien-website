@@ -1,8 +1,10 @@
 import "server-only";
 
 import { sql } from "@/lib/db";
+import { getRuntimeLocationImage } from "@/lib/market/runtimeLandingData";
 import { formatLocationPhraseFromName } from "@/lib/seo/locationDisplay";
 import type { SeoPageType } from "@/lib/types/leadgen";
+import { hasActiveWebsiteSnapshot } from "@/lib/website-snapshot";
 
 type SeoImageRow = {
   file_path: string;
@@ -23,6 +25,21 @@ export async function getLocationImage(input: {
   location_label: string;
   location_type?: string | null;
 }) {
+  const snapshotImage = getRuntimeLocationImage(input);
+  if (snapshotImage) {
+    return {
+      src: snapshotImage.file_path || FALLBACKS.city,
+      alt: snapshotImage.alt_text || `${input.location_label} - Frisia Immobilien`,
+      title: snapshotImage.title || input.location_label,
+      caption: snapshotImage.caption || null,
+      isFallback: false,
+    };
+  }
+
+  if (hasActiveWebsiteSnapshot()) {
+    return fallbackLocationImage(input);
+  }
+
   let rows: SeoImageRow[] = [];
   try {
     rows = (await sql`
@@ -49,6 +66,13 @@ export async function getLocationImage(input: {
     };
   }
 
+  return fallbackLocationImage(input);
+}
+
+function fallbackLocationImage(input: {
+  location_label: string;
+  location_type?: string | null;
+}) {
   const src =
     input.location_type === "region"
       ? FALLBACKS.region

@@ -1,5 +1,9 @@
+import { getGermanPropertyTypeLabel } from "@/lib/property-labels";
+import { readActiveSnapshotJson } from "@/lib/website-snapshot";
+
 const DEFAULT_PROPSTACK_BASE_URL = "https://api.propstack.de/v2";
 const DEFAULT_PROPSTACK_V1_BASE_URL = "https://api.propstack.de/v1";
+const PROPSTACK_PUBLIC_REVALIDATE_SECONDS = 120;
 
 const PRIMARY_CITY = "aurich";
 const SURROUNDING_CITIES = [
@@ -19,6 +23,10 @@ const SURROUNDING_CITIES = [
   "krummhoern",
   "marienhafe",
 ] as const;
+const PUBLIC_WEBSITE_PROPERTY_STATUS_NAMES = new Set([
+  "vermarktung",
+  "reserviert (käufer zugesagt)",
+]);
 
 type PropstackImage = {
   title?: string | null;
@@ -51,6 +59,8 @@ type PropstackProperty = {
   unit_id?: string | null;
   broker_id?: number | null;
   city?: string | null;
+  district?: string | null;
+  location_name?: string | null;
   short_address?: string | null;
   zip_code?: string | null;
   street?: string | null;
@@ -111,12 +121,18 @@ type PropstackCustomField = string | { value?: string | null; pretty_value?: str
 
 type PropstackBroker = {
   id: number;
+  name?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   email?: string | null;
+  public_email?: string | null;
   public_phone?: string | null;
   public_cell?: string | null;
+  phone?: string | null;
+  cell?: string | null;
+  avatar?: string | null;
   avatar_url?: string | null;
+  position?: string | null;
   custom?: {
     titel?: PropstackCustomField;
     qualifikation?: PropstackCustomField;
@@ -138,11 +154,26 @@ type PropstackPropertyStatus = {
 };
 
 type PropstackListResponse<T> = {
-  data: T[];
+  data?: T[];
+  properties?: T[];
+  property_statuses?: T[];
 };
 
 function toArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function toPropstackList<T>(response: PropstackListResponse<T> | T[] | null | undefined): T[] {
+  if (Array.isArray(response)) return response;
+  if (!response) return [];
+
+  const data = toArray<T>(response.data);
+  if (data.length > 0) return data;
+
+  const properties = toArray<T>(response.properties);
+  if (properties.length > 0) return properties;
+
+  return toArray<T>(response.property_statuses);
 }
 
 const ENERGY_CARRIER_LABELS: Record<string, string> = {
@@ -187,6 +218,7 @@ export type PropertyListItem = {
   slug: string;
   title: string;
   city: string;
+  displayLocation: string;
   marketingType: string | null;
   zipCode: string | null;
   shortAddress: string;
@@ -208,8 +240,7 @@ export type PropertyListItem = {
   excerpt: string;
   imageUrl: string | null;
   publicExposeUrl: string | null;
-  rsType: string | null;
-  rsCategory: string | null;
+  propertyTypeLabel: string;
   constructionYear: number | null;
   courtage: string | null;
   courtageNote: string | null;
@@ -234,6 +265,7 @@ export type PropertyDetailImage = {
 
 export type PropertyDetail = PropertyListItem & {
   unitId: string | null;
+  schemaType: "House" | "Apartment";
   street: string | null;
   houseNumber: string | null;
   zipCode: string | null;
@@ -260,8 +292,50 @@ export type PropertyDetail = PropertyListItem & {
   otherNote: string | null;
   galleryImages: PropertyDetailImage[];
   floorplanImages: PropertyDetailImage[];
+  contactName: string | null;
   contactTitle: string | null;
+  contactEmail: string | null;
+  contactPhoneDisplay: string | null;
+  contactPhoneHref: string | null;
+  contactMobileDisplay: string | null;
+  contactMobileHref: string | null;
+  contactImagePath: string | null;
 };
+
+type PublicPropertySnapshot = {
+  properties?: PropstackProperty[];
+  brokers?: Record<string, PropstackBroker>;
+};
+
+let publicPropertySnapshotCache: PublicPropertySnapshot | null | undefined;
+
+function loadPublicPropertySnapshot() {
+  if (publicPropertySnapshotCache !== undefined) return publicPropertySnapshotCache;
+  const snapshot = readActiveSnapshotJson<PublicPropertySnapshot>("properties");
+  publicPropertySnapshotCache =
+    snapshot && Array.isArray(snapshot.properties)
+      ? {
+          properties: snapshot.properties,
+          brokers: snapshot.brokers && typeof snapshot.brokers === "object" ? snapshot.brokers : {},
+        }
+      : null;
+  return publicPropertySnapshotCache;
+}
+
+function getSnapshotProperties() {
+  const snapshot = loadPublicPropertySnapshot();
+  return snapshot?.properties ?? null;
+}
+
+function getSnapshotPropertyById(id: number) {
+  return getSnapshotProperties()?.find((property) => Number(property.id) === id) ?? null;
+}
+
+function getSnapshotBrokerById(id: number | null | undefined) {
+  if (!id) return null;
+  const snapshot = loadPublicPropertySnapshot();
+  return snapshot?.brokers?.[String(id)] ?? null;
+}
 
 function getPropstackConfig() {
   const apiKey = process.env.PROPSTACK_API_KEY;
@@ -301,7 +375,7 @@ async function propstackFetch<T>(path: string, searchParams?: Record<string, str
       "X-Api-Key": apiKey,
       Accept: "application/json",
     },
-    cache: "no-store",
+    next: { revalidate: PROPSTACK_PUBLIC_REVALIDATE_SECONDS },
   });
 
   if (!response.ok) {
@@ -321,7 +395,7 @@ async function propstackV1Fetch<T>(path: string) {
       "X-API-KEY": apiKey,
       Accept: "application/json",
     },
-    cache: "no-store",
+    next: { revalidate: PROPSTACK_PUBLIC_REVALIDATE_SECONDS },
   });
 
   if (!response.ok) {
@@ -351,6 +425,40 @@ function getCustomFieldText(field?: PropstackCustomField) {
 
 function normalizeBrokerTitle(value?: string | null) {
   return normalizeText(value) || null;
+}
+
+function normalizeBrokerName(broker?: PropstackBroker | null) {
+  if (!broker) return null;
+  return (
+    normalizeText(broker.name) ||
+    [normalizeText(broker.first_name), normalizeText(broker.last_name)].filter(Boolean).join(" ") ||
+    null
+  );
+}
+
+function normalizePhoneHref(value?: string | null) {
+  const normalized = normalizeText(value);
+  if (!normalized) return null;
+
+  let digits = normalized.replace(/[^\d+]/g, "");
+  if (digits.startsWith("00")) {
+    digits = `+${digits.slice(2)}`;
+  } else if (digits.startsWith("0")) {
+    digits = `+49${digits.slice(1)}`;
+  } else if (!digits.startsWith("+")) {
+    digits = `+${digits}`;
+  }
+
+  return digits.length > 1 ? `tel:${digits}` : null;
+}
+
+function getPropstackBrokerFromResponse(
+  response: PropstackBroker | { data?: PropstackBroker } | null,
+): PropstackBroker | null {
+  if (!response) return null;
+  const data = (response as { data?: PropstackBroker }).data;
+  const broker = data && typeof data === "object" ? data : (response as PropstackBroker);
+  return Object.keys(broker).length > 0 ? broker : null;
 }
 
 function isTruthyPropstackFlag(value: unknown) {
@@ -434,6 +542,43 @@ function resolveTitle(property: PropstackProperty) {
     `Immobilie in ${normalizeText(property.city) || "Ostfriesland"}`;
 
   return title;
+}
+
+function getCustomRecordText(record: Record<string, unknown> | null | undefined, key: string) {
+  const value = record?.[key];
+  if (!value) return null;
+  if (typeof value === "string" || typeof value === "number") return normalizeText(value) || null;
+  if (typeof value === "object") {
+    const field = value as { value?: unknown; pretty_value?: unknown };
+    return normalizeText(field.pretty_value) || normalizeText(field.value) || null;
+  }
+  return null;
+}
+
+function extractLocationFromTitle(value?: string | null) {
+  const title = normalizeText(value);
+  if (!title) return null;
+
+  const match = title.match(/\bin\s+([^|,;:–—-]{2,60})/i);
+  const candidate = normalizeText(match?.[1]).replace(/\s+/g, " ");
+  if (!candidate) return null;
+
+  const firstLetter = candidate.match(/\p{L}/u)?.[0];
+  if (!firstLetter || firstLetter !== firstLetter.toLocaleUpperCase("de-DE")) {
+    return null;
+  }
+
+  return candidate.replace(/\s+(?:und|mit|inklusive)\s+.*$/i, "").trim() || null;
+}
+
+function resolveDisplayLocation(property: PropstackProperty, title: string, city: string) {
+  return (
+    normalizeText(property.location_name) ||
+    normalizeText(property.district) ||
+    extractLocationFromTitle(getCustomRecordText(property.custom_fields, "schaufenster_tv_titel")) ||
+    extractLocationFromTitle(title) ||
+    city
+  );
 }
 
 function resolveDescription(property: PropstackProperty) {
@@ -555,6 +700,7 @@ function toListItem(property: PropstackProperty): PropertyListItem {
   const title = resolveTitle(property);
   const city = normalizeText(property.city) || "Ostfriesland";
   const scope = isAurichPrimaryCity(city) ? "aurich" : "umgebung";
+  const displayLocation = resolveDisplayLocation(property, title, city);
   const resolvedPrice = resolvePrice(property);
 
   return {
@@ -562,6 +708,7 @@ function toListItem(property: PropstackProperty): PropertyListItem {
     slug: `${slugify(title)}-${property.id}`,
     title,
     city,
+    displayLocation,
     marketingType: property.marketing_type ?? null,
     zipCode: normalizeText(property.zip_code) || null,
     shortAddress: buildAddress(property),
@@ -583,8 +730,7 @@ function toListItem(property: PropstackProperty): PropertyListItem {
     excerpt: resolveDescription(property),
     imageUrl: resolveImage(property),
     publicExposeUrl: property.public_expose_url ?? null,
-    rsType: property.rs_type ?? null,
-    rsCategory: property.rs_category ?? null,
+    propertyTypeLabel: getGermanPropertyTypeLabel(property.rs_category ?? null, property.rs_type ?? null, property.object_type ?? null),
     constructionYear: property.construction_year ?? null,
     courtage: property.courtage ?? null,
     courtageNote: property.courtage_note ?? null,
@@ -607,24 +753,39 @@ async function getPropertyStatuses() {
   return toArray<PropstackPropertyStatus>(response?.data);
 }
 
-async function getMarketingStatusIds() {
+function normalizePropertyStatusName(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase("de-DE");
+}
+
+async function getPublicWebsiteStatusIds() {
   const statuses = await getPropertyStatuses();
   return statuses
-    .filter((status) => status.name.trim().toLocaleLowerCase("de-DE") === "vermarktung")
+    .filter((status) => PUBLIC_WEBSITE_PROPERTY_STATUS_NAMES.has(normalizePropertyStatusName(status.name)))
     .map((status) => status.id);
 }
 
 async function getRawMarketingProperties() {
-  const statusIds = await getMarketingStatusIds();
+  const statusIds = await getPublicWebsiteStatusIds();
   if (statusIds.length === 0) return [] as PropstackProperty[];
+  const allowedStatusIds = new Set(statusIds.map(Number));
 
-  const response = await propstackFetch<PropstackListResponse<PropstackProperty> | PropstackProperty[]>("/properties", {
-    status: statusIds.join(","),
-    per: 200,
-    sort_by: "updated_at",
-    order: "desc",
-  });
-  return Array.isArray(response) ? response : toArray<PropstackProperty>(response?.data);
+  const properties: PropstackProperty[] = [];
+  const perPage = 100;
+  for (let page = 1; page <= 10; page += 1) {
+    const response = await propstackFetch<PropstackListResponse<PropstackProperty> | PropstackProperty[]>("/properties", {
+      per: perPage,
+      page,
+      sort_by: "updated_at",
+      order: "desc",
+    });
+    const pageItems = toPropstackList(response);
+    properties.push(...pageItems);
+    if (pageItems.length < perPage) break;
+  }
+
+  return properties.filter(
+    (property) => property.property_status_id != null && allowedStatusIds.has(Number(property.property_status_id)),
+  );
 }
 
 export async function getImmobilienAurichListingResult(): Promise<PropertyListingResult> {
@@ -641,41 +802,66 @@ export async function getImmobilienAurichListingResult(): Promise<PropertyListin
       coverage: "aurich-und-umgebung",
     };
   } catch (error) {
-    console.error("Propstack listings konnten nicht geladen werden", error);
+    console.error("Propstack listings konnten nicht live geladen werden. Verwende Snapshot-Fallback.", error);
+    const snapshotProperties = getSnapshotProperties();
+    if (!snapshotProperties) {
+      return {
+        items: [],
+        coverage: "aurich-und-umgebung",
+      };
+    }
+
+    const mapped = snapshotProperties.map(toListItem);
+    const aurichFirst = mapped.sort((a, b) => {
+      if (a.scope === b.scope) return 0;
+      return a.scope === "aurich" ? -1 : 1;
+    });
+
     return {
-      items: [],
+      items: aurichFirst,
       coverage: "aurich-und-umgebung",
     };
   }
 }
 
 export async function getPropstackPropertyById(id: number) {
-  const [property, v1Supplement] = await Promise.all([
-    propstackFetch<PropstackProperty>(`/properties/${id}`),
-    propstackV1Fetch<Pick<PropstackProperty, "custom_fields" | "fields" | "monument" | "optional_fields">>(
-      `/units/${id}`,
-    ).catch(() => null),
-  ]);
+  try {
+    const [property, v1Supplement] = await Promise.all([
+      propstackFetch<PropstackProperty>(`/properties/${id}`),
+      propstackV1Fetch<Pick<PropstackProperty, "custom_fields" | "fields" | "monument" | "optional_fields">>(
+        `/units/${id}`,
+      ).catch(() => null),
+    ]);
 
-  if (!v1Supplement) return property;
+    if (!v1Supplement) return property;
 
-  return {
-    ...property,
-    custom_fields: v1Supplement.custom_fields ?? property.custom_fields,
-    fields: v1Supplement.fields ?? property.fields,
-    monument: v1Supplement.monument ?? property.monument,
-    optional_fields: v1Supplement.optional_fields ?? property.optional_fields,
-  };
+    return {
+      ...property,
+      custom_fields: v1Supplement.custom_fields ?? property.custom_fields,
+      fields: v1Supplement.fields ?? property.fields,
+      monument: v1Supplement.monument ?? property.monument,
+      optional_fields: v1Supplement.optional_fields ?? property.optional_fields,
+    };
+  } catch (error) {
+    console.error(`Propstack Immobilie ${id} konnte nicht live geladen werden. Verwende Snapshot-Fallback.`, error);
+    return getSnapshotPropertyById(id);
+  }
 }
 
 export async function getPropstackBrokerById(id: number | null | undefined) {
   if (!id) return null;
-  const response = await propstackFetch<PropstackBroker | { data?: PropstackBroker }>(`/brokers/${id}`);
-  if (typeof (response as { data?: unknown }).data === "object" && (response as { data?: unknown }).data !== null) {
-    return (response as { data: PropstackBroker }).data;
-  }
+  const snapshotBroker = getSnapshotBrokerById(id);
 
-  return response as PropstackBroker;
+  const v1Response = await propstackV1Fetch<PropstackBroker | { data?: PropstackBroker }>(`/brokers/${id}`).catch(
+    () => null,
+  );
+  const v1Broker = getPropstackBrokerFromResponse(v1Response);
+  if (v1Broker) return v1Broker;
+
+  const response = await propstackFetch<PropstackBroker | { data?: PropstackBroker }>(`/brokers/${id}`).catch(
+    () => null,
+  );
+  return getPropstackBrokerFromResponse(response) ?? snapshotBroker;
 }
 
 export function getPropertyIdFromSlug(slug: string) {
@@ -688,17 +874,29 @@ export function propertyBelongsToAurichArea(property: PropstackProperty) {
 }
 
 export async function propertyHasMarketingStatus(property: PropstackProperty) {
-  const statusIds = await getMarketingStatusIds();
-  return property.property_status_id != null && statusIds.includes(property.property_status_id);
+  try {
+    const statusIds = new Set((await getPublicWebsiteStatusIds()).map(Number));
+    return property.property_status_id != null && statusIds.has(Number(property.property_status_id));
+  } catch (error) {
+    console.error("Propstack Status konnte nicht live geprüft werden. Verwende Snapshot-Fallback.", error);
+    const snapshotProperties = getSnapshotProperties();
+    return snapshotProperties?.some((item) => Number(item.id) === Number(property.id)) ?? false;
+  }
 }
 
 export function mapPropertyDetail(property: PropstackProperty, broker?: PropstackBroker | null): PropertyDetail {
   const base = toListItem(property);
   const images = mapImages(property.images);
+  const contactPhoneDisplay = normalizeText(broker?.public_phone) || null;
+  const contactMobileDisplay =
+    normalizeText(broker?.public_cell) ||
+    [normalizeText(broker?.phone), normalizeText(broker?.cell)].filter(Boolean).join(" ") ||
+    null;
 
   return {
     ...base,
     unitId: normalizeText(property.unit_id) || null,
+    schemaType: property.rs_type === "HOUSE" ? "House" : "Apartment",
     street: normalizeText(property.street) || null,
     houseNumber: normalizeText(property.house_number) || null,
     zipCode: normalizeText(property.zip_code) || null,
@@ -726,10 +924,17 @@ export function mapPropertyDetail(property: PropstackProperty, broker?: Propstac
     otherNote: normalizeText(property.other_note) || normalizeText(findGermanTranslation(property)?.other_note) || null,
     galleryImages: images.filter((image) => !image.isFloorplan),
     floorplanImages: images.filter((image) => image.isFloorplan),
+    contactName: normalizeBrokerName(broker),
     contactTitle: normalizeBrokerTitle(
       getCustomFieldText(broker?.custom?.titel) ??
         getCustomFieldText(broker?.custom_fields?.titel) ??
         getCustomFieldText(broker?.custom_fields?.Titel),
     ),
+    contactEmail: normalizeText(broker?.public_email) || normalizeText(broker?.email) || null,
+    contactPhoneDisplay,
+    contactPhoneHref: normalizePhoneHref(contactPhoneDisplay),
+    contactMobileDisplay,
+    contactMobileHref: normalizePhoneHref(contactMobileDisplay),
+    contactImagePath: normalizeText(broker?.avatar_url) || normalizeText(broker?.avatar) || null,
   } satisfies PropertyDetail;
 }

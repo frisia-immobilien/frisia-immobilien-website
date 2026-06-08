@@ -1,0 +1,370 @@
+{
+  "generatedAt": "2026-05-12T02:35:00+02:00",
+  "policy": "Noindex-Ortsseiten werden nur mit validen Quellen, lokaler Einzigartigkeit und manuellem Review aufgewertet. Keine automatische Indexfreigabe.",
+  "enrichments": [
+    {
+      "location_slug": "westersander",
+      "location_name": "Westersander, Ihlow",
+      "location_type": "ortsteil",
+      "parent_location": "Ihlow",
+      "landkreis": "Landkreis Aurich",
+      "current_runtime_status": {
+        "website_live": false,
+        "leadgen_live": true,
+        "record_count": 1,
+        "existing_record_summary": "Ein Wohnungs-Datensatz aus der Runtime-Datenbasis, aber ohne Preis-, Verkaufs- und Vermarktungswerte."
+      },
+      "candidate_pages": [
+        {
+          "page_type": "immobilienmakler",
+          "url_path": "/immobilienmakler-westersander",
+          "cluster_relevant": true,
+          "priority": "high"
+        },
+        {
+          "page_type": "immobilienbewertung",
+          "url_path": "/immobilienbewertung-westersander",
+          "cluster_relevant": true,
+          "priority": "high"
+        },
+        {
+          "page_type": "haus-verkaufen",
+          "url_path": "/haus-verkaufen-westersander",
+          "cluster_relevant": true,
+          "priority": "high"
+        },
+        {
+          "page_type": "immobilienpreise",
+          "url_path": "/immobilienpreise-westersander",
+          "cluster_relevant": true,
+          "priority": "strict_review"
+        }
+      ],
+      "quality": {
+        "quality_score": 66.0,
+        "source_confidence": 82.0,
+        "local_uniqueness_score": 74.0,
+        "entity_depth_score": 79.0,
+        "duplicate_risk": 34.0,
+        "data_freshness": "fresh",
+        "has_external_validation": true,
+        "indexing_state": "pending_review",
+        "performance_state": "observing",
+        "review_status": "pending",
+        "indexing_reason": "Westersander hat jetzt mehrere valide externe Quellen, amtliche BORIS-Bodenrichtwerte und lokale Entitaeten. Keine automatische Indexfreigabe: Es existiert weiterhin nur ein interner Wohnungs-Datensatz ohne belastbare Transaktionswerte; PLZ-Angabe und finaler Seitentext muessen vor Livegang manuell geprueft werden."
+      },
+      "sources": [
+        {
+          "source_key": "frisia_runtime",
+          "source_name": "Frisia Runtime-Marktdaten Westersander",
+          "source_url": null,
+          "source_type": "frisia_internal",
+          "usage_scope": "both",
+          "source_confidence": 45.0,
+          "source_timestamp": "2026-04-26T14:50:00+02:00",
+          "valid_from": "2026-04-26",
+          "notes": "Interner Leadgen-/Runtime-Datensatz. Fuer Westersander existiert aktuell ein Wohnungs-Datensatz ohne Preis-, Verkaufs- und Vermarktungswerte."
+        },
+        {
+          "source_key": "boris_wfs_2026",
+          "source_name": "BORIS Niedersachsen / LGLN WFS Bodenrichtwerte Westersander",
+          "source_url": "https://opendata.lgln.niedersachsen.de/doorman/noauth/boris_wfs",
+          "source_type": "official",
+          "usage_scope": "both",
+          "source_confidence": 92.0,
+          "source_timestamp": "2026-05-12T02:19:24+02:00",
+          "valid_from": "2026-01-01",
+          "notes": "Amtliche Bodenrichtwerte, abgefragt fuer den Bereich Westersander. Bodenrichtwerte sind nicht als Kaufpreise oder Marktpreise auszugeben."
+        },
+        {
+          "source_key": "ihlow_ortschaft_ihlowerhoern",
+          "source_name": "Gemeinde Ihlow - Ortschaft Ihlowerhörn",
+          "source_url": "https://www.ihlow.de/gemeinde/ortschaften/ihlowerhoern/",
+          "source_type": "official",
+          "usage_scope": "seo",
+          "source_confidence": 88.0,
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2023-01-02",
+          "notes": "Offizielle Ortsbeschreibung: Ihlowerhörn setzt sich aus Lübbertsfehn, Hüllenerfehn und Westersander zusammen; Westersander wird historisch und geografisch lokal eingeordnet."
+        },
+        {
+          "source_key": "ihlow_gemeinde",
+          "source_name": "Gemeinde Ihlow - Gemeindeprofil",
+          "source_url": "https://www.ihlow.de/gemeinde/",
+          "source_type": "official",
+          "usage_scope": "seo",
+          "source_confidence": 86.0,
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2023-12-27",
+          "notes": "Offizielle Gemeindeangaben zu Einwohnerzahl, Flaeche, Ortsteilen und Lage zwischen Emden und Aurich."
+        },
+        {
+          "source_key": "ihlow_bauleitplanung_ihlowerhoern",
+          "source_name": "Gemeinde Ihlow - Bauleitplanung Ihlowerhörn",
+          "source_url": "https://www.ihlow.de/bauen-wohnen/bauleitplanungen-der-gemeinde/ihlowerhoern/",
+          "source_type": "official",
+          "usage_scope": "seo",
+          "source_confidence": 88.0,
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2026-05-12",
+          "notes": "Offizielle Liste rechtskraeftiger Bebauungsplaene und Satzungen fuer Ihlowerhörn, inklusive Dorfkern Westersander."
+        },
+        {
+          "source_key": "ihlow_aussenbereichssatzung_westersander",
+          "source_name": "Gemeinde Ihlow - Außenbereichssatzung Teilbereich Westersander Straße",
+          "source_url": "https://www.ihlow.de/buergerservice/bekanntmachungen/bekanntmachung/bekanntmachung-zur-bauleitplanung-in-der-gemeinde-ihlow-inkrafttreten-der-aussenbereichssatzung/",
+          "source_type": "official",
+          "usage_scope": "seo",
+          "source_confidence": 86.0,
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2025-10-24",
+          "notes": "Bekanntmachung zur in Kraft getretenen Außenbereichssatzung Teilbereich Westersander Straße im Ortsteil Ihlowerhörn."
+        },
+        {
+          "source_key": "ihlow_aussenbereichssatzung_draft_pdf",
+          "source_name": "Gemeinde Ihlow - Außenbereichssatzung Westersander Straße Entwurf 26.03.2025",
+          "source_url": "https://www.ihlow.de/fileadmin/media/dokumente/2025/bekanntmachungen/2025-05-21_Au%C3%9Fenbereichssatzung_Westersander_Stra%C3%9Fe_-_Entwurf_-_Stand_26.03.2025__PDF_.pdf",
+          "source_type": "official",
+          "usage_scope": "context_only",
+          "source_confidence": 78.0,
+          "source_timestamp": "2025-03-26T00:00:00+01:00",
+          "valid_from": "2025-03-26",
+          "notes": "Planungsbegruendung im Entwurfsstand. Zahlen nur als planungsbezogener Kontext verwenden und nicht als aktuelle amtliche Statistik ausgeben."
+        }
+      ],
+      "datapoints": [
+        {
+          "metric_key": "runtime_existing_record_count",
+          "metric_label": "Vorhandene interne Datensaetze",
+          "value_text": "1 Wohnungs-Datensatz; keine Preis-, Verkaufs- oder Vermarktungswerte vorhanden.",
+          "value_number": 1,
+          "unit": "record",
+          "source_key": "frisia_runtime",
+          "usage_scope": "both",
+          "source_timestamp": "2026-04-26T14:50:00+02:00",
+          "valid_from": "2026-04-26"
+        },
+        {
+          "metric_key": "runtime_website_live",
+          "metric_label": "Website-Live-Status",
+          "value_text": "Nicht live; keine Route in der Website-Runtime.",
+          "value_number": 0,
+          "unit": "boolean",
+          "source_key": "frisia_runtime",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T01:15:44+02:00",
+          "valid_from": "2026-05-12"
+        },
+        {
+          "metric_key": "runtime_leadgen_live",
+          "metric_label": "Leadgenerator-Status",
+          "value_text": "Leadgenerator-geeignet laut Runtime.",
+          "value_number": 1,
+          "unit": "boolean",
+          "source_key": "frisia_runtime",
+          "usage_scope": "leadgen",
+          "source_timestamp": "2026-05-12T01:15:44+02:00",
+          "valid_from": "2026-05-12"
+        },
+        {
+          "metric_key": "boris_residential_bodenrichtwert_min",
+          "metric_label": "Bodenrichtwert Wohn-/Mischbau min.",
+          "value_text": "35 EUR/m2 in Zone AB Westersander; Stichtag 2026-01-01.",
+          "value_number": 35,
+          "unit": "EUR/m2",
+          "source_key": "boris_wfs_2026",
+          "usage_scope": "both",
+          "source_timestamp": "2026-05-12T02:19:24+02:00",
+          "valid_from": "2026-01-01"
+        },
+        {
+          "metric_key": "boris_residential_bodenrichtwert_max",
+          "metric_label": "Bodenrichtwert Wohn-/Mischbau max.",
+          "value_text": "55 EUR/m2 in den Zonen Westersander - Leekenweg und Westersander - Kolkstraße; Stichtag 2026-01-01.",
+          "value_number": 55,
+          "unit": "EUR/m2",
+          "source_key": "boris_wfs_2026",
+          "usage_scope": "both",
+          "source_timestamp": "2026-05-12T02:19:24+02:00",
+          "valid_from": "2026-01-01"
+        },
+        {
+          "metric_key": "boris_zone_02100066",
+          "metric_label": "BORIS-Zone Westersander - Leekenweg",
+          "value_text": "Zone 02100066: 55 EUR/m2, WA, Entwicklungszustand B, beitrags-/abgabenrechtlicher Zustand 1.",
+          "value_number": 55,
+          "unit": "EUR/m2",
+          "source_key": "boris_wfs_2026",
+          "usage_scope": "context_only",
+          "source_timestamp": "2026-05-12T02:19:24+02:00",
+          "valid_from": "2026-01-01"
+        },
+        {
+          "metric_key": "boris_zone_02102937",
+          "metric_label": "BORIS-Zone AB Westersander",
+          "value_text": "Zone 02102937: 35 EUR/m2, W mit Ergaenzung ASB, Entwicklungszustand B, beitrags-/abgabenrechtlicher Zustand 2.",
+          "value_number": 35,
+          "unit": "EUR/m2",
+          "source_key": "boris_wfs_2026",
+          "usage_scope": "context_only",
+          "source_timestamp": "2026-05-12T02:19:24+02:00",
+          "valid_from": "2026-01-01"
+        },
+        {
+          "metric_key": "boris_zone_02103050",
+          "metric_label": "BORIS-Zone Westersander - Kolkstraße",
+          "value_text": "Zone 02103050: 55 EUR/m2, MD, Entwicklungszustand B, beitrags-/abgabenrechtlicher Zustand 1.",
+          "value_number": 55,
+          "unit": "EUR/m2",
+          "source_key": "boris_wfs_2026",
+          "usage_scope": "context_only",
+          "source_timestamp": "2026-05-12T02:19:24+02:00",
+          "valid_from": "2026-01-01"
+        },
+        {
+          "metric_key": "boris_agricultural_context_range",
+          "metric_label": "Bodenrichtwert Landwirtschaft/Gruenland/Forst Kontext",
+          "value_text": "Im abgefragten Ihlow-Bereich liegen land-/forstwirtschaftliche BORIS-Werte zwischen 0,7 und 5,8 EUR/m2; nur als Kontext, nicht als Wohnbaulandwert nutzen.",
+          "value_number": 5.8,
+          "unit": "EUR/m2",
+          "source_key": "boris_wfs_2026",
+          "usage_scope": "context_only",
+          "source_timestamp": "2026-05-12T02:19:24+02:00",
+          "valid_from": "2026-01-01"
+        },
+        {
+          "metric_key": "ihlowerhoern_components",
+          "metric_label": "Lokale Ortsteilstruktur",
+          "value_text": "Ihlowerhörn setzt sich aus Lübbertsfehn, Hüllenerfehn und Westersander zusammen.",
+          "value_number": null,
+          "unit": null,
+          "source_key": "ihlow_ortschaft_ihlowerhoern",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2023-01-02"
+        },
+        {
+          "metric_key": "ihlowerhoern_population_2023",
+          "metric_label": "Einwohner Ihlowerhörn 2023",
+          "value_text": "Rund 1.041 Einwohner in Ihlowerhörn, Stand 02.01.2023.",
+          "value_number": 1041,
+          "unit": "Einwohner",
+          "source_key": "ihlow_ortschaft_ihlowerhoern",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2023-01-02"
+        },
+        {
+          "metric_key": "westersander_local_character",
+          "metric_label": "Lokaler Charakter Westersander",
+          "value_text": "Westersander wird offiziell als typisches Haufendorf auf dem flachen Geestrücken zwischen Krummem Tief und Fehntjer Tief beschrieben und war einst ein Bauerndorf.",
+          "value_number": null,
+          "unit": null,
+          "source_key": "ihlow_ortschaft_ihlowerhoern",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2023-01-02"
+        },
+        {
+          "metric_key": "ihlow_population_2023",
+          "metric_label": "Einwohner Gemeinde Ihlow 2023",
+          "value_text": "Rund 12.832 Einwohner, Stand 27.12.2023.",
+          "value_number": 12832,
+          "unit": "Einwohner",
+          "source_key": "ihlow_gemeinde",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2023-12-27"
+        },
+        {
+          "metric_key": "ihlow_area",
+          "metric_label": "Flaeche Gemeinde Ihlow",
+          "value_text": "Gemeinde Ihlow: 123 km2.",
+          "value_number": 123,
+          "unit": "km2",
+          "source_key": "ihlow_gemeinde",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2023-12-27"
+        },
+        {
+          "metric_key": "ihlow_regional_position",
+          "metric_label": "Regionale Lage",
+          "value_text": "Ihlow liegt als Nachbargemeinde zwischen der Seehafenstadt Emden im Westen und der Kreisstadt Aurich im Osten.",
+          "value_number": null,
+          "unit": null,
+          "source_key": "ihlow_gemeinde",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2023-12-27"
+        },
+        {
+          "metric_key": "westersander_planning_entities",
+          "metric_label": "Bauleitplanung Westersander",
+          "value_text": "Offizielle Bauleitplanung nennt u. a. B-Plan 0403 Dorfkern Westersander, B-Plan 0404 Lükenweg und B-Plan 0405 Langjüchweg.",
+          "value_number": null,
+          "unit": null,
+          "source_key": "ihlow_bauleitplanung_ihlowerhoern",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2026-05-12"
+        },
+        {
+          "metric_key": "westersander_outer_area_statute",
+          "metric_label": "Außenbereichssatzung Westersander Straße",
+          "value_text": "Die Außenbereichssatzung Teilbereich Westersander Straße im Ortsteil Ihlowerhörn ist laut Bekanntmachung am 24.10.2025 in Kraft getreten.",
+          "value_number": null,
+          "unit": null,
+          "source_key": "ihlow_aussenbereichssatzung_westersander",
+          "usage_scope": "seo",
+          "source_timestamp": "2026-05-12T00:00:00+02:00",
+          "valid_from": "2025-10-24"
+        },
+        {
+          "metric_key": "westersander_outer_area_existing_homes",
+          "metric_label": "Planungskontext bestehende Wohngebaeude",
+          "value_text": "Der Entwurf zur Außenbereichssatzung nennt im Planbereich 17 bestehende Wohngebaeude; nur als planungsbezogener Kontext verwenden.",
+          "value_number": 17,
+          "unit": "Wohngebaeude",
+          "source_key": "ihlow_aussenbereichssatzung_draft_pdf",
+          "usage_scope": "context_only",
+          "source_timestamp": "2025-03-26T00:00:00+01:00",
+          "valid_from": "2025-03-26"
+        },
+        {
+          "metric_key": "ihlowerhoern_population_2024_planning",
+          "metric_label": "Planungskontext Einwohner Ihlowerhörn 2024",
+          "value_text": "Der Entwurf nennt 1.019 Einwohner mit Hauptwohnsitz im Ortsteil Ihlowerhörn, Stichtag 03.12.2024.",
+          "value_number": 1019,
+          "unit": "Einwohner",
+          "source_key": "ihlow_aussenbereichssatzung_draft_pdf",
+          "usage_scope": "context_only",
+          "source_timestamp": "2025-03-26T00:00:00+01:00",
+          "valid_from": "2024-12-03"
+        },
+        {
+          "metric_key": "westersander_planning_additional_building_options",
+          "metric_label": "Planungskontext zusaetzliche Baumöglichkeiten",
+          "value_text": "Der Entwurf nennt etwa 5 zusaetzliche Baumöglichkeiten durch die Außenbereichssatzung; nur als Planungskontext nutzen.",
+          "value_number": 5,
+          "unit": "Baumöglichkeiten",
+          "source_key": "ihlow_aussenbereichssatzung_draft_pdf",
+          "usage_scope": "context_only",
+          "source_timestamp": "2025-03-26T00:00:00+01:00",
+          "valid_from": "2025-03-26"
+        },
+        {
+          "metric_key": "postal_code_review_required",
+          "metric_label": "PLZ-Pruefung erforderlich",
+          "value_text": "Die Frisia-Runtime fuehrt Westersander mit PLZ 26605. Aus den verwendeten offiziellen Quellen ist fuer die Gemeinde Ihlow allgemein 26632 ersichtlich; vor oeffentlicher Ausgabe muss die konkrete Westersander-PLZ manuell validiert werden.",
+          "value_number": null,
+          "unit": null,
+          "source_key": "frisia_runtime",
+          "usage_scope": "context_only",
+          "source_timestamp": "2026-05-12T01:15:44+02:00",
+          "valid_from": "2026-05-12"
+        }
+      ]
+    }
+  ]
+}

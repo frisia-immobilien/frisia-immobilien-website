@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { getGermanPropertyTypeLabel } from "@/lib/property-labels";
 import type { PropertyListItem } from "@/lib/propstack";
 
 function formatCurrency(value: number | null, priceOnInquiry: boolean) {
@@ -170,10 +169,10 @@ export default function PropertyRecommendationRail({ items }: PropertyRecommenda
                             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(10,23,37,0.56)] to-transparent" />
                             <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                               <span className="rounded-full bg-white/92 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-navy)] shadow-[0_10px_20px_rgba(15,23,42,0.12)]">
-                                {item.scope === "aurich" ? "Aurich" : "Umgebung"}
+                                {item.displayLocation}
                               </span>
                               <span className="rounded-full bg-[color:var(--color-navy)]/92 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_20px_rgba(15,23,42,0.12)]">
-                                {getGermanPropertyTypeLabel(item.rsCategory, item.rsType)}
+                                {item.propertyTypeLabel}
                               </span>
                             </div>
                             <div className="absolute inset-x-4 bottom-4">
@@ -186,7 +185,7 @@ export default function PropertyRecommendationRail({ items }: PropertyRecommenda
                         </Link>
 
                         <div className="flex flex-1 flex-col p-5 sm:p-6">
-                          <h3 className="min-h-[5.8rem] line-clamp-3 font-[family-name:var(--font-playfair)] text-[1.5rem] leading-[1.14] text-[color:var(--color-navy)]">
+                          <h3 className="min-h-[4.65rem] line-clamp-3 break-words font-[family-name:var(--font-playfair)] text-[1.18rem] leading-[1.2] text-[color:var(--color-navy)] [overflow-wrap:anywhere] sm:text-[1.32rem]">
                             <Link href={`/immobilien-aurich/${item.slug}`}>{item.title}</Link>
                           </h3>
 

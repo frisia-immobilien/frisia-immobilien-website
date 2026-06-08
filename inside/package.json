@@ -1,0 +1,20 @@
+{
+  "name": "frisia-inside",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "../node_modules/.bin/next dev --webpack",
+    "build": "../node_modules/.bin/next build"
+  },
+  "dependencies": {
+    "next": "16.1.4",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

@@ -5,6 +5,7 @@ import path from "node:path";
 
 import { sql } from "@/lib/db";
 import type { SeoLocationRow } from "@/lib/types/leadgen";
+import { hasActiveWebsiteSnapshot, readActiveSnapshotJson } from "@/lib/website-snapshot";
 
 type RuntimeMarketRecord = {
   landkreis?: string | null;
@@ -119,11 +120,15 @@ function fallbackLocationLabel(record: RuntimeMarketRecord) {
 }
 
 function runtimeFallbackLocations() {
-  const filePath = runtimeMarketDataPath();
-  if (!filePath) return fallbackLocations;
-
   try {
-    const raw = JSON.parse(fs.readFileSync(filePath, "utf8")) as { records?: RuntimeMarketRecord[] };
+    const snapshot = readActiveSnapshotJson<{ records?: RuntimeMarketRecord[] }>("leadgen_market_data");
+    const raw =
+      snapshot ??
+      (() => {
+        const filePath = runtimeMarketDataPath();
+        if (!filePath) return { records: [] };
+        return JSON.parse(fs.readFileSync(filePath, "utf8")) as { records?: RuntimeMarketRecord[] };
+      })();
     const records = Array.isArray(raw.records) ? raw.records : [];
     const bySlug = new Map<string, SeoLocationRow & { salesCount: number }>();
 
@@ -251,6 +256,11 @@ function chooseCityLocation(current: SeoLocationRow | null, next: SeoLocationRow
 }
 
 export async function getRegionHubData() {
+  const runtimeLocations = runtimeFallbackLocations();
+  if (hasActiveWebsiteSnapshot()) {
+    return buildRegionHub(runtimeLocations);
+  }
+
   let rows: SeoLocationRow[] = [];
   try {
     rows = (await sql`
@@ -264,8 +274,11 @@ export async function getRegionHubData() {
     rows = [];
   }
 
-  const runtimeLocations = runtimeFallbackLocations();
   const locations = rows.length > 0 ? mergeLocationRows(rows, runtimeLocations) : runtimeLocations;
+  return buildRegionHub(locations);
+}
+
+function buildRegionHub(locations: SeoLocationRow[]) {
   const grouped = new Map<
     string,
     Map<string, { cityLabel: string; cityLocation: SeoLocationRow | null; places: SeoLocationRow[] }>

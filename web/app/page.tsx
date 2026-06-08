@@ -6,7 +6,7 @@ import {
   DecisionFirstBlock,
   VerkaufssituationenBlock,
   WarumEigentuemerVerkaufenBlock,
-} from "@/components/home/HomeSections";
+} from "@/components/home/HomeEarlySections";
 import { FAQ_ITEMS } from "@/components/home/homeFaqItems";
 import JsonLd from "@/components/seo/JsonLd";
 import { buildPageMetadata } from "@/lib/metadata";

@@ -68,8 +68,8 @@ function mapCoverage(row: MarketDataRow | null | undefined, fallbackLevel: Marke
 
 function runtimeMarketDataPath() {
   const candidates = [
-    path.join(process.cwd(), "..", "data", "market", "runtime", "leadgen_market_data.json"),
     path.join(process.cwd(), "data", "market", "runtime", "leadgen_market_data.json"),
+    path.join(process.cwd(), "..", "data", "market", "runtime", "leadgen_market_data.json"),
   ];
 
   return candidates.find((candidate) => fs.existsSync(candidate)) ?? null;

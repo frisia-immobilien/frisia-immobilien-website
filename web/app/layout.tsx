@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import HomeHeader from "@/components/home/HomeHeader";
-import HeaderScrollBehavior from "@/components/home/HeaderScrollBehavior.client";
 import DeferredSiteFooter from "@/components/site/DeferredSiteFooter.client";
-import CookieBarShell from "@/components/CookieBarShell.client";
-import SiteAnalyticsBoot from "@/components/analytics/SiteAnalyticsBoot.client";
 import JsonLd from "@/components/seo/JsonLd";
 import {
   BRAND_NAME,
@@ -116,15 +113,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <JsonLd data={createLocalBusinessJsonLd()} />
         <JsonLd data={createRealEstateAgentJsonLd()} />
         <HomeHeader />
-        <HeaderScrollBehavior />
         {children}
         <DeferredSiteFooter />
-        <CookieBarShell />
-        <SiteAnalyticsBoot />
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "document.addEventListener('click',function(e){var t=e.target instanceof Element?e.target.closest('[data-cookie-settings-trigger]'):null;if(!t)return;window.dispatchEvent(new Event('frisia:open-cookie-settings'));});",
+              "addEventListener('load',function(){var load=function(){var s=document.createElement('script');s.src='/frisia-runtime.js';s.defer=true;document.body.appendChild(s)};'requestIdleCallback'in window?requestIdleCallback(load,{timeout:7000}):setTimeout(load,7000);});",
           }}
         />
       </body>

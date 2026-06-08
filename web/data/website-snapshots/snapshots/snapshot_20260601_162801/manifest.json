@@ -1,0 +1,47 @@
+{
+  "id": "snapshot_20260601_162801",
+  "version": "snapshot_20260601_162801",
+  "createdAt": "2026-06-01T16:28:01.103Z",
+  "publishedAt": "2026-06-01T16:28:01.103Z",
+  "checksum": "a881e32f4a4233c79d9338eef5cb925560724ad9964fe64932b0d71b24b5beaf",
+  "validationStatus": "valid",
+  "validation": {
+    "ok": true,
+    "errors": [],
+    "warnings": [
+      "Neon-Snapshotdaten konnten nicht gelesen werden: Server error (HTTP status 402): {\"message\":\"Your account or project has exceeded the compute time quota. Upgrade your plan to increase limits.\",\"code\":\"\",\"detail\":null,\"hint\":null,\"position\":null,\"internalPosition\":null,\"internalQuery\":null,\"severity\":\"\",\"where\":null,\"table\":null,\"column\":null,\"schema\":null,\"dataType\":null,\"constraint\":null,\"file\":null,\"line\":null,\"routine\":null,\"neon:retryable\":true}"
+    ]
+  },
+  "sources": {
+    "market": "data/market/runtime/leadgen_market_data.json",
+    "locations": "data/market/runtime/website_locations.json",
+    "seo_content": "neon_snapshot_at_sync_time",
+    "partners": "inside/public/storage/partners/public.json",
+    "properties": "propstack_snapshot_at_sync_time"
+  },
+  "files": {
+    "leadgen_market_data": "leadgen_market_data.json",
+    "website_locations": "website_locations.json",
+    "seo_location_content": "seo_location_content.json",
+    "seo_location_images": "seo_location_images.json",
+    "price_history": "price_history.json",
+    "partners": "partners.json",
+    "properties": "properties.json",
+    "text_snippets": "text_snippets.json"
+  },
+  "counts": {
+    "market_records": 1436,
+    "website_locations": 977,
+    "seo_content_records": 0,
+    "seo_image_records": 0,
+    "price_history_records": 0,
+    "partners": 3,
+    "properties": 1,
+    "brokers": 1,
+    "text_snippets": 0,
+    "house_price_records": 239,
+    "apartment_price_records": 761
+  },
+  "published": true,
+  "fallbackSnapshotId": "snapshot_20260601_161424"
+}

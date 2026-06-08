@@ -6,15 +6,13 @@ import HeroDivider from "@/components/site/HeroDivider";
 import MapLocationOverlay from "@/components/site/MapLocationOverlay.client";
 import OsmTileMap from "@/components/site/OsmTileMap.client";
 import PropertyGallery from "@/components/site/PropertyGallery.client";
-import { getGermanConditionLabel, getGermanPropertyTypeLabel } from "@/lib/property-labels";
+import { getGermanConditionLabel } from "@/lib/property-labels";
 import type { PropertyDetail } from "@/lib/propstack";
 import { ADDRESS, DIRECT_CONTACT } from "@/lib/site";
 
 type PropertyDetailTemplateProps = {
   property: PropertyDetail;
   contactHref: string;
-  phoneHref: string;
-  phoneDisplay: string;
 };
 
 type RichBlock =
@@ -55,7 +53,7 @@ function formatNumber(value: number | null, suffix: string) {
 }
 
 function resolvePropertyTypeLabel(property: PropertyDetail) {
-  return getGermanPropertyTypeLabel(property.rsCategory, property.rsType);
+  return property.propertyTypeLabel;
 }
 
 function normalizeWhitespace(value: string) {
@@ -278,18 +276,16 @@ function EnergyScale({ energyClass }: { energyClass: string | null }) {
 export default function PropertyDetailTemplate({
   property,
   contactHref,
-  phoneHref,
-  phoneDisplay,
 }: PropertyDetailTemplateProps) {
   const contactPerson = {
-    name: DIRECT_CONTACT.name,
+    name: property.contactName || DIRECT_CONTACT.name,
     title: property.contactTitle,
-    email: DIRECT_CONTACT.email,
-    phoneDisplay: DIRECT_CONTACT.phoneDisplay,
-    phoneHref: DIRECT_CONTACT.phoneHref,
-    mobileDisplay: DIRECT_CONTACT.mobileDisplay,
-    mobileHref: DIRECT_CONTACT.mobileHref,
-    imagePath: DIRECT_CONTACT.imagePath,
+    email: property.contactEmail || DIRECT_CONTACT.email,
+    phoneDisplay: property.contactPhoneDisplay || DIRECT_CONTACT.phoneDisplay,
+    phoneHref: property.contactPhoneHref || DIRECT_CONTACT.phoneHref,
+    mobileDisplay: property.contactMobileDisplay || DIRECT_CONTACT.mobileDisplay,
+    mobileHref: property.contactMobileHref || DIRECT_CONTACT.mobileHref,
+    imagePath: property.contactImagePath || DIRECT_CONTACT.imagePath,
   };
   const propertyTypeLabel = resolvePropertyTypeLabel(property);
   const galleryImages = property.galleryImages;
@@ -711,10 +707,10 @@ export default function PropertyDetailTemplate({
                   Exposé und Besichtigung anfragen
                 </Link>
                 <a
-                  href={phoneHref}
+                  href={contactPerson.phoneHref}
                   className="inline-flex w-full items-center justify-center rounded-2xl border border-[color:var(--color-brass)]/35 px-5 py-3.5 text-sm font-semibold text-[color:var(--color-navy)] transition-colors hover:bg-[color:var(--color-section)]"
                 >
-                  Anrufen: {phoneDisplay}
+                  Anrufen: {contactPerson.phoneDisplay}
                 </a>
               </div>
             </div>

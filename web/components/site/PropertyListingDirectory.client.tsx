@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useDeferredValue, useMemo, useState } from "react";
-import { getGermanPropertyTypeLabel } from "@/lib/property-labels";
 import type { PropertyListItem } from "@/lib/propstack";
 
 type PropertyListingDirectoryProps = {
@@ -44,7 +43,7 @@ function formatPublicLocation(zipCode: string | null, city: string) {
 }
 
 function resolveTypeLabel(item: PropertyListItem) {
-  return getGermanPropertyTypeLabel(item.rsCategory, item.rsType);
+  return item.propertyTypeLabel;
 }
 
 function resolveMarketingLabel(item: PropertyListItem) {
@@ -271,7 +270,7 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[rgba(10,23,37,0.45)] via-transparent to-transparent" />
                   <div className="absolute left-5 top-5 flex flex-wrap gap-2 sm:left-6 sm:top-6">
                     <span className="rounded-full bg-white/94 px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-navy)] shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
-                      {featuredItem.scope === "aurich" ? "Aurich" : "Umgebung"}
+                      {featuredItem.displayLocation}
                     </span>
                     <span className="rounded-full bg-[color:var(--color-navy)]/94 px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
                       {resolveTypeLabel(featuredItem)}
@@ -378,7 +377,7 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
                       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[rgba(10,23,37,0.52)] to-transparent" />
                       <div className="absolute left-4 top-4 flex flex-wrap gap-2">
                         <span className="rounded-full bg-white/92 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-navy)] shadow-[0_10px_20px_rgba(15,23,42,0.12)]">
-                          {item.scope === "aurich" ? "Aurich" : "Umgebung"}
+                          {item.displayLocation}
                         </span>
                         <span className="rounded-full bg-[color:var(--color-navy)]/92 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white shadow-[0_10px_20px_rgba(15,23,42,0.12)]">
                           {resolveTypeLabel(item)}

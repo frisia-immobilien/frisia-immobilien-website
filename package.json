@@ -7,9 +7,16 @@
   "scripts": {
     "postinstall": "npm --prefix web install --include=dev",
     "dev": "npm --prefix web run dev",
+    "dev:inside": "cd inside && ../node_modules/.bin/next dev --webpack",
     "start": "npm --prefix web run start",
     "build": "npm --prefix web run build",
+    "build:inside": "cd inside && ../node_modules/.bin/next build",
     "build:studio": "sanity build",
+    "package:inside": "node scripts/package-frisia-inside.mjs",
+    "sync:website-snapshot": "node scripts/sync-website-snapshot.mjs",
+    "deploy:inside": "PYTHONPYCACHEPREFIX=/tmp python3 scripts/deploy-frisia-inside-ftps.py",
+    "upload-config:inside": "PYTHONPYCACHEPREFIX=/tmp python3 scripts/upload-frisia-inside-config.py",
+    "bootstrap:inside": "PYTHONPYCACHEPREFIX=/tmp python3 scripts/bootstrap-frisia-inside.py",
     "deploy": "sanity deploy",
     "deploy-graphql": "sanity graphql deploy"
   },
@@ -23,7 +30,6 @@
     "next-themes": "^0.4.6",
     "react": "^19.1",
     "react-dom": "^19.1",
-    "resend": "^6.8.0",
     "sanity": "^5.21.0",
     "styled-components": "^6.1.18"
   },

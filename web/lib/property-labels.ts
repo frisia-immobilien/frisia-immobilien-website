@@ -20,6 +20,7 @@ function humanizeLabel(value: string | null) {
 }
 
 const PROPERTY_TYPE_LABELS: Record<string, string> = {
+  LIVING: "Wohnimmobilie",
   APARTMENT: "Wohnung",
   FLAT_SHARE_ROOM: "WG-Zimmer",
   ASSISTED_LIVING: "Betreutes Wohnen",
@@ -32,6 +33,7 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   GROUND_FLOOR: "Erdgeschosswohnung",
   RAISED_GROUND_FLOOR: "Hochparterre",
   HALF_BASEMENT: "Souterrain",
+  ATTIKA: "Attikawohnung",
   TERRACED_FLAT: "Terrassenwohnung",
   HOUSE: "Haus",
   SINGLE_FAMILY_HOUSE: "Einfamilienhaus",
@@ -39,6 +41,7 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   TWO_FAMILY_HOUSE: "Zweifamilienhaus",
   TERRACE_HOUSE: "Reihenhaus",
   SEMI_DETACHED_HOUSE: "Doppelhaushälfte",
+  SEMIDETACHED_HOUSE: "Doppelhaushälfte",
   TERRACED_HOUSE: "Reihenhaus",
   TERRACE_END_HOUSE: "Reihenendhaus",
   END_TERRACE_HOUSE: "Reiheneckhaus",
@@ -55,6 +58,7 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   TWIN_SINGLE_FAMILY_HOUSE: "Doppeleinfamilienhaus",
   TRADE_SITE: "Grundstück",
   OFFICE: "Büro",
+  OFFICE_LOFT: "Büroloft",
   OFFICE_FLOOR: "Büroetage",
   OFFICE_BUILDING: "Bürohaus",
   OFFICE_CENTRE: "Bürozentrum",
@@ -93,27 +97,74 @@ const PROPERTY_TYPE_LABELS: Record<string, string> = {
   HOTEL_GARNI: "Hotel garni",
   PENSION: "Pension",
   RESTAURANT: "Restaurant",
+  SUMMER_RESIDENCE: "Ferienwohnung",
   SHORT_TERM_ACCOMODATION: "Ferienimmobilie",
   SHORT_TERM_ACCOMMODATION: "Ferienimmobilie",
+  SHORT_TERM_APARTMENT: "Ferienwohnung",
+  SHORT_TERM_ROOM: "Ferienzimmer",
+  SHORT_TERM_HOUSE: "Ferienhaus",
+  SHORT_TERM_FLAT: "Ferienwohnung",
   INDUSTRY: "Industrie",
   HALL: "Halle",
+  HIGH_LACK_STORAGE: "Hochregallager",
+  INDUSTRY_HALL: "Industriehalle",
+  INDUSTRY_HALL_WITH_OPEN_AREA: "Industriehalle mit Freifläche",
+  COLD_STORAGE: "Kühlhaus",
+  MULTIDECK_CABINET_STORAGE: "Mehrgeschosslager",
   HALL_STORAGE: "Halle / Logistik",
   STORAGE: "Lager",
+  STORAGE_WITH_OPEN_AREA: "Lager mit Freifläche",
+  STORAGE_AREA: "Lagerfläche",
+  STORAGE_HALL: "Lagerhalle",
+  SERVICE_AREA: "Servicefläche",
+  SHIPPING_STORAGE: "Versandlager",
   PRODUCTION: "Produktion",
   INDUSTRIAL_PROPERTY: "Produktion / Fertigung",
   INDUSTRIAL_AREA: "Gewerbefläche",
   REPAIR_SHOP: "Werkstatt",
   HALL_STORAGE_PRODUCTION: "Halle / Lager / Produktion",
   COMMERCIAL: "Gewerbe",
+  COMMERCIAL_UNIT: "Gewerbeeinheit",
   COMMERCIAL_PROPERTY: "Gewerbeimmobilie",
   COMMERCIAL_BUILDING: "Geschäftshaus",
   SPECIAL_PURPOSE: "Sonderimmobilie",
   SPECIAL_PROPERTY: "Sonderimmobilie",
   SPECIAL_ESTATE: "Spezialobjekt",
   INVESTMENT: "Kapitalanlage",
+  INVEST_FREEHOLD_FLAT: "Eigentumswohnung als Kapitalanlage",
+  INVEST_SINGLE_FAMILY_HOUSE: "Einfamilienhaus als Kapitalanlage",
+  INVEST_MULTI_FAMILY_HOUSE: "Mehrfamilienhaus als Kapitalanlage",
+  INVEST_LIVING_BUSINESS_HOUSE: "Wohn- und Geschäftshaus als Kapitalanlage",
+  INVEST_HOUSING_ESTATE: "Wohnanlage als Kapitalanlage",
+  INVEST_MICRO_APARTMENTS: "Micro-Apartments als Kapitalanlage",
+  INVEST_OFFICE_BUILDING: "Bürohaus als Kapitalanlage",
+  INVEST_COMMERCIAL_BUILDING: "Geschäftshaus als Kapitalanlage",
+  INVEST_OFFICE_AND_COMMERCIAL_BUILDING: "Büro- und Geschäftshaus als Kapitalanlage",
+  INVEST_SHOP_SALES_FLOOR: "Laden / Verkaufsfläche als Kapitalanlage",
+  INVEST_SUPERMARKET: "Supermarkt als Kapitalanlage",
+  INVEST_SHOPPING_CENTRE: "Einkaufszentrum als Kapitalanlage",
+  INVEST_RETAIL_PARK: "Fachmarktzentrum als Kapitalanlage",
+  INVEST_HOTEL: "Hotel als Kapitalanlage",
+  INVEST_BOARDING_HOUSE: "Boarding House als Kapitalanlage",
+  INVEST_SURGERY_BUILDING: "Praxishaus als Kapitalanlage",
+  INVEST_CLINIC: "Klinik als Kapitalanlage",
+  INVEST_REHAB_CLINIC: "Reha-Klinik als Kapitalanlage",
+  INVEST_MEDICAL_SERVICE_CENTER: "Medizinisches Versorgungszentrum als Kapitalanlage",
+  INVEST_INTEGRATION_ASSISTANCE: "Einrichtung für Eingliederungshilfe als Kapitalanlage",
+  INVEST_DAY_NURSERY: "Kita als Kapitalanlage",
+  INVEST_DAY_CARE: "Tagespflege als Kapitalanlage",
+  INVEST_NURSING_HOME: "Pflegeheim als Kapitalanlage",
+  INVEST_ASSISTED_LIVING: "Betreutes Wohnen als Kapitalanlage",
+  INVEST_COMMERCIAL_CENTRE: "Gewerbezentrum als Kapitalanlage",
+  INVEST_HALL_STORAGE: "Halle / Lager als Kapitalanlage",
+  INVEST_INDUSTRIAL_PROPERTY: "Industrieimmobilie als Kapitalanlage",
+  INVEST_CAR_PARK: "Parkhaus als Kapitalanlage",
   INVEST_PLOT: "Grundstück",
+  INVEST_COMMERCIAL_UNIT: "Gewerbeeinheit als Kapitalanlage",
+  INVEST_OTHER: "Sonstige Kapitalanlage",
   RESIDENCE: "Anwesen",
   FARM: "Bauernhof",
+  NURSING_HOME: "Pflegeheim",
   HORSE_FARM: "Reiterhof",
   VINEYARD: "Weingut",
   LEISURE_FACILITY: "Freizeitanlage",
@@ -179,8 +230,13 @@ function translateLabel(value: string | null, dictionary: Record<string, string>
   return dictionary[normalized] ?? humanizeLabel(value);
 }
 
-export function getGermanPropertyTypeLabel(rsCategory: string | null, rsType: string | null) {
-  return translateLabel(rsCategory, PROPERTY_CATEGORY_LABELS) ?? translateLabel(rsType, PROPERTY_TYPE_LABELS) ?? "Immobilie";
+export function getGermanPropertyTypeLabel(rsCategory: string | null, rsType: string | null, objectType?: string | null) {
+  return (
+    translateLabel(rsCategory, PROPERTY_CATEGORY_LABELS) ??
+    translateLabel(rsType, PROPERTY_TYPE_LABELS) ??
+    translateLabel(objectType ?? null, PROPERTY_TYPE_LABELS) ??
+    "Immobilie"
+  );
 }
 
 export function getGermanConditionLabel(condition: string | null) {

@@ -29,3 +29,13 @@
 # Dotenv and similar local-only files
 *.local
 .vercel
+
+# Frisia Inside local build/config artifacts
+/inside/.next
+/inside/out
+/inside/public/private/config.php
+/inside/deploy/*.env
+/inside/deploy/*.log
+/inside/deploy/server-config.php
+/inside/deploy/package
+/inside/storage

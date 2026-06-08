@@ -1,4 +1,16 @@
-import Link from "next/link";
+import type { AnchorHTMLAttributes, ReactNode } from "react";
+
+function Link({
+  href,
+  children,
+  ...props
+}: AnchorHTMLAttributes<HTMLAnchorElement> & { href: string; children: ReactNode }) {
+  return (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  );
+}
 
 const AURICH_HERO_LINKS = [
   { href: "/immobilienmakler-aurich", label: "Immobilienmakler Aurich" },

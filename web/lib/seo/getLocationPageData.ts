@@ -4,11 +4,19 @@ import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
 import { getPriceHistory } from "@/lib/market/getPriceHistory";
 import { toLocationSlug } from "@/lib/market/normalizeLocation";
+import {
+  getRuntimeContent,
+  getRuntimeLocationBySlug,
+  getRuntimeMarket,
+  getRuntimeNearbyLocations,
+  getRuntimePriceHistory,
+} from "@/lib/market/runtimeLandingData";
 import { buildFallbackContent } from "@/lib/seo/getFallbackContent";
 import { getLocationImage } from "@/lib/seo/getLocationImage";
 import { formatLocationProseName } from "@/lib/seo/locationDisplay";
 import { findTemplateBySlug } from "@/lib/seo/templates";
 import { hasValuationIndexInputs } from "@/lib/seo/valuationLanding";
+import { hasActiveWebsiteSnapshot } from "@/lib/website-snapshot";
 import type {
   MarketDataRow,
   PriceHistoryRow,
@@ -50,6 +58,9 @@ export type LocationPageData = {
 };
 
 async function getLocationBySlug(locationSlug: string) {
+  const runtimeLocation = getRuntimeLocationBySlug(locationSlug);
+  if (hasActiveWebsiteSnapshot() && runtimeLocation) return runtimeLocation;
+
   let rows: SeoLocationRow[] = [];
   try {
     rows = (await sql`
@@ -63,6 +74,8 @@ async function getLocationBySlug(locationSlug: string) {
   }
 
   if (rows[0]) return rows[0];
+
+  if (runtimeLocation) return runtimeLocation;
 
   const fixedParent = FIXED_LOCATION_PARENT_FALLBACKS[locationSlug];
   const fallbackLabel = locationSlug
@@ -93,6 +106,9 @@ async function getLocationBySlug(locationSlug: string) {
 }
 
 async function getCustomContent(locationSlug: string, pageType: string) {
+  const runtimeContent = getRuntimeContent(locationSlug, pageType);
+  if (hasActiveWebsiteSnapshot()) return runtimeContent;
+
   let rows: SeoLocationContentRow[] = [];
   try {
     rows = (await sql`
@@ -109,6 +125,9 @@ async function getCustomContent(locationSlug: string, pageType: string) {
 }
 
 async function getMarket(locationSlug: string, objectType: "haus" | "wohnung") {
+  const runtimeMarket = getRuntimeMarket(locationSlug, objectType);
+  if (hasActiveWebsiteSnapshot()) return runtimeMarket;
+
   let rows: MarketDataRow[] = [];
   try {
     rows = (await sql`
@@ -139,7 +158,7 @@ async function getMarket(locationSlug: string, objectType: "haus" | "wohnung") {
   } catch {
     rows = [];
   }
-  return rows[0] ?? null;
+  return rows[0] ?? runtimeMarket;
 }
 
 function parentMarketSlugs(location: SeoLocationRow) {
@@ -175,6 +194,9 @@ async function getMarketWithParentFallback(location: SeoLocationRow, objectType:
 }
 
 async function getNearby(location: SeoLocationRow) {
+  const runtimeNearby = getRuntimeNearbyLocations(location);
+  if (hasActiveWebsiteSnapshot()) return runtimeNearby;
+
   let rows: SeoLocationRow[] = [];
   try {
     rows = (await sql`
@@ -193,7 +215,31 @@ async function getNearby(location: SeoLocationRow) {
   } catch {
     rows = [];
   }
-  return rows;
+  return rows.length > 0 ? rows : runtimeNearby;
+}
+
+async function getPriceHistoryWithFallback(location: SeoLocationRow, objectType: "haus" | "wohnung") {
+  const directRuntimeRows = getRuntimePriceHistory(location.location_slug, objectType);
+  if (hasActiveWebsiteSnapshot()) {
+    if (directRuntimeRows.length > 0) return directRuntimeRows;
+    for (const parentSlug of parentMarketSlugs(location)) {
+      const parentRows = getRuntimePriceHistory(parentSlug, objectType);
+      if (parentRows.length > 0) return parentRows;
+    }
+    return [];
+  }
+
+  const rows = await getPriceHistory({ object_type: objectType, location_slug: location.location_slug });
+  if (rows.length > 0) return rows;
+
+  if (directRuntimeRows.length > 0) return directRuntimeRows;
+
+  for (const parentSlug of parentMarketSlugs(location)) {
+    const parentRows = getRuntimePriceHistory(parentSlug, objectType);
+    if (parentRows.length > 0) return parentRows;
+  }
+
+  return [];
 }
 
 export async function getLocationPageData(slug: string): Promise<LocationPageData> {
@@ -211,8 +257,8 @@ export async function getLocationPageData(slug: string): Promise<LocationPageDat
     location_label: location.location_label,
     location_type: location.location_type,
   });
-  const houseHistory = await getPriceHistory({ object_type: "haus", location_slug: location.location_slug });
-  const apartmentHistory = await getPriceHistory({ object_type: "wohnung", location_slug: location.location_slug });
+  const houseHistory = await getPriceHistoryWithFallback(location, "haus");
+  const apartmentHistory = await getPriceHistoryWithFallback(location, "wohnung");
   const nearbyLocations = await getNearby(location);
   const content = buildFallbackContent({
     template: parsed.template,

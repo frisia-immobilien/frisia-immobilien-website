@@ -16,6 +16,10 @@ type MetadataOptions = {
   imagePath?: string;
 };
 
+function resolveMetadataImageUrl(imagePath: string) {
+  return /^https?:\/\//i.test(imagePath) ? imagePath : absoluteUrl(imagePath);
+}
+
 export function buildPageMetadata({
   title,
   description,
@@ -26,7 +30,7 @@ export function buildPageMetadata({
   imagePath = DEFAULT_SOCIAL_IMAGE_PATH,
 }: MetadataOptions): Metadata {
   const url = absoluteUrl(path);
-  const socialImageUrl = absoluteUrl(imagePath);
+  const socialImageUrl = resolveMetadataImageUrl(imagePath);
   const openGraphTitle = title.includes(BRAND_NAME) ? title : `${title} | ${BRAND_NAME}`;
   const pageTitle = title.includes(BRAND_NAME) ? ({ absolute: title } as const) : title;
 

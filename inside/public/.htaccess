@@ -1,0 +1,48 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{REQUEST_URI} ^/schaufenster-tv/live$ [NC]
+  RewriteRule ^schaufenster-tv/live$ http://%{HTTP_HOST}/schaufenster-tv/live/ [L,R=301]
+
+  RewriteRule ^schaufenster-tv/live/?$ schaufenster-tv/live.php [L]
+
+  RewriteCond %{REQUEST_URI} !^/schaufenster-tv/live/?$ [NC]
+  RewriteCond %{REQUEST_URI} !^/schaufenster-tv/live/ [NC]
+  RewriteCond %{REQUEST_URI} !^/schaufenster-tv/live\.php$ [NC]
+  RewriteCond %{REQUEST_URI} !^/_next/ [NC]
+  RewriteCond %{REQUEST_URI} !^/logo\.svg$ [NC]
+  RewriteCond %{REQUEST_URI} !^/api/schaufenster/items\.php$ [NC]
+  RewriteCond %{REQUEST_URI} !^/api/schaufenster/image\.php$ [NC]
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https [NC]
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  RewriteCond %{REQUEST_URI} !^/schaufenster-tv/live$ [NC]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteCond %{REQUEST_URI} !/$
+  RewriteRule ^(.+)$ https://%{HTTP_HOST}/$1/ [L,R=301]
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+
+  SetEnvIf Request_URI "^/schaufenster-tv/live/?$" FRISIA_TV_NOCACHE=1
+  SetEnvIf Request_URI "^/schaufenster-tv/live\.php$" FRISIA_TV_NOCACHE=1
+  SetEnvIf Request_URI "^/api/schaufenster/items\.php$" FRISIA_TV_NOCACHE=1
+  Header always set Cache-Control "no-store, no-cache, must-revalidate, max-age=0" env=FRISIA_TV_NOCACHE
+  Header always set Pragma "no-cache" env=FRISIA_TV_NOCACHE
+  Header always set Expires "0" env=FRISIA_TV_NOCACHE
+</IfModule>
+
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+<If "%{REQUEST_URI} =~ m#/(private|storage)/#">
+  Require all denied
+</If>

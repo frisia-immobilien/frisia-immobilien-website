@@ -38,12 +38,13 @@ export default function HomeHero() {
             <source media="(max-width: 767px)" type="image/avif" srcSet="/images/hero/home-hero-kapitaenshaus-mobile-lcp.avif" />
             <source media="(max-width: 767px)" type="image/webp" srcSet="/images/hero/home-hero-kapitaenshaus-mobile-lcp.webp" />
             <img
-              src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw=="
+              src="/images/hero/home-hero-kapitaenshaus-mobile-lcp.webp"
               alt="Hausverkauf in Aurich mit regionaler Immobilienberatung"
               title="Haus verkaufen in Aurich"
               width={900}
               height={1200}
               loading="eager"
+              decoding="sync"
               fetchPriority="high"
               className="h-full w-full object-cover object-center"
             />

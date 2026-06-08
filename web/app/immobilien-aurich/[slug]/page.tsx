@@ -5,8 +5,6 @@ import PropertyDetailTemplate from "@/components/site/PropertyDetailTemplate";
 import PropertyRecommendationRail from "@/components/site/PropertyRecommendationRail";
 import { buildPageMetadata } from "@/lib/metadata";
 import {
-  PHONE_HREF,
-  PHONE_DISPLAY,
   absoluteUrl,
   createBreadcrumbListJsonLd,
   createWebPageJsonLd,
@@ -20,7 +18,7 @@ import {
   propertyHasMarketingStatus,
 } from "@/lib/propstack";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 type PageProps = {
   params: Promise<{
@@ -109,7 +107,7 @@ export default async function ImmobilienAurichDetailPage({ params }: PageProps) 
       "@id": absoluteUrl("/#real-estate-agent"),
     },
     itemOffered: {
-      "@type": mapped.rsType === "HOUSE" ? "House" : "Apartment",
+      "@type": mapped.schemaType,
       "@id": `${canonical}#property`,
       name: mapped.title,
       description: mapped.descriptionNote || mapped.excerpt || undefined,
@@ -146,8 +144,6 @@ export default async function ImmobilienAurichDetailPage({ params }: PageProps) 
       <PropertyDetailTemplate
         property={mapped}
         contactHref={contactHref}
-        phoneHref={PHONE_HREF}
-        phoneDisplay={PHONE_DISPLAY}
       />
       <PropertyRecommendationRail items={relatedItems} />
     </main>
