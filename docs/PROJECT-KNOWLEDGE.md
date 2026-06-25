@@ -38,6 +38,14 @@ Wichtige bekannte Punkte:
 
 - Vercel erkennt und baut die Hauptwebsite aus `web/`.
 - Build-Themen, die bereits aufgetreten sind: falsche Output Directory, Next.js-Erkennung, lazy Database Client, fehlende `DATABASE_URL`.
+- `docs/CODEX-HANDOFF-2026-06-25.md`: aktueller Uebergabestand fuer Weiterarbeit auf einem anderen Rechner. Enthaelt Maklerhaus-Aenderung, Backup, neue Projektakten und den MarktwertReport-Livebefund.
+- `docs/FRISIA-MARKTWERTREPORT.md`: Start- und Wartungsakte fuer den MarktwertReport nach dem Immobilienbewertungs-Leadgenerator. Enthaelt Ablauf, Kernpfade, Datenmodell, Bewertungslogik, Propstack-Sync, Sicherheit und spaetere Weiterentwicklung.
+- MarktwertReport-Livebefund vom 2026-06-25:
+  - lokaler `npm run build` in `web/` erfolgreich
+  - `/bewertung/[token]` und `/bewertung-ergebnis/[token]` werden dynamisch gebaut
+  - Live-Route liefert HTTP 200 und noindex/nofollow/nocache
+  - Live-Abruf zeigt aber aktuell Datenbank-/Providerfehler `Your account or project has exceeded the compute time quota.`
+  - Naechste Schritte: Neon/Datenbank-Quota beheben, technische Fehlerausgabe fuer Kunden neutralisieren, echten Testlead end-to-end pruefen.
 - Stale-GSC-404s wurden technisch per Redirect behandelt:
   - `/location-type/ortsteil` -> `/regionen-ostfriesland`
   - `/location-type/stadt_gemeinde` -> `/regionen-ostfriesland`
@@ -105,6 +113,11 @@ Architektur:
 - Datenbank: TecSpace MySQL.
 - KI: OpenAI/ChatGPT API nur serverseitig ueber PHP.
 - Scheduler: TecSpace Cronjob, falls verfuegbar; sonst interner faelliger Task-Runner.
+
+Geplantes Teilprojekt:
+
+- `docs/FRISIA-CALL-COCKPIT.md`: technische Startakte fuer ein internes Call-Cockpit. Ziel: Placetel-Call-Notify-Webhook empfangen, Propstack-Kontakt und letzte Aktivitaeten anzeigen und optional ein KI-Gespraechsbriefing im dauerhaft geoeffneten Browserfenster bereitstellen.
+- `docs/FRISIA-TAGESCOCKPIT-OPERATOR-BOARD.md`: technische Startakte fuer ein internes Tagescockpit mit einfachem Trello-aehnlichem Aufgabenboard, Projektvorschlaegen, Propstack-Aufgaben, Propstack-Terminen, E-Mail-/Aktivitaetssignalen und KI-Empfehlungen fuer Tagesplanung, Akquise und Mitarbeiter-Aufgaben.
 
 Live-Stand am 2026-05-11:
 

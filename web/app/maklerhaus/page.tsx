@@ -102,6 +102,7 @@ const teamMembers = [
     qualifications: [
       "Immobilienmakler nach §34c",
       "WEG-Verwalter nach §34c",
+      "Versteigerer nach § 34b",
       "DGuSV-geprüfter Sachverständiger mit Spezialisierung Ferienimmobilien",
     ],
     text:
