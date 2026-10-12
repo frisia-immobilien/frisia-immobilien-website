@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 export const metadata = buildPageMetadata({
   title: "Immobilien in Aurich & Ostfriesland",
   description:
-    "Immobilien in Aurich und Ostfriesland: aktuelle Angebote von Frisia Immobilien entdecken oder Suchauftrag anlegen.",
+    "Immobilien in Aurich und Ostfriesland: ausgewählte Angebote von Frisia Immobilien entdecken oder Suchauftrag anlegen.",
   path: "/immobilien-aurich",
   keywords: [
     "immobilien aurich",
@@ -71,14 +71,14 @@ export default async function ImmobilienAurichPage() {
             Immobilien in Aurich & Ostfriesland
           </>
         }
-        description="Aktuelle Angebote von Frisia Immobilien und ein Suchauftrag, wenn gerade nichts Passendes dabei ist."
+        description="Ausgewählte Angebote von Frisia Immobilien und ein Suchauftrag, wenn gerade nichts Passendes dabei ist."
         imageSrc="/images/immobilien-aurich-hero-drohne.webp"
         imageAlt="Helle Drohnenaufnahme einer ruhigen Wohnlage in Aurich und Ostfriesland"
         imagePosition="64% center"
         imageQuality={45}
         primaryCta={{ href: "#immobilien-filter", label: "Immobilien entdecken" }}
         secondaryCta={{ href: "/suchauftrag", label: "Suchauftrag anlegen" }}
-        trustItems={["Aktuelle Angebote", "Regional", "Direkt anfragbar"]}
+        trustItems={["Ausgewählte Angebote", "Regional", "Direkt anfragbar"]}
       />
 
       <section
@@ -115,7 +115,7 @@ export default async function ImmobilienAurichPage() {
             </h1>
             <HeroDivider />
             <p className="mt-7 max-w-[43rem] text-[1.08rem] leading-[1.7] text-[color:var(--color-navy)] md:text-[1.3rem]">
-              Aktuelle Angebote von Frisia Immobilien und ein Suchauftrag, wenn gerade nichts Passendes dabei ist.
+              Ausgewählte Angebote von Frisia Immobilien und ein Suchauftrag, wenn gerade nichts Passendes dabei ist.
               Ruhig vorsortiert, regional eingeordnet und direkt anfragbar.
             </p>
 
