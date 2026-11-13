@@ -111,11 +111,13 @@ type PropstackCustomField = string | { value?: string | null; pretty_value?: str
 
 type PropstackBroker = {
   id: number;
+  name?: string | null;
   first_name?: string | null;
   last_name?: string | null;
   email?: string | null;
   public_phone?: string | null;
   public_cell?: string | null;
+  avatar?: string | null;
   avatar_url?: string | null;
   custom?: {
     titel?: PropstackCustomField;
@@ -260,7 +262,14 @@ export type PropertyDetail = PropertyListItem & {
   otherNote: string | null;
   galleryImages: PropertyDetailImage[];
   floorplanImages: PropertyDetailImage[];
+  contactName: string | null;
   contactTitle: string | null;
+  contactEmail: string | null;
+  contactPhoneDisplay: string | null;
+  contactPhoneHref: string | null;
+  contactMobileDisplay: string | null;
+  contactMobileHref: string | null;
+  contactImageUrl: string | null;
 };
 
 function getPropstackConfig() {
@@ -351,6 +360,32 @@ function getCustomFieldText(field?: PropstackCustomField) {
 
 function normalizeBrokerTitle(value?: string | null) {
   return normalizeText(value) || null;
+}
+
+function resolveBrokerName(broker?: PropstackBroker | null) {
+  const nameFromParts = [normalizeText(broker?.first_name), normalizeText(broker?.last_name)]
+    .filter(Boolean)
+    .join(" ");
+
+  return nameFromParts || normalizeText(broker?.name) || null;
+}
+
+function normalizePhoneHref(value?: string | null) {
+  const displayValue = normalizeText(value);
+  if (!displayValue) return null;
+
+  const dialable = displayValue.replace(/[^\d+]/g, "");
+  if (!dialable) return null;
+
+  if (dialable.startsWith("+")) return `tel:${dialable}`;
+  if (dialable.startsWith("00")) return `tel:+${dialable.slice(2)}`;
+  if (dialable.startsWith("0")) return `tel:+49${dialable.slice(1)}`;
+
+  return `tel:${dialable}`;
+}
+
+function resolveBrokerAvatarUrl(broker?: PropstackBroker | null) {
+  return normalizeText(broker?.avatar_url) || normalizeText(broker?.avatar) || null;
 }
 
 function isTruthyPropstackFlag(value: unknown) {
@@ -595,12 +630,32 @@ function toListItem(property: PropstackProperty): PropertyListItem {
   };
 }
 
+function hasFiWebsiteTopPlacement(property: PropstackProperty) {
+  return isTruthyPropstackFlag(property.custom_fields?.top_platzierung_fi_website);
+}
+
+function comparePropstackDateDesc(a?: string | null, b?: string | null) {
+  const aTime = a ? Date.parse(a) : Number.NEGATIVE_INFINITY;
+  const bTime = b ? Date.parse(b) : Number.NEGATIVE_INFINITY;
+  return bTime - aTime;
+}
+
 function orderMarketingProperties(properties: PropstackProperty[]) {
-  return [...properties].sort((a, b) => {
-    const aCreatedAt = Date.parse(a.created_at ?? "") || 0;
-    const bCreatedAt = Date.parse(b.created_at ?? "") || 0;
-    return bCreatedAt - aCreatedAt || b.id - a.id;
-  });
+  return properties
+    .map((property, index) => ({ property, index }))
+    .sort((a, b) => {
+      const aIsTop = hasFiWebsiteTopPlacement(a.property);
+      const bIsTop = hasFiWebsiteTopPlacement(b.property);
+
+      if (aIsTop !== bIsTop) return aIsTop ? -1 : 1;
+      if (aIsTop && bIsTop) {
+        const dateDelta = comparePropstackDateDesc(a.property.updated_at, b.property.updated_at);
+        if (dateDelta !== 0) return dateDelta;
+      }
+
+      return a.index - b.index;
+    })
+    .map(({ property }) => property);
 }
 
 async function getPropertyStatuses() {
@@ -629,8 +684,6 @@ async function getRawMarketingProperties() {
   const response = await propstackFetch<PropstackListResponse<PropstackProperty> | PropstackProperty[]>("/properties", {
     status: statusIds.join(","),
     per: 200,
-    sort_by: "created_at",
-    order: "desc",
   });
   return Array.isArray(response) ? response : toArray<PropstackProperty>(response?.data);
 }
@@ -698,6 +751,8 @@ export async function propertyHasMarketingStatus(property: PropstackProperty) {
 export function mapPropertyDetail(property: PropstackProperty, broker?: PropstackBroker | null): PropertyDetail {
   const base = toListItem(property);
   const images = mapImages(property.images);
+  const brokerPhone = normalizeText(broker?.public_phone) || null;
+  const brokerMobile = normalizeText(broker?.public_cell) || null;
 
   return {
     ...base,
@@ -729,10 +784,17 @@ export function mapPropertyDetail(property: PropstackProperty, broker?: Propstac
     otherNote: normalizeText(property.other_note) || normalizeText(findGermanTranslation(property)?.other_note) || null,
     galleryImages: images.filter((image) => !image.isFloorplan),
     floorplanImages: images.filter((image) => image.isFloorplan),
+    contactName: resolveBrokerName(broker),
     contactTitle: normalizeBrokerTitle(
       getCustomFieldText(broker?.custom?.titel) ??
         getCustomFieldText(broker?.custom_fields?.titel) ??
         getCustomFieldText(broker?.custom_fields?.Titel),
     ),
+    contactEmail: normalizeText(broker?.email) || null,
+    contactPhoneDisplay: brokerPhone,
+    contactPhoneHref: normalizePhoneHref(brokerPhone),
+    contactMobileDisplay: brokerMobile,
+    contactMobileHref: normalizePhoneHref(brokerMobile),
+    contactImageUrl: resolveBrokerAvatarUrl(broker),
   } satisfies PropertyDetail;
 }

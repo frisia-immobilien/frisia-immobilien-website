@@ -140,7 +140,7 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
   return (
     <div id="immobilien-filter" className="mt-10 scroll-mt-24">
       <div className="rounded-[2rem] border border-[color:var(--color-brass)]/20 bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.05)] sm:p-6">
-        <div className="grid gap-4 lg:grid-cols-[minmax(12rem,0.9fr)_minmax(12rem,0.8fr)_minmax(0,1.8fr)] lg:items-start">
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-start">
           <div className="flex flex-col">
             <label htmlFor="city-filter" className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
               Ort
@@ -196,26 +196,13 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
                 </button>
               ))}
             </div>
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCity(initialCity);
-                  setSelectedMarketing(initialMarketing);
-                  setSelectedType("");
-                }}
-                className="inline-flex items-center rounded-full border border-[color:var(--color-brass)]/22 bg-[color:var(--color-section)]/55 px-4 py-2 text-sm font-semibold text-[color:var(--color-brackish)] transition-colors hover:border-[color:var(--color-brass)]/40 hover:bg-white hover:text-[color:var(--color-navy)]"
-              >
-                Filter zurücksetzen
-              </button>
-            </div>
           </div>
 
           <div className="flex flex-col">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[color:var(--color-brackish)]">
               Objektart
             </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <div className="mt-2 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedType("")}
@@ -244,6 +231,22 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
             </div>
           </div>
 
+          <div className="flex flex-col">
+            <span className="text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-transparent" aria-hidden="true">
+              Aktion
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCity(initialCity);
+                setSelectedMarketing(initialMarketing);
+                setSelectedType("");
+              }}
+              className="mt-2 inline-flex min-h-12 items-center justify-center rounded-2xl border border-[color:var(--color-brass)]/24 bg-white px-5 py-3 text-sm font-semibold text-[color:var(--color-navy)] transition-colors hover:bg-[color:var(--color-section)]"
+            >
+              Filter zurücksetzen
+            </button>
+          </div>
         </div>
       </div>
 
@@ -288,7 +291,7 @@ export default function PropertyListingDirectory({ items }: PropertyListingDirec
                 <div className="flex flex-col justify-between bg-[linear-gradient(180deg,#ffffff_0%,#f7f8fa_100%)] p-6 sm:p-8 lg:p-10">
                   <div>
                     <p className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--color-brackish)]">
-                      Aktuellster Eintrag
+                      Ausgewähltes Angebot
                     </p>
                     <h2 className="mt-4 font-[family-name:var(--font-playfair)] text-[2.3rem] leading-[1.02] tracking-[-0.02em] text-[color:var(--color-navy)] sm:text-[2.8rem]">
                       <Link href={`/immobilien-aurich/${featuredItem.slug}`}>{featuredItem.title}</Link>

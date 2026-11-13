@@ -146,8 +146,8 @@ export default async function ImmobilienAurichDetailPage({ params }: PageProps) 
       <PropertyDetailTemplate
         property={mapped}
         contactHref={contactHref}
-        phoneHref={PHONE_HREF}
-        phoneDisplay={PHONE_DISPLAY}
+        phoneHref={mapped.contactPhoneHref ?? PHONE_HREF}
+        phoneDisplay={mapped.contactPhoneDisplay ?? PHONE_DISPLAY}
       />
       <PropertyRecommendationRail items={relatedItems} />
     </main>

@@ -281,15 +281,18 @@ export default function PropertyDetailTemplate({
   phoneHref,
   phoneDisplay,
 }: PropertyDetailTemplateProps) {
+  const hasPropstackContact = Boolean(
+    property.contactName || property.contactEmail || property.contactPhoneDisplay || property.contactMobileDisplay,
+  );
   const contactPerson = {
-    name: DIRECT_CONTACT.name,
-    title: property.contactTitle,
-    email: DIRECT_CONTACT.email,
-    phoneDisplay: DIRECT_CONTACT.phoneDisplay,
-    phoneHref: DIRECT_CONTACT.phoneHref,
-    mobileDisplay: DIRECT_CONTACT.mobileDisplay,
-    mobileHref: DIRECT_CONTACT.mobileHref,
-    imagePath: DIRECT_CONTACT.imagePath,
+    name: property.contactName ?? DIRECT_CONTACT.name,
+    title: property.contactTitle ?? (hasPropstackContact ? null : DIRECT_CONTACT.title),
+    email: property.contactEmail ?? (hasPropstackContact ? null : DIRECT_CONTACT.email),
+    phoneDisplay: property.contactPhoneDisplay ?? (hasPropstackContact ? null : DIRECT_CONTACT.phoneDisplay),
+    phoneHref: property.contactPhoneHref ?? (hasPropstackContact ? null : DIRECT_CONTACT.phoneHref),
+    mobileDisplay: property.contactMobileDisplay ?? (hasPropstackContact ? null : DIRECT_CONTACT.mobileDisplay),
+    mobileHref: property.contactMobileHref ?? (hasPropstackContact ? null : DIRECT_CONTACT.mobileHref),
+    imagePath: property.contactImageUrl ?? (hasPropstackContact ? null : DIRECT_CONTACT.imagePath),
   };
   const propertyTypeLabel = resolvePropertyTypeLabel(property);
   const galleryImages = property.galleryImages;
@@ -589,15 +592,17 @@ export default function PropertyDetailTemplate({
 
             <DetailSection title="Persönlicher Kontakt">
               <div className="flex gap-4 sm:gap-5">
-                <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[1.5rem] bg-[color:var(--color-section)]/45 sm:h-32 sm:w-32">
-                  <Image
-                    src={contactPerson.imagePath}
-                    alt={contactPerson.name}
-                    fill
-                    sizes="128px"
-                    className="object-cover object-[50%_24%]"
-                  />
-                </div>
+                {contactPerson.imagePath ? (
+                  <div className="relative h-28 w-28 shrink-0 overflow-hidden rounded-[1.5rem] bg-[color:var(--color-section)]/45 sm:h-32 sm:w-32">
+                    <Image
+                      src={contactPerson.imagePath}
+                      alt={contactPerson.name}
+                      fill
+                      sizes="128px"
+                      className="object-cover object-[50%_24%]"
+                    />
+                  </div>
+                ) : null}
 
                 <div className="min-w-0">
                   <p className="font-[family-name:var(--font-playfair)] text-[1.8rem] leading-[1.1] text-[color:var(--color-navy)]">
@@ -610,18 +615,24 @@ export default function PropertyDetailTemplate({
                   ) : null}
 
                   <div className="mt-5 space-y-3 text-[0.98rem] text-[color:var(--color-navy)]">
-                    <a href={`mailto:${contactPerson.email}`} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
-                      <EmailIcon className="h-4 w-4 shrink-0" />
-                      <span className="font-medium">{contactPerson.email}</span>
-                    </a>
-                    <a href={contactPerson.phoneHref} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
-                      <PhoneIcon className="h-4 w-4 shrink-0" />
-                      <span className="font-medium">{contactPerson.phoneDisplay}</span>
-                    </a>
-                    <a href={contactPerson.mobileHref} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
-                      <MobileIcon className="h-4 w-4 shrink-0" />
-                      <span className="font-medium">{contactPerson.mobileDisplay}</span>
-                    </a>
+                    {contactPerson.email ? (
+                      <a href={`mailto:${contactPerson.email}`} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
+                        <EmailIcon className="h-4 w-4 shrink-0" />
+                        <span className="font-medium">{contactPerson.email}</span>
+                      </a>
+                    ) : null}
+                    {contactPerson.phoneHref && contactPerson.phoneDisplay ? (
+                      <a href={contactPerson.phoneHref} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
+                        <PhoneIcon className="h-4 w-4 shrink-0" />
+                        <span className="font-medium">{contactPerson.phoneDisplay}</span>
+                      </a>
+                    ) : null}
+                    {contactPerson.mobileHref && contactPerson.mobileDisplay ? (
+                      <a href={contactPerson.mobileHref} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
+                        <MobileIcon className="h-4 w-4 shrink-0" />
+                        <span className="font-medium">{contactPerson.mobileDisplay}</span>
+                      </a>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -639,18 +650,24 @@ export default function PropertyDetailTemplate({
                 {contactPerson.name}
               </p>
               <div className="mt-4 space-y-2.5 text-[0.92rem] text-[color:var(--color-navy)]">
-                <a href={contactPerson.phoneHref} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
-                  <PhoneIcon className="h-[0.95rem] w-[0.95rem] shrink-0" />
-                  <span className="font-bold">{contactPerson.phoneDisplay}</span>
-                </a>
-                <a href={contactPerson.mobileHref} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
-                  <MobileIcon className="h-[0.95rem] w-[0.95rem] shrink-0" />
-                  <span className="font-medium">{contactPerson.mobileDisplay}</span>
-                </a>
-                <a href={`mailto:${contactPerson.email}`} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
-                  <EmailIcon className="h-[0.95rem] w-[0.95rem] shrink-0" />
-                  <span className="font-medium">{contactPerson.email}</span>
-                </a>
+                {contactPerson.phoneHref && contactPerson.phoneDisplay ? (
+                  <a href={contactPerson.phoneHref} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
+                    <PhoneIcon className="h-[0.95rem] w-[0.95rem] shrink-0" />
+                    <span className="font-bold">{contactPerson.phoneDisplay}</span>
+                  </a>
+                ) : null}
+                {contactPerson.mobileHref && contactPerson.mobileDisplay ? (
+                  <a href={contactPerson.mobileHref} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
+                    <MobileIcon className="h-[0.95rem] w-[0.95rem] shrink-0" />
+                    <span className="font-medium">{contactPerson.mobileDisplay}</span>
+                  </a>
+                ) : null}
+                {contactPerson.email ? (
+                  <a href={`mailto:${contactPerson.email}`} className="flex items-center gap-3 transition-colors hover:text-[color:var(--color-brackish)]">
+                    <EmailIcon className="h-[0.95rem] w-[0.95rem] shrink-0" />
+                    <span className="font-medium">{contactPerson.email}</span>
+                  </a>
+                ) : null}
               </div>
             </div>
 
