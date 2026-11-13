@@ -2,6 +2,12 @@
 
 Diese Historie dokumentiert die veröffentlichten Versionen von **frisia-immobilien.de**. Neueste Version zuerst. Die zentrale Versionsnummer steht in `package.json`; der Footer liest diese Nummer direkt aus derselben Datei.
 
+## [1.0.4] – 2026-11-13
+
+### Korrigiert
+
+- Ausschließlich den Immobilienfilter auf den Stand 1.0.0 zurückgesetzt: dreispaltige Anordnung und „Filter zurücksetzen“ wieder unter „Kauf / Miete“.
+
 ## [1.0.3] – 2026-11-13
 
 ### Korrigiert
