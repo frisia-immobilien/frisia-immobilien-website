@@ -1,4 +1,5 @@
 import type { AnchorHTMLAttributes, ReactNode } from "react";
+import { version as websiteVersion } from "../../package.json";
 import {
   BRAND_NAME,
   EMAIL,
@@ -381,7 +382,16 @@ export default function SiteFooter() {
             <div className={`${footerSoftTopDividerClass} space-y-2 pt-6 text-xs leading-6 text-white/62`}>
               <p>„Frisia Immobilien“ ist als Marke beim DPMA (Deutsches Patent- und Markenamt) angemeldet.</p>
               <p>{`© 2026 ${BRAND_NAME} · Regionaler Immobilienmakler in Aurich, Emden, Leer, Wittmund und Norden.`}</p>
-              <p>Alle Rechte vorbehalten.</p>
+              <p className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                <span>Alle Rechte vorbehalten.</span>
+                <span
+                  data-site-version={websiteVersion}
+                  aria-label={`Website-Version ${websiteVersion}`}
+                  className="text-[0.65rem] text-white/35"
+                >
+                  v{websiteVersion}
+                </span>
+              </p>
             </div>
           </div>
         </section>
