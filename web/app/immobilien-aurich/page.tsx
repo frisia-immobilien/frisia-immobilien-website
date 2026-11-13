@@ -71,7 +71,7 @@ export default async function ImmobilienAurichPage() {
             Immobilien in Aurich & Ostfriesland
           </>
         }
-        description="Ausgewählte Angebote von Frisia Immobilien und ein Suchauftrag, wenn gerade nichts Passendes dabei ist."
+        description="Ausgewählte Angebote"
         imageSrc="/images/immobilien-aurich-hero-drohne.webp"
         imageAlt="Helle Drohnenaufnahme einer ruhigen Wohnlage in Aurich und Ostfriesland"
         imagePosition="64% center"
@@ -115,8 +115,7 @@ export default async function ImmobilienAurichPage() {
             </h1>
             <HeroDivider />
             <p className="mt-7 max-w-[43rem] text-[1.08rem] leading-[1.7] text-[color:var(--color-navy)] md:text-[1.3rem]">
-              Ausgewählte Angebote von Frisia Immobilien und ein Suchauftrag, wenn gerade nichts Passendes dabei ist.
-              Ruhig vorsortiert, regional eingeordnet und direkt anfragbar.
+              Ausgewählte Angebote
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
