@@ -595,6 +595,14 @@ function toListItem(property: PropstackProperty): PropertyListItem {
   };
 }
 
+function orderMarketingProperties(properties: PropstackProperty[]) {
+  return [...properties].sort((a, b) => {
+    const aCreatedAt = Date.parse(a.created_at ?? "") || 0;
+    const bCreatedAt = Date.parse(b.created_at ?? "") || 0;
+    return bCreatedAt - aCreatedAt || b.id - a.id;
+  });
+}
+
 async function getPropertyStatuses() {
   const response = await propstackFetch<PropstackListResponse<PropstackPropertyStatus> | PropstackPropertyStatus[]>(
     "/property_statuses",
@@ -621,7 +629,7 @@ async function getRawMarketingProperties() {
   const response = await propstackFetch<PropstackListResponse<PropstackProperty> | PropstackProperty[]>("/properties", {
     status: statusIds.join(","),
     per: 200,
-    sort_by: "updated_at",
+    sort_by: "created_at",
     order: "desc",
   });
   return Array.isArray(response) ? response : toArray<PropstackProperty>(response?.data);
@@ -630,14 +638,9 @@ async function getRawMarketingProperties() {
 export async function getImmobilienAurichListingResult(): Promise<PropertyListingResult> {
   try {
     const rawProperties = await getRawMarketingProperties();
-    const mapped = rawProperties.map(toListItem);
-    const aurichFirst = mapped.sort((a, b) => {
-      if (a.scope === b.scope) return 0;
-      return a.scope === "aurich" ? -1 : 1;
-    });
 
     return {
-      items: aurichFirst,
+      items: orderMarketingProperties(rawProperties).map(toListItem),
       coverage: "aurich-und-umgebung",
     };
   } catch (error) {

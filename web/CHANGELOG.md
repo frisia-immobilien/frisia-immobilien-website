@@ -2,6 +2,13 @@
 
 Diese Historie dokumentiert die veröffentlichten Versionen von **frisia-immobilien.de**. Neueste Version zuerst. Die zentrale Versionsnummer steht in `package.json`; der Footer liest diese Nummer direkt aus derselben Datei.
 
+## [1.0.3] – 2026-11-13
+
+### Korrigiert
+
+- Immobilien auf `/immobilien-aurich` nach Anlagedatum absteigend sortiert: Das zuletzt hochgeladene Objekt steht zuerst, unabhängig vom Ort und späteren Bearbeitungen.
+- Filter und Angebotsdarstellung entsprechen dem bestätigten Stand 1.0.0.
+
 ## [1.0.2] – 2026-11-13
 
 ### Korrigiert
