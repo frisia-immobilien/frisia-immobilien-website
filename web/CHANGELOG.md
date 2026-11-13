@@ -2,6 +2,12 @@
 
 Diese Historie dokumentiert die veröffentlichten Versionen von **frisia-immobilien.de**. Neueste Version zuerst. Die zentrale Versionsnummer steht in `package.json`; der Footer liest diese Nummer direkt aus derselben Datei.
 
+## [1.0.2] – 2026-11-13
+
+### Korrigiert
+
+- Vollständigen Beschreibungstext im Hero von `/immobilien-aurich` auf Desktop und Handy wiederhergestellt. Die gewünschte Wortwahl „Ausgewählte Angebote“ bleibt im ursprünglichen Absatz erhalten.
+
 ## [1.0.1] – 2026-11-13
 
 ### Geändert
